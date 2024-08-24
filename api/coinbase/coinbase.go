@@ -1,0 +1,7 @@
+package coinbase
+
+import (
+	"fmt"
+)
+
+

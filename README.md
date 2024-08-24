@@ -7,3 +7,21 @@ hm_backend
   |-- coinbase.go
   |-- alpaca.go
 -- main.go
+
+TODO:
+- Backend
+[ ] DB Create Tables if not exist
+[x] Write Fills
+[x] Write Current Orders
+[x] Write Candles
+[ ] main loop - 
+    [ ] fetch all candles with all timeframes from all assets and their exchange according to watchlist
+    [ ] Portfolio
+[ ] api/api.go use for exchange specific structs for available timeframes.
+[ ] SQL Events websocket: trigger api call to update backend 
+    [ ] portfolio/positions change
+    [ ] orders triggered
+- Server (serving data to client)
+[ ] http API
+
+

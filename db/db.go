@@ -25,6 +25,11 @@ type Timeframe struct {
     Tf    int
 }
 
+type Watchlist struct {
+	Product		string
+	Exchange	string
+}
+
 var host string
 var port int
 var user string
