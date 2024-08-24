@@ -11,7 +11,7 @@ import (
 )
 
 type Candle struct {
-    Time   int64
+    Timestamp   int64
     Open   float64
     High   float64
     Low    float64
@@ -66,11 +66,11 @@ func DBConnect() (*sql.DB, error) {
 }
 
 type Order struct {
+	Timestamp			int64  // 1724459850
 	OrderID 		string // Exchange specific order identifier
 	ProductID		string // xbt_usd_15
 	TradeType		string // Long / Short
 	Side			string // buy / sell
-	Time			int64  // 1724459850
 	Exchange		string // coinbase / alpaca
 	MarketCategory		string // (crypto / equities)_(spot / futures)
 	Price			string // instrument_currency
@@ -97,7 +97,7 @@ func Write_Order(orders []Order) { // Current Orders for all accounts
 	VALUES(?,?,?,?,?,?,?,?,?);
 	`
 	for _, order := range orders {
-		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Time, order.Exchange, order.MarketCategory, order.Price, order.Size)
+		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.Exchange, order.MarketCategory, order.Price, order.Size)
 		if err != nil {
 			fmt.Sprintf("Error inserting into Order table: \n%v", err)
 
@@ -108,10 +108,10 @@ func Write_Order(orders []Order) { // Current Orders for all accounts
 }
 
 type Fill struct {
+	Timestamp	int64
 	EntryID		string
 	TradeID		string
 	OrderID		string
-	Time		int64
 	TradeType	string
 	Price		string	
 	Size		string
@@ -133,7 +133,7 @@ func Write_Fill(fills []Fill) {
 	`
 
 	for _, fill := range fills {
-		_, err := db.Exec(insertQuery, fill.EntryID, fill.TradeID, fill.OrderID, fill.Time, fill.TradeType, fill.Price, fill.Size, fill.Side, fill.Commission, fill.ProductID, fill.Exchange, fill.MarketCategory)
+		_, err := db.Exec(insertQuery, fill.EntryID, fill.TradeID, fill.OrderID, fill.Timestamp, fill.TradeType, fill.Price, fill.Size, fill.Side, fill.Commission, fill.ProductID, fill.Exchange, fill.MarketCategory)
 		if err != nil {
 			fmt.Sprintf("Error inserting fill: \n%v", err)
 		}
@@ -142,7 +142,50 @@ func Write_Fill(fills []Fill) {
 	fmt.Println(len(fills), "fills added to db successfully")
 }
 
+// ---------------------------------------------------------------
 
+type Candle struct {
+    Timestamp	int64
+    Open		float64
+    High		float64
+    Low			float64
+    Close		float64
+    Volume		float64
+}
+
+func Write_Candles(candle []Candle, product, exchange string) error {
+	fmt.Println("\n------------------------------\n Write Fills \n------------------------------\n")
+
+	db, _ := DBConnect()
+	defer DB.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("Failed to begin transaction:  %w", err)
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(fmt.Sprintf("INSERT INTO %s_%s_%s (timestamp, open, high, low, close, volume) VALUS ($1, $2, $3, $4, $5, $6) ON CONFLICT (timestamp) DO UPDATE SET open = $2, high = $3, low = $4, close = $5, volume = $6", product, exchange))
+	if err != nil {
+		return fmt.Errorf("Failed to prepare statement: %w", err)
+	}
+	defer stmt.Close()
+
+	for _, candle := range fills {
+		_, err := stmt.Exec(cantle.Timestamp, candle.Open, candle.High, candle.Low, candle.Close, candle.Volume)
+
+		if err != nil {
+			return fmt.Errorf("Failed to insert candles: %w", err)
+		}
+	}
+
+	if er := tx.Commit(); err != nil {
+		return fmt.Errorf("Failed to commit transaction: %w", err)
+	}
+
+	return nil
+
+}
 
 
 
