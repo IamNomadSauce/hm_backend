@@ -39,14 +39,13 @@ var dbname string
 func DBConnect() (*sql.DB, error) {
 	
 	fmt.Println("\n------------------------------\n DBConnect \n------------------------------\n")
-  err := godotenv.Load()
-  if err != nil {
-    fmt.Printf("Error loading .env file %v\n", err)
+	err := godotenv.Load()
+	if err != nil {
+	fmt.Printf("Error loading .env file %v\n", err)
 
-  }
+	}
     host = os.Getenv("PG_HOST")
     portStr := os.Getenv("PG_PORT")
-    // fmt.Printf("Host:\n%s\nPort:\n%d\nUser:\n%s\nPW:\n%s\nDB:\n%s\n", host, port, user, password, dbname)
     port, err := strconv.Atoi(portStr)
     if err != nil {
         fmt.Printf("Invalid port number: %v\n", err)
@@ -55,6 +54,8 @@ func DBConnect() (*sql.DB, error) {
     user = os.Getenv("PG_USER")
     password = os.Getenv("PG_PASS")
     dbname = os.Getenv("PG_DBNAME")
+
+    fmt.Printf("Host: %s\nPort: %d\nUser: %s\nPW: %s\nDB: %s\n", host, port, user, password, dbname)
 
     // Connect to the default 'postgres' database to check for the existence of the target database
     psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
@@ -69,6 +70,70 @@ func DBConnect() (*sql.DB, error) {
     return db, nil
 
 }
+
+func CreateTables(db *sql.DB) error {
+	fmt.Println("\n------------------------------\n CreateTables \n------------------------------\n")
+
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS orders (
+			orderid VARCHAR(255) UNIQUE NOT NULL, 
+			productid VARCHAR(255) NOT NULL, 
+			tradetype VARCHAR(255) NOT NULL, 
+			side VARCHAR(25) NOT NULL, 
+			price NUMERIC NOT NULL, 
+			size NUMERIC,
+			exchange NUMERIC NOT NULL, 
+			marketcategory varchar(25) NOT NULL, 
+			time BIGINT NOT NULL 
+		);
+		
+	`)
+	if err != nil { 
+		fmt.Println("Failed to create orders table: ", err)
+	}
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS fills (
+			entryID VARCHAR(255) UNIQUE NOT NULL, 
+			tradeID VARCHAR(255) NOT NULL, 
+			orderID VARCHAR(255) NOT NULL, 
+			tradeType VARCHAR(25) NOT NULL, 
+			price NUMERIC NOT NULL, 
+			size NUMERIC NOT NULL,
+			side VARCHAR(25) NOT NULL,
+			commission NUMERIC NOT NULL,
+			productID NUMERIC NOT NULL,
+			exchange VARCHAR(25) NOT NULL, 
+			marketcategory varchar(25) NOT NULL, 
+			time BIGINT NOT NULL 
+		);
+	`)
+	if err != nil { 
+		fmt.Println("Failed to create fills table: ", err)
+	}
+	return nil
+}
+
+func ListTables(db *sql.DB) error {
+	fmt.Println("\n------------------------------\n ListTables \n------------------------------\n")
+	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+	if err != nil {
+		fmt.Println("Error listing tables", err)
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil{
+			fmt.Println("Error scanning table name", err)
+			return err
+		}
+		fmt.Println(" -", tableName)
+	}
+
+	return nil
+}
+
 
 type Order struct {
 	Timestamp			int64  // 1724459850
@@ -98,7 +163,7 @@ func Write_Order(orders []Order) { // Current Orders for all accounts
 	}
 
 	insertQuery := `
-	INSERT INTO orders (orderID, productID, tradetype, side, time, exchange, marketcategory, price, size)
+	INSERT INTO orders (orderid, productid, tradetype, side, time, exchange, marketcategory, price, size)
 	VALUES(?,?,?,?,?,?,?,?,?);
 	`
 	for _, order := range orders {

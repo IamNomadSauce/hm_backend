@@ -11,29 +11,19 @@ func main() {
 	fmt.Println("Main ")
 	
 	// Connect to DB
-	_, err := db.DBConnect()
+	database, err := db.DBConnect()
 	if err != nil {
 		log.Println("Error on main db connection", err)
 	}
-
-
-
-	// main loop
-//	var wg sync.WaitGroup
-//	mainLoop := func() {
-//		wg.Add(1)
-//		go func() {
-//			wg.Done()
-//		}
-//	}
-//	
-//	ticker := time.NewTicker(60 * time.Second)
-//	go func() {
-//		for range ticker.C {
-//			mainLoop()
-//		}
-//	}
-
+	err = db.CreateTables(database)
+	if err != nil {
+		fmt.Println("Error creating tables")
+	}
+	err = db.ListTables(database)
+	if err != nil {
+		fmt.Println("Error creating tables")
+	}
+	defer database.Close()
 }
 
 type Product struct {
