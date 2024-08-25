@@ -23,5 +23,5 @@ TODO:
     [ ] orders triggered
 - Server (serving data to client)
 [ ] http API
-
+[ ] websocket stream
 

@@ -192,6 +192,11 @@ func Write_Candles(candle []Candle, product, exchange string) error {
 
 }
 
+func Add_Watchlist(product, exchange string) error {
+
+	stmt, err := tx
+	return nil
+}
 
 
 
