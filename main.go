@@ -2,37 +2,38 @@ package main
 
 import (
 	"fmt"
+	"backend/db"
+	"log"
+
 )
 
 func main() {
 	fmt.Println("Main ")
+	
+	// Connect to DB
+	_, err := db.DBConnect()
+	if err != nil {
+		log.Println("Error on main db connection", err)
+	}
+
+
 
 	// main loop
-	var wg sync.WaitGroup
-	mainLoop := func() {
-		wg.Add(1)
-		go func() {
-			wg.Done()
-		}
-	}
-	
-	ticker := time.NewTicker(60 * time.Second)
-	go func() {
-		for range ticker.C {
-			mainLoop()
-		}
-	}
+//	var wg sync.WaitGroup
+//	mainLoop := func() {
+//		wg.Add(1)
+//		go func() {
+//			wg.Done()
+//		}
+//	}
+//	
+//	ticker := time.NewTicker(60 * time.Second)
+//	go func() {
+//		for range ticker.C {
+//			mainLoop()
+//		}
+//	}
 
-	// Get Watchlist
-	// for each product in watchlist
-		// get candles for each timeframe 
-		// write candles to db
-	// for each exchange
-		// get account 
-			// get portfolio
-			// get fills
-			// get orders
-	
 }
 
 type Product struct {
@@ -44,7 +45,7 @@ type Timeframe struct {
 	Xch				string
 }
 type Exchange struct {
-	Name:			string
+	Name			string
 	Watchlist 		[]Product
 	Timeframes 		[]Timeframe
 }

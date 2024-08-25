@@ -3,11 +3,11 @@ package db
 import (
     "database/sql"
     "fmt"
-    "github.com/lib/pq"
+    _"github.com/lib/pq"
     "os"
     "github.com/joho/godotenv"
     "strconv"
-    "time"
+    _"time"
 )
 
 type Candle struct {
@@ -149,20 +149,11 @@ func Write_Fill(fills []Fill) {
 
 // ---------------------------------------------------------------
 
-type Candle struct {
-    Timestamp	int64
-    Open		float64
-    High		float64
-    Low			float64
-    Close		float64
-    Volume		float64
-}
-
-func Write_Candles(candle []Candle, product, exchange string) error {
+func Write_Candles(candles []Candle, product, exchange string) error {
 	fmt.Println("\n------------------------------\n Write Fills \n------------------------------\n")
 
 	db, _ := DBConnect()
-	defer DB.Close()
+	defer db.Close()
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -176,15 +167,15 @@ func Write_Candles(candle []Candle, product, exchange string) error {
 	}
 	defer stmt.Close()
 
-	for _, candle := range fills {
-		_, err := stmt.Exec(cantle.Timestamp, candle.Open, candle.High, candle.Low, candle.Close, candle.Volume)
+	for _, candle := range candles {
+		_, err := stmt.Exec(candle.Timestamp, candle.Open, candle.High, candle.Low, candle.Close, candle.Volume)
 
 		if err != nil {
 			return fmt.Errorf("Failed to insert candles: %w", err)
 		}
 	}
 
-	if er := tx.Commit(); err != nil {
+	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("Failed to commit transaction: %w", err)
 	}
 
@@ -194,7 +185,7 @@ func Write_Candles(candle []Candle, product, exchange string) error {
 
 func Add_Watchlist(product, exchange string) error {
 
-	stmt, err := tx
+
 	return nil
 }
 
