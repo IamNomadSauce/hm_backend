@@ -110,6 +110,44 @@ func CreateTables(db *sql.DB) error {
 	if err != nil { 
 		fmt.Println("Failed to create fills table: ", err)
 	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS exchanges (
+			id SERIAL PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil { 
+		fmt.Println("Failed to create exchanges table: ", err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS timeframe_sets (
+			id SERIAL PRIMARY KEY,
+			exchange_id INTEGER REFERENCES exchanges(id),
+			name VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil { 
+		fmt.Println("Failed to create timeframe_sets table: ", err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS timeframes (
+			id SERIAL PRIMARY KEY,
+			set_id INTEGER REFERENCES exchanges(id),
+			label VARCHAR(10) NOT NULL,
+			tf INTEGER NOT NULL,
+			xch VARCHAR(50) NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil { 
+		fmt.Println("Failed to create timeframes table: ", err)
+	}
+
 	return nil
 }
 
