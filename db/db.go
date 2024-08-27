@@ -75,6 +75,30 @@ func CreateTables(db *sql.DB) error {
 	fmt.Println("\n------------------------------\n CreateTables \n------------------------------\n")
 
 	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS exchanges (
+			id SERIAL PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil { 
+		fmt.Println("Failed to create exchanges table: ", err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS timeframes (
+			id SERIAL PRIMARY KEY,
+			xch_id INTEGER REFERENCES exchanges(id),
+			label VARCHAR(10) NOT NULL,
+			tf INTEGER NOT NULL,
+			xch VARCHAR(50) NOT NULL,
+		);
+	`)
+	if err != nil { 
+		fmt.Println("Failed to create timeframes table: ", err)
+	}
+
+	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS orders (
 			orderid VARCHAR(255) UNIQUE NOT NULL, 
 			productid VARCHAR(255) NOT NULL, 
@@ -82,7 +106,7 @@ func CreateTables(db *sql.DB) error {
 			side VARCHAR(25) NOT NULL, 
 			price NUMERIC NOT NULL, 
 			size NUMERIC,
-			exchange NUMERIC NOT NULL, 
+			xch_id INTEGER REFERENCES exchanges(id),
 			marketcategory varchar(25) NOT NULL, 
 			time BIGINT NOT NULL 
 		);
@@ -102,50 +126,13 @@ func CreateTables(db *sql.DB) error {
 			side VARCHAR(25) NOT NULL,
 			commission NUMERIC NOT NULL,
 			productID NUMERIC NOT NULL,
-			exchange VARCHAR(25) NOT NULL, 
+			xch_id INTEGER REFERENCES exchanges(id),
 			marketcategory varchar(25) NOT NULL, 
 			time BIGINT NOT NULL 
 		);
 	`)
 	if err != nil { 
 		fmt.Println("Failed to create fills table: ", err)
-	}
-
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS exchanges (
-			id SERIAL PRIMARY KEY,
-			name VARCHAR(255) NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		);
-	`)
-	if err != nil { 
-		fmt.Println("Failed to create exchanges table: ", err)
-	}
-
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS timeframe_sets (
-			id SERIAL PRIMARY KEY,
-			exchange_id INTEGER REFERENCES exchanges(id),
-			name VARCHAR(255) NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		);
-	`)
-	if err != nil { 
-		fmt.Println("Failed to create timeframe_sets table: ", err)
-	}
-
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS timeframes (
-			id SERIAL PRIMARY KEY,
-			set_id INTEGER REFERENCES exchanges(id),
-			label VARCHAR(10) NOT NULL,
-			tf INTEGER NOT NULL,
-			xch VARCHAR(50) NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		);
-	`)
-	if err != nil { 
-		fmt.Println("Failed to create timeframes table: ", err)
 	}
 
 	return nil
