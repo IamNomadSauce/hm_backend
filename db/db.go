@@ -20,14 +20,49 @@ type Candle struct {
 }
 
 type Timeframe struct {
-    Label string
-    Xch   string
-    Tf    int
+	ID					int 	`db:"id"`
+	XchID 				int 	`db:"xch_id"`
+	TF 				string 	`db:"label"`
+	Endpoint   			string 	`db:"endpoint"`
+	Minutes    			int 	`db:"minutes"`
+}
+
+type Exchange struct {
+	ID					int 	`db:"id"`
+	Name				string 	`db:"name"`
 }
 
 type Watchlist struct {
-	Product		string
-	Exchange	string
+	ID					int		`db:"id"`
+	Product				string  `db:"product"`
+	Xch_id				int 	`db:"xch_id"`
+}
+
+type Order struct {
+	Timestamp			int64  `db:"time"` 
+	OrderID 			string `db:"orderid"`  // Exchange specific order identifier
+	ProductID			string `db:"productid"` // xbt_usd_15
+	TradeType			string `db:"tradetype"` // Long / Short
+	Side				string `db:"side"` // buy / sell
+	XchID				int    `db:"xch_id"`
+	MarketCategory		string `db:"marketcategory"` // (crypto / equities)_(spot / futures)
+	Price				string `db:"price"` // instrument_currency
+	Size				string `db:"size"` // How many of instrument
+}
+
+type Fill struct {
+	Timestamp		int		`db:"time"` 
+	EntryID			string	`db:"entryid"` 
+	TradeID			string	`db:"tradeid"` 
+	OrderID			string	`db:"orderid"` 
+	TradeType		string	`db:"tradetype"` 
+	Price			string	`db:"price"` 
+	Size			string	`db:"size"` 
+	Side			string	`db:"side"` 
+	Commission		string	`db:"commission"` 
+	ProductID		string	`db:"productid"` 
+	XchID			int		`db:"xch_id"` 
+	MarketCategory	string  `db:"marketcategory"`
 }
 
 var host string
@@ -77,8 +112,7 @@ func CreateTables(db *sql.DB) error {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS exchanges (
 			id SERIAL PRIMARY KEY,
-			name VARCHAR(255) NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			name VARCHAR(255) NOT NULL
 		);
 	`)
 	if err != nil { 
@@ -89,9 +123,9 @@ func CreateTables(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS timeframes (
 			id SERIAL PRIMARY KEY,
 			xch_id INTEGER REFERENCES exchanges(id),
-			label VARCHAR(10) NOT NULL,
-			tf INTEGER NOT NULL,
-			xch VARCHAR(50) NOT NULL,
+			tf VARCHAR(10) NOT NULL,
+			minutes INTEGER NOT NULL,
+			endpoint VARCHAR(50) NOT NULL
 		);
 	`)
 	if err != nil { 
@@ -135,6 +169,17 @@ func CreateTables(db *sql.DB) error {
 		fmt.Println("Failed to create fills table: ", err)
 	}
 
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS watchlist (
+			id SERIAL PRIMARY KEY,
+			xch_id INTEGER REFERENCES exchanges(id),
+			product VARCHAR(50) NOT NULL
+		);
+	`)
+	if err != nil { 
+		fmt.Println("Failed to create watchlist table: ", err)
+	}
+
 	return nil
 }
 
@@ -160,17 +205,6 @@ func ListTables(db *sql.DB) error {
 }
 
 
-type Order struct {
-	Timestamp			int64  // 1724459850
-	OrderID 		string // Exchange specific order identifier
-	ProductID		string // xbt_usd_15
-	TradeType		string // Long / Short
-	Side			string // buy / sell
-	Exchange		string // coinbase / alpaca
-	MarketCategory		string // (crypto / equities)_(spot / futures)
-	Price			string // instrument_currency
-	Size			string // How many of instrument
-}
 
 func Write_Order(orders []Order) { // Current Orders for all accounts
 	fmt.Println("\n------------------------------\n Write Order \n------------------------------\n")
@@ -188,11 +222,11 @@ func Write_Order(orders []Order) { // Current Orders for all accounts
 	}
 
 	insertQuery := `
-	INSERT INTO orders (orderid, productid, tradetype, side, time, exchange, marketcategory, price, size)
+	INSERT INTO orders (orderid, productid, tradetype, side, time, endpoint, marketcategory, price, size)
 	VALUES(?,?,?,?,?,?,?,?,?);
 	`
 	for _, order := range orders {
-		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.Exchange, order.MarketCategory, order.Price, order.Size)
+		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.XchID, order.MarketCategory, order.Price, order.Size)
 		if err != nil {
 			fmt.Sprintf("Error inserting into Order table: \n%v", err)
 
@@ -202,21 +236,6 @@ func Write_Order(orders []Order) { // Current Orders for all accounts
 	fmt.Println(len(orders), "orders added to db")
 }
 
-type Fill struct {
-	Timestamp	int64
-	EntryID		string
-	TradeID		string
-	OrderID		string
-	TradeType	string
-	Price		string	
-	Size		string
-	Side		string
-	Commission	string
-	ProductID	string
-	Exchange	string
-	MarketCategory	string
-}
-
 func Write_Fill(fills []Fill) {
 	fmt.Println("\n------------------------------\n Write Fills \n------------------------------\n")
 
@@ -224,11 +243,11 @@ func Write_Fill(fills []Fill) {
 	defer db.Close()
 	
 	insertQuery := `
-	REPLACE INTO fills (entryID, tradeID, orderID, time, tradetype, price, size, side, commission, productid, exchange, marketcategory);
+	REPLACE INTO fills (entryID, tradeID, orderID, time, tradetype, price, size, side, commission, productid, xch_id, marketcategory);
 	`
 
 	for _, fill := range fills {
-		_, err := db.Exec(insertQuery, fill.EntryID, fill.TradeID, fill.OrderID, fill.Timestamp, fill.TradeType, fill.Price, fill.Size, fill.Side, fill.Commission, fill.ProductID, fill.Exchange, fill.MarketCategory)
+		_, err := db.Exec(insertQuery, fill.EntryID, fill.TradeID, fill.OrderID, fill.Timestamp, fill.TradeType, fill.Price, fill.Size, fill.Side, fill.Commission, fill.ProductID, fill.XchID, fill.MarketCategory)
 		if err != nil {
 			fmt.Sprintf("Error inserting fill: \n%v", err)
 		}
