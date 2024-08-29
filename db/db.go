@@ -22,7 +22,7 @@ type Candle struct {
 type Timeframe struct {
 	ID					int 	`db:"id"`
 	XchID 				int 	`db:"xch_id"`
-	TF 				string 	`db:"label"`
+	TF 					string 	`db:"label"`
 	Endpoint   			string 	`db:"endpoint"`
 	Minutes    			int 	`db:"minutes"`
 }
@@ -298,7 +298,19 @@ func Add_Watchlist(product, exchange string) error {
 	return nil
 }
 
+type Account struct {
+	Exchange 	Exchange
+	Timeframes	[]Timeframe
+	Orders 		[]Order
+	Fills		[]Fill
+	Watchlist	[]Watchlist
+}
 
+func Get_Account(id int, db *db.SQL) (
+	fmt.Sprintf("\n-------------------------------------\n Get Account %v\n-------------------------------------\n", id)
+
+	stmt, err := db.Prepare("SELECT * FROM 
+}
 
 
 
