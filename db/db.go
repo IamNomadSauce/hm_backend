@@ -306,13 +306,29 @@ type Account struct {
 	Watchlist	[]Watchlist
 }
 
-func Get_Account(id int, db *db.SQL) (
+func Get_Account(id int, db *db.SQL) (Account, error) (
 	fmt.Sprintf("\n-------------------------------------\n Get Account %v\n-------------------------------------\n", id)
 
-	stmt, err := db.Prepare("SELECT * FROM 
 }
 
+func Get_Exchange(id int) ( []Exchange, error) {
+	fmt.Sprintf("\n-------------------------------------\n Get Exchange  %v\n-------------------------------------\n", id)
+}
 
+func Get_Orders(id int) ([]Order, err) {
+	fmt.Sprintf("\n-------------------------------------\n Get Orders  %v\n-------------------------------------\n", id)
+}
 
+func Get_Fills(id int) ([]Order, err) {
+	fmt.Sprintf("\n-------------------------------------\n Get Fills  %v\n-------------------------------------\n", id)
+}
+
+func Get_Watchlist(id int) ([]Watchlist, err) {
+	fmt.Sprintf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", id)
+}
+
+func Get_Timeframes(id int) ([]Timeframe, err) {
+	fmt.Sprintf("\n-------------------------------------\n Get Timeframes  %v\n-------------------------------------\n", id)
+}
 
 
