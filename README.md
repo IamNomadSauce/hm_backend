@@ -10,7 +10,7 @@ hm_backend
 
 TODO:
 - Backend
-[ ] DB Create Tables if not exist
+[x] DB Create Tables if not exist
 [x] Write Fills
 [x] Write Current Orders
 [x] Write Candles
@@ -25,3 +25,14 @@ TODO:
 [ ] http API
 [ ] websocket stream
 
+------------------
+
+Structs:
+Account:
+-- portfolio history
+-- portfolio / exchange
+Exchange:
+-- Orders
+-- Fills
+-- Timeframes
+-- Watchlist
