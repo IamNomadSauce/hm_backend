@@ -207,9 +207,95 @@ func Get_Coinbase_Orders() []Order {
 }
 
 
+// --------------------------------------------------------------------------
+// Account
+// --------------------------------------------------------------------------
 
+type Account struct {
+    UUID        string `json:"uuid"`
+    Name        string `json:"name"`
+    Currency    string `json:"currency"`
+    AvailableBalance Balance `json:"available_balance"`
+    Default     bool   `json:"default"`
+    Active      bool   `json:"active"`
+    CreatedAt   string `json:"created_at"`
+    UpdatedAt   string `json:"updated_at"`
+    DeletedAt   string `json:"deleted_at"`
+    Type        string `json:"type"`
+    Ready       bool   `json:"ready"`
+    Hold        Balance `json:"hold"`
+}
 
+type Balance struct {
+    Value    string `json:"value"`
+    Currency string `json:"currency"`
+}
 
+func Get_Coinbase_Account_Balance() []Account {
+    var accounts []Account
+    err := godotenv.Load()
+    if err != nil {
+        fmt.Println("Error loading .env file")
+    }
+
+    apiKey := os.Getenv("CBAPIKEY")
+    apiSecret := os.Getenv("CBAPISECRET")
+
+    timestamp := time.Now().Unix()
+    baseURL := "https://api.coinbase.com"
+    path := "/api/v3/brokerage/accounts"
+    method := "GET"
+    body := ""
+
+    signature := GetCBSign(apiSecret, timestamp, method, path, body)
+
+    client := &http.Client{}
+    req, err := http.NewRequest(method, baseURL+path, nil)
+    if err != nil {
+        fmt.Println("NewRequest: ", err)
+        return accounts
+    }
+
+    req.Header.Add("CB-ACCESS-SIGN", signature)
+    req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+    req.Header.Add("CB-ACCESS-KEY", apiKey)
+    req.Header.Add("CB-VERSION", "2015-07-22")
+
+    resp, err := client.Do(req)
+    if err != nil {
+        fmt.Println("Error DO: ", err)
+        return accounts
+    }
+    defer resp.Body.Close()
+
+    responseBody, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        fmt.Println("Readall Err ", err)
+        return accounts
+    }
+
+    var response struct {
+        Accounts []Account `json:"accounts"`
+    }
+
+    err = json.Unmarshal(responseBody, &response)
+    if err != nil {
+        fmt.Println("Error unmarshaling JSON: ", err)
+        return accounts
+    }
+
+	for _, acct := range response.Accounts {
+		balance, _ := strconv.ParseFloat(acct.AvailableBalance.Value, 64) 
+		if balance > 0 {
+			accounts = append(accounts, acct)
+		}
+
+	}
+
+	fmt.Println(len(accounts))
+
+    return accounts
+}
 
 
 

@@ -56,21 +56,26 @@ func main() {
 	//	fmt.Println(fills[fill])
 	//}
 
-	orders := api.Get_Coinbase_Orders()
+	//orders := api.Get_Coinbase_Orders()
 
-	fmt.Println("Orders:")
-	for ord := range orders {
-		fmt.Println()
-		fmt.Println(orders[ord].Status)
-		fmt.Println(orders[ord].Side)
-		fmt.Println(orders[ord].ProductID)
-		fmt.Println(orders[ord].FilledValue)
-		fmt.Println(orders[ord].AverageFilledPrice)
-		fmt.Println(orders[ord].FilledSize)
-		fmt.Println(orders[ord].OrderType)
-		fmt.Println(orders[ord].CreatedTime)
-	}
+	//fmt.Println("Orders:")
+	//for ord := range orders {
+	//	fmt.Println()
+	//	fmt.Println(orders[ord].Status)
+	//	fmt.Println(orders[ord].Side)
+	//	fmt.Println(orders[ord].ProductID)
+	//	fmt.Println(orders[ord].FilledValue)
+	//	fmt.Println(orders[ord].AverageFilledPrice)
+	//	fmt.Println(orders[ord].FilledSize)
+	//	fmt.Println(orders[ord].OrderType)
+	//	fmt.Println(orders[ord].CreatedTime)
+	//}
 	
+	accounts := api.Get_Coinbase_Account_Balance()
+	fmt.Println("Accounts")
+	for acct := range accounts {
+		fmt.Println(accounts[acct])
+	}
 }
 
 
