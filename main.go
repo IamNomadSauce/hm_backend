@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"backend/db"
+	"backend/api"
 	"log"
 
 )
@@ -47,6 +48,13 @@ func main() {
 	}
 
 	defer database.Close()
+
+//	api.ApiConnect()
+	fills := api.Get_Coinbase_Fills()
+	fmt.Println("Fils:")
+	for fill := range fills {
+		fmt.Println(fills[fill])
+	}
 }
 
 

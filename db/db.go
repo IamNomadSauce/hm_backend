@@ -362,8 +362,8 @@ func Get_Exchanges(db *sql.DB) ([]Exchange, error) {
 	}
 
 	return exchanges, nil
-
 }
+
 func Get_Orders(id int, db *sql.DB) ([]Order, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Orders  %v\n-------------------------------------\n", id)
 
