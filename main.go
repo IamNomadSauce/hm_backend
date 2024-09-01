@@ -50,11 +50,27 @@ func main() {
 	defer database.Close()
 
 //	api.ApiConnect()
-	fills := api.Get_Coinbase_Fills()
-	fmt.Println("Fils:")
-	for fill := range fills {
-		fmt.Println(fills[fill])
+	//fills := api.Get_Coinbase_Fills()
+	//fmt.Println("Fils:")
+	//for fill := range fills {
+	//	fmt.Println(fills[fill])
+	//}
+
+	orders := api.Get_Coinbase_Orders()
+
+	fmt.Println("Orders:")
+	for ord := range orders {
+		fmt.Println()
+		fmt.Println(orders[ord].Status)
+		fmt.Println(orders[ord].Side)
+		fmt.Println(orders[ord].ProductID)
+		fmt.Println(orders[ord].FilledValue)
+		fmt.Println(orders[ord].AverageFilledPrice)
+		fmt.Println(orders[ord].FilledSize)
+		fmt.Println(orders[ord].OrderType)
+		fmt.Println(orders[ord].CreatedTime)
 	}
+	
 }
 
 

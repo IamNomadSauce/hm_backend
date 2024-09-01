@@ -109,9 +109,102 @@ func Get_Coinbase_Fills() []Fill {
 }
 
 
+// --------------------------------------------------------------------------
+// Orders
+// --------------------------------------------------------------------------
 
+type Order struct {
+    OrderID              string      `json:"order_id"`
+    ClientOrderID        string      `json:"client_order_id"`
+    ProductID            string      `json:"product_id"`
+    UserID               string      `json:"user_id"`
+    OrderConfiguration   interface{} `json:"order_configuration"`
+    Side                 string      `json:"side"`
+    Status               string      `json:"status"`
+    TimeInForce          string      `json:"time_in_force"`
+    CreatedTime          string      `json:"created_time"`
+    CompletionPercentage string      `json:"completion_percentage"`
+    FilledSize           string      `json:"filled_size"`
+    AverageFilledPrice   string      `json:"average_filled_price"`
+    Fee                  string      `json:"fee"`
+    NumberOfFills        string      `json:"number_of_fills"`
+    FilledValue          string      `json:"filled_value"`
+    PendingCancel        bool        `json:"pending_cancel"`
+    SizeInQuote          bool        `json:"size_in_quote"`
+    TotalFees            string      `json:"total_fees"`
+    SizeInclusiveOfFees  interface{} `json:"size_inclusive_of_fees"`
+    TotalValueAfterFees  string      `json:"total_value_after_fees"`
+    TriggerStatus        string      `json:"trigger_status"`
+    OrderType            string      `json:"order_type"`
+    RejectReason         string      `json:"reject_reason"`
+    Settled              bool        `json:"settled"`
+    ProductType          string      `json:"product_type"`
+    RejectMessage        string      `json:"reject_message"`
+    CancelMessage        string      `json:"cancel_message"`
+}
 
+func Get_Coinbase_Orders() []Order {
+    var orders []Order
+    err := godotenv.Load()
+    if err != nil {
+        fmt.Println("Error loading .env file")
+    }
 
+    apiKey := os.Getenv("CBAPIKEY")
+    apiSecret := os.Getenv("CBAPISECRET")
+
+    timestamp := time.Now().Unix()
+    baseURL := "https://api.coinbase.com"
+    path := "/api/v3/brokerage/orders/historical/batch"
+    method := "GET"
+    body := ""
+
+    signature := GetCBSign(apiSecret, timestamp, method, path, body)
+
+    client := &http.Client{}
+    req, err := http.NewRequest(method, baseURL+path, nil)
+    if err != nil {
+        fmt.Println("NewRequest: ", err)
+        return orders
+    }
+
+    req.Header.Add("CB-ACCESS-SIGN", signature)
+    req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+    req.Header.Add("CB-ACCESS-KEY", apiKey)
+    req.Header.Add("CB-VERSION", "2015-07-22")
+
+    resp, err := client.Do(req)
+    if err != nil {
+        fmt.Println("Error DO: ", err)
+        return orders
+    }
+    defer resp.Body.Close()
+
+    responseBody, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        fmt.Println("Readall Err ", err)
+        return orders
+    }
+
+    var response struct {
+        Orders []Order `json:"orders"`
+    }
+
+    err = json.Unmarshal(responseBody, &response)
+    if err != nil {
+        fmt.Println("Error unmarshaling JSON: ", err)
+        return orders
+    }
+
+	var filteredOrders []Order
+	for _, order := range response.Orders {
+		if order.Status != "CANCELLED" {
+			filteredOrders = append(filteredOrders, order)
+		}
+	}
+
+    return filteredOrders
+}
 
 
 
