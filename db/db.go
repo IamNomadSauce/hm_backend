@@ -27,15 +27,20 @@ type Timeframe struct {
 	Minutes    			int 	`db:"minutes"`
 }
 
+
 type Exchange struct {
-	ID					int 	`db:"id"`
-	Name				string 	`db:"name"`
+	ID			int
+	Name		string
+	Timeframes	[]Timeframe
+	Orders 		[]Order
+	Fills		[]Fill
+	Watchlist	[]Watchlist
 }
 
 type Watchlist struct {
 	ID					int		`db:"id"`
 	Product				string  `db:"product"`
-	Xch_id				int 	`db:"xch_id"`
+	XchID				int 	`db:"xch_id"`
 }
 
 type Order struct {
@@ -298,37 +303,175 @@ func Add_Watchlist(product, exchange string) error {
 	return nil
 }
 
-type Account struct {
-	Exchange 	Exchange
-	Timeframes	[]Timeframe
-	Orders 		[]Order
-	Fills		[]Fill
-	Watchlist	[]Watchlist
-}
+//type Account struct {
+//	Exchange 	Exchange
+//	Timeframes	[]Timeframe
+//	Orders 		[]Order
+//	Fills		[]Fill
+//	Watchlist	[]Watchlist
+//}
 
-func Get_Account(id int, db *sql.DB) (Account, error) { 
-	fmt.Sprintf("\n-------------------------------------\n Get Account %v\n-------------------------------------\n", id)
+//func Get_Account(id int, db *sql.DB) (Account, error) { 
+//	fmt.Sprintf("\n-------------------------------------\n Get Account %v\n-------------------------------------\n", id)
 
-}
+//	exchange, err := Get_Exchange(id)
+//	if err != nil {
+//		fmt.Println("Error getting exchange", err)
+//	}
+//}
 
-func Get_Exchange(id int) ( []Exchange, error) {
+func Get_Exchange(id int, db *sql.DB) (Exchange, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Exchange  %v\n-------------------------------------\n", id)
+
+	var exchange Exchange
+
+	xch_row, err := db.Query("SELECT id, name FROM exchanges WHERE id = $1", id)
+	if err != nil {
+		fmt.Println("Error retrieving exchange from id")
+	}
+	defer xch_row.Close()
+
+	if err := xch_row.Scan(&exchange.ID, &exchange.Name); err != nil {
+		return exchange, fmt.Errorf("Error scanning exchange: %w", err)
+	}
+
+	return exchange, nil
 }
 
-func Get_Orders(id int) ([]Order, error) {
+func Get_Exchanges(db *sql.DB) ([]Exchange, error) {
+	fmt.Sprintf("\n-------------------------------------\n Get All Exchanges \n-------------------------------------\n")
+
+	var exchanges []Exchange
+
+	xchRows, err := db.Query("SELECT * FROM exchanges")
+	if err != nil {
+		return exchanges, fmt.Errorf("Error getting exchanges: %v", err)
+	}
+
+	for  xchRows.Next() {
+		var xch Exchange
+
+		if err := xchRows.Scan(&xch.ID, &xch.Name); err != nil {
+			return exchanges, fmt.Errorf("Error scanning exchange: %w", err)
+		}
+		xch.Timeframes, _ = Get_Timeframes(xch.ID, db)
+		xch.Orders, _ = Get_Orders(xch.ID, db)
+		xch.Fills, _ = Get_Fills(xch.ID, db)
+		xch.Watchlist, _ = Get_Watchlist(xch.ID, db)
+		exchanges = append(exchanges, xch)
+	}
+
+	return exchanges, nil
+
+}
+func Get_Orders(id int, db *sql.DB) ([]Order, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Orders  %v\n-------------------------------------\n", id)
+
+	var orders []Order
+	orderRows, err := db.Query("SELECT orderid, productid, tradetype, side, price, size, xch_id, marketcategory, time FROM orders WHERE xch_id = $1", id)
+	if err != nil {
+		fmt.Sprintf("Error retrieving orders for %d \n%v", id, err)
+	}
+
+	defer orderRows.Close()
+
+	
+	for orderRows.Next() {
+		var order Order
+		
+		if err := orderRows.Scan(&order.OrderID, &order.ProductID, &order.TradeType, &order.Side, &order.Price, &order.Size, &order.XchID, &order.MarketCategory, &order.Timestamp); err != nil {
+			return orders, fmt.Errorf("Error scanning order %w", err)
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+
 }
 
-func Get_Fills(id int) ([]Order, error) {
+func Get_Fills(id int, db *sql.DB) ([]Fill, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Fills  %v\n-------------------------------------\n", id)
+
+	var fills []Fill
+	fillRows, err := db.Query("SELECT entryid, tradeid, orderid, tradetype, price, size, side, commission, productid, xch_id, marketcategory, time FROM fills WHERE xch_id = $1", id)
+	if err != nil {
+		fmt.Sprintf("Error retrieving fills for %d \n%v", id, err)
+	}
+
+	defer fillRows.Close()
+
+	
+	for fillRows.Next() {
+		var fill Fill
+		
+		if err := fillRows.Scan(&fill.EntryID, &fill.TradeID, &fill.OrderID, &fill.TradeType, &fill.Price, &fill.Size, &fill.Side, &fill.Commission, &fill.ProductID, &fill.XchID, &fill.MarketCategory, &fill.Timestamp); err != nil {
+			return fills, fmt.Errorf("Error scanning fill %w", err)
+		}
+		fills = append(fills, fill)
+	}
+
+	return fills, nil
+
 }
 
-func Get_Watchlist(id int) ([]Watchlist, error) {
+func Get_Watchlist(id int, db *sql.DB) ([]Watchlist, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", id)
+
+	var watchlist []Watchlist
+
+	watchlistRows, err := db.Query("SELECT id, product, xch_id FROM watchlist WHERE xch_id = $1", id)
+	if err != nil {
+		return watchlist, fmt.Errorf("Error retrieving watchlist: %w", err)
+	}
+
+	defer watchlistRows.Close()
+
+	for watchlistRows.Next() {
+		var ticker Watchlist
+
+		if err := watchlistRows.Scan(&ticker.ID, &ticker.Product, &ticker.XchID); err != nil {
+			return watchlist, fmt.Errorf("Error scanning watchlist: %w", err)
+		}
+		watchlist = append(watchlist, ticker)
+
+	}
+	return watchlist, nil
 }
 
-func Get_Timeframes(id int) ([]Timeframe, error) {
+func Get_Timeframes(id int, db *sql.DB) ([]Timeframe, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Timeframes  %v\n-------------------------------------\n", id)
+
+	var timeframes []Timeframe
+
+	timeframe_rows, err := db.Query("SELECT id, xch_id, tf, minutes, endpoint FROM timeframes WHERE xch_id = $1", id)
+	if err != nil {
+		return timeframes, fmt.Errorf("Error querying timeframes: %w", err)
+	}
+	defer timeframe_rows.Close()
+
+	for timeframe_rows.Next() {
+		var tf Timeframe
+
+		if err := timeframe_rows.Scan(&tf.ID, &tf.XchID, &tf.TF, &tf.Minutes, &tf.Endpoint); err != nil {
+			return timeframes, fmt.Errorf("Error scanning timeframe: %w", id)
+		}
+		timeframes = append(timeframes, tf)
+	}
+
+	return timeframes, nil
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
