@@ -1,6 +1,7 @@
 package api
 
 import (
+	_"log"
 	"fmt"
 	"os"
 	"github.com/joho/godotenv"
@@ -284,17 +285,84 @@ func Get_Coinbase_Account_Balance() []Account {
         return accounts
     }
 
+	total := 0.0
 	for _, acct := range response.Accounts {
 		balance, _ := strconv.ParseFloat(acct.AvailableBalance.Value, 64) 
+		hold_balance, _ := strconv.ParseFloat(acct.Hold.Value, 64) 
 		if balance > 0 {
+			price, _ := GetPrice(acct.Currency)
+			value := price * balance
+			hold_value := price * hold_balance
+			total += value
+			total += hold_value
+			fmt.Println(acct.Currency, price, balance, value)
+			
 			accounts = append(accounts, acct)
 		}
 
 	}
+	fmt.Println(total)
 
 	fmt.Println(len(accounts))
 
     return accounts
+}
+
+
+type PriceInfo struct {
+    Currency string
+    Price    float64
+    Value    float64
+}
+
+func GetPrice(currency string) (float64, error) {
+    if currency == "USD" || currency == "USDT" || currency == "USDC" {
+        return 1.0, nil
+    }
+
+    apiKey := os.Getenv("CBAPIKEY")
+    apiSecret := os.Getenv("CBAPISECRET")
+
+    timestamp := time.Now().Unix()
+    baseURL := "https://api.coinbase.com"
+    path := fmt.Sprintf("/api/v3/brokerage/products/%s-USD", currency)
+    method := "GET"
+    body := ""
+
+    signature := GetCBSign(apiSecret, timestamp, method, path, body)
+
+    client := &http.Client{}
+    req, err := http.NewRequest(method, baseURL+path, nil)
+    if err != nil {
+        return 0, fmt.Errorf("NewRequest: %v", err)
+    }
+
+    req.Header.Add("CB-ACCESS-SIGN", signature)
+    req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+    req.Header.Add("CB-ACCESS-KEY", apiKey)
+    req.Header.Add("CB-VERSION", "2015-07-22")
+
+    resp, err := client.Do(req)
+    if err != nil {
+        return 0, fmt.Errorf("Error DO: %v", err)
+    }
+    defer resp.Body.Close()
+
+    var tickerResponse struct {
+        Price string `json:"price"`
+    }
+
+    err = json.NewDecoder(resp.Body).Decode(&tickerResponse)
+    if err != nil {
+        return 0, fmt.Errorf("Error decoding JSON: %v", err)
+    }
+
+    price, err := strconv.ParseFloat(tickerResponse.Price, 64)
+    if err != nil {
+        return 0, fmt.Errorf("Error parsing price: %v", err)
+    }
+
+    return price, nil
 }
 
 

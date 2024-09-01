@@ -15,9 +15,12 @@ TODO:
 [x] Write Current Orders
 [x] Write Candles
 [x] Create and populate Exchange data
-[ ] Coinbase Fetching account and candles
-[ ] Coinbase Add account and candles to db
-[ ] Coinbase fetch candles and account data from db 
+[x] Create and account Exchange data
+    - [x] Portfolio balances of each coin.
+    - [x] fills 
+    - [x] Orders 
+
+[ ] Coinbase Fetching candles
 [ ] main loop - 
     [ ] fetch all candles with all timeframes from all assets and their exchange according to watchlist
     [ ] Portfolio
