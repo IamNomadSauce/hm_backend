@@ -1,7 +1,7 @@
 package api
 
 import (
-	_"log"
+	"net/url"
 	"fmt"
 	"os"
 	"github.com/joho/godotenv"
@@ -295,7 +295,7 @@ func Get_Coinbase_Account_Balance() []Account {
 			hold_value := price * hold_balance
 			total += value
 			total += hold_value
-			fmt.Println(acct.Currency, price, balance, value)
+			//fmt.Println(acct.Currency, price, balance, value)
 			
 			accounts = append(accounts, acct)
 		}
@@ -365,5 +365,125 @@ func GetPrice(currency string) (float64, error) {
     return price, nil
 }
 
+// --------------------------------------------------------------------------
+// Candles
+// --------------------------------------------------------------------------
+type Candle struct {
+    Timestamp int64   `json:"start"`
+    Open      float64 `json:"open"`
+    High      float64 `json:"high"`
+    Low       float64 `json:"low"`
+    Close     float64 `json:"close"`
+    Volume    float64 `json:"volume"`
+}
 
+func (c *Candle) UnmarshalJSON(data []byte) error {
+    var temp struct {
+        Timestamp string `json:"start"`
+        Open      string `json:"open"`
+        High      string `json:"high"`
+        Low       string `json:"low"`
+        Close     string `json:"close"`
+        Volume    string `json:"volume"`
+    }
 
+    if err := json.Unmarshal(data, &temp); err != nil {
+        return err
+    }
+
+    timestamp, err := strconv.ParseInt(temp.Timestamp, 10, 64)
+    if err != nil {
+        return fmt.Errorf("error parsing timestamp: %v", err)
+    }
+
+    open, err := strconv.ParseFloat(temp.Open, 64)
+    if err != nil {
+        return fmt.Errorf("error parsing open: %v", err)
+    }
+
+    high, err := strconv.ParseFloat(temp.High, 64)
+    if err != nil {
+        return fmt.Errorf("error parsing high: %v", err)
+    }
+
+    low, err := strconv.ParseFloat(temp.Low, 64)
+    if err != nil {
+        return fmt.Errorf("error parsing low: %v", err)
+    }
+
+    close, err := strconv.ParseFloat(temp.Close, 64)
+    if err != nil {
+        return fmt.Errorf("error parsing close: %v", err)
+    }
+
+    volume, err := strconv.ParseFloat(temp.Volume, 64)
+    if err != nil {
+        return fmt.Errorf("error parsing volume: %v", err)
+    }
+
+    c.Timestamp = timestamp
+    c.Open = open
+    c.High = high
+    c.Low = low
+    c.Close = close
+    c.Volume = volume
+
+    return nil
+}
+
+func Get_Coinbase_Candles(productID string, granularity string, start, end time.Time) ([]Candle, error) {
+    apiKey := os.Getenv("CBAPIKEY")
+    apiSecret := os.Getenv("CBAPISECRET")
+
+    baseURL := "https://api.coinbase.com"
+    path := fmt.Sprintf("/api/v3/brokerage/products/%s/candles", productID)
+    method := "GET"
+
+    query := url.Values{}
+    query.Add("granularity", granularity)
+    query.Add("start", strconv.FormatInt(start.Unix(), 10))
+    query.Add("end", strconv.FormatInt(end.Unix(), 10))
+
+    fullURL := fmt.Sprintf("%s%s?%s", baseURL, path, query.Encode())
+
+    timestamp := time.Now().Unix()
+    signature := GetCBSign(apiSecret, timestamp, "GET", path, "")
+
+    client := &http.Client{}
+    req, err := http.NewRequest(method, fullURL, nil)
+    if err != nil {
+        return nil, fmt.Errorf("NewRequest: %v", err)
+    }
+
+    req.Header.Add("CB-ACCESS-SIGN", signature)
+    req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+    req.Header.Add("CB-ACCESS-KEY", apiKey)
+    req.Header.Add("CB-VERSION", "2015-07-22")
+
+    resp, err := client.Do(req)
+    if err != nil {
+        return nil, fmt.Errorf("Error DO: %v", err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != 200 {
+        body, _ := ioutil.ReadAll(resp.Body)
+        return nil, fmt.Errorf("Error fetching candles: %d - %s", resp.StatusCode, string(body))
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        return nil, fmt.Errorf("Error reading response body: %v", err)
+    }
+
+    var candleData struct {
+        Candles []Candle `json:"candles"`
+    }
+
+    err = json.Unmarshal(body, &candleData)
+    if err != nil {
+        return nil, fmt.Errorf("Error decoding JSON: %v", err)
+    }
+
+    return candleData.Candles, nil
+}

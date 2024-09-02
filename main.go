@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"fmt"
 	"backend/db"
 	"backend/api"
@@ -71,11 +72,25 @@ func main() {
 	//	fmt.Println(orders[ord].CreatedTime)
 	//}
 	
-	accounts := api.Get_Coinbase_Account_Balance()
-	fmt.Println("Accounts")
-	for acct := range accounts {
-		fmt.Println(accounts[acct])
+	//accounts := api.Get_Coinbase_Account_Balance()
+	//fmt.Println("Accounts")
+	//for acct := range accounts {
+	//	fmt.Println(accounts[acct])
+	//}
+	productID := "BTC-USD"
+	granularity := "ONE_HOUR"
+	start := time.Now().Add(-24 * time.Hour)
+	end := time.Now()
+
+	candles, err := api.Get_Coinbase_Candles(productID, granularity, start, end)
+	if err != nil {
+		fmt.Printf("Error getting candles: %v\n", err)
+		return
 	}
+
+	fmt.Println("Candles:")
+	fmt.Println(candles)
+
 }
 
 

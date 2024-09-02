@@ -19,6 +19,8 @@ TODO:
     - [x] Portfolio balances of each coin.
     - [x] fills 
     - [x] Orders 
+    - [x] Product price
+    - [ ] Portfolio History (write and retrieve to/from db)
 
 [ ] Coinbase Fetching candles
 [ ] main loop - 
