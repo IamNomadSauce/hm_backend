@@ -31,6 +31,7 @@ func main() {
 		fmt.Println("Error getting exchanges: ", err)
 	}
 
+	/*	Works	
 	for index, _ := range exchanges {
 		fmt.Println("\n----------------------------------------\n")
 		xch := exchanges[index]
@@ -56,10 +57,29 @@ func main() {
 			}
 		}
 	}
+	*/
 
+	coinbase_xch := exchanges[0]
+	product := coinbase_xch.Watchlist[0].Product
+	tf := coinbase_xch.Timeframes[len(coinbase_xch.Timeframes)-1]
+	end := time.Now()
+	minutes := tf.Minutes
+	start := end.Add(-time.Duration(minutes * 300) * time.Minute)
+	fmt.Println("Query:")
+	fmt.Println(coinbase_xch.Name, "\n", product,"\n", tf,"\n", start, "\n")
+
+	//start := time.Duration(300 * tf.Minutes) * time.Minute)
+
+	var empty_candles []api.Candle 
+
+	all_candles, err := api.All_Candles_Loop(product, tf.Endpoint, tf.Minutes, start, time.Now(), empty_candles)
+	if err != nil {
+		fmt.Println("error getting all candles loop", err)
+	}
+	fmt.Println("All Candles Returned:",len(all_candles))
 	defer database.Close()
 
-//	api.ApiConnect()
+	api.ApiConnect()
 	//fills := api.Get_Coinbase_Fills()
 	//fmt.Println("Fils:")
 	//for fill := range fills {

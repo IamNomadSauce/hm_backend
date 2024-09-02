@@ -432,6 +432,7 @@ func (c *Candle) UnmarshalJSON(data []byte) error {
 }
 
 func Get_Coinbase_Candles(productID string, granularity string, start, end time.Time) ([]Candle, error) {
+	fmt.Println("Get_Coinbase_Candles \n",productID, "\n", granularity, "\n", start, "\n", end, "\n")
     apiKey := os.Getenv("CBAPIKEY")
     apiSecret := os.Getenv("CBAPISECRET")
 
@@ -452,6 +453,7 @@ func Get_Coinbase_Candles(productID string, granularity string, start, end time.
     client := &http.Client{}
     req, err := http.NewRequest(method, fullURL, nil)
     if err != nil {
+		fmt.Println("Error with new Request")
         return nil, fmt.Errorf("NewRequest: %v", err)
     }
 
@@ -467,12 +469,14 @@ func Get_Coinbase_Candles(productID string, granularity string, start, end time.
     defer resp.Body.Close()
 
     if resp.StatusCode != 200 {
+		fmt.Println("Error fetching candles")
         body, _ := ioutil.ReadAll(resp.Body)
         return nil, fmt.Errorf("Error fetching candles: %d - %s", resp.StatusCode, string(body))
     }
 
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil {
+		fmt.Println("Error reading response body")
         return nil, fmt.Errorf("Error reading response body: %v", err)
     }
 
@@ -482,8 +486,43 @@ func Get_Coinbase_Candles(productID string, granularity string, start, end time.
 
     err = json.Unmarshal(body, &candleData)
     if err != nil {
+		fmt.Println("Error unmarshalling into candleData")
         return nil, fmt.Errorf("Error decoding JSON: %v", err)
     }
-
+	//fmt.Println("Candles: \n", candleData.Candles)
     return candleData.Candles, nil
 }
+
+func All_Candles_Loop(productID string, granularity string, minutes int, startTime time.Time, endTime time.Time, allCandles []Candle) ([]Candle, error) {
+    fmt.Println("Looping Through All Candles\n", productID, "\n", granularity, "\n", minutes, "\n", startTime, "\n", endTime, "\n\n---------------")
+
+    // Base case to stop recursion
+    if startTime.After(endTime) || startTime.Equal(endTime) {
+        fmt.Println("BREAK")
+        return allCandles, nil  // Return accumulated candles
+    }
+
+    // Retrieve candles for the current time frame
+    candles, err := Get_Coinbase_Candles(productID, granularity, startTime, endTime)
+    if err != nil {
+        return nil, fmt.Errorf("error getting candles: %v", err)
+    }
+
+    fmt.Println("CANDLES:\n", len(candles))
+    allCandles = append(allCandles, candles...)
+    fmt.Println("Candles Total\n", len(allCandles))
+    if len(candles) == 0 {
+        fmt.Println("\n--------------------\n")
+        fmt.Println("Loop Finished with: ", len(allCandles), "candles")
+        fmt.Println("\n--------------------\n")
+        return allCandles, nil
+    }
+
+    // Move the start time backward by 300 candles worth of time
+    newStartTime := startTime.Add(-time.Duration(300 * minutes) * time.Minute)
+    endTime = startTime
+
+    // Recursive call
+    return All_Candles_Loop(productID, granularity, minutes, newStartTime, endTime, allCandles)
+}
+
