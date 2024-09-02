@@ -33,19 +33,28 @@ func main() {
 
 	for index, _ := range exchanges {
 		fmt.Println("\n----------------------------------------\n")
-		fmt.Println("ExchangeID: ", exchanges[index].ID)
-		fmt.Println("Name: ", exchanges[index].Name)
-		fmt.Println("Orders: ", exchanges[index].Orders)
-		fmt.Println("Fills: ", exchanges[index].Fills)
+		xch := exchanges[index]
+		fmt.Println("ExchangeID: ", xch.ID)
+		fmt.Println("Name: ", xch.Name)
+		fmt.Println("Orders: ", xch.Orders)
+		fmt.Println("Fills: ", xch.Fills)
 		fmt.Println("Watchlist:")
-		for wl, _ := range exchanges[index].Watchlist {
-			fmt.Println(" : ", exchanges[index].Watchlist[wl])
+		for wl, _ := range xch.Watchlist {
+			prod := xch.Watchlist[wl].Product
+			fmt.Println(" : ", prod)
+			for tf, _ := range xch.Timeframes {
+				timeframe := xch.Timeframes[tf]
+				endpoint := timeframe.Endpoint
+				minutes := timeframe.Minutes
+				end := time.Now()
+				start := end.Add(-time.Duration(minutes * 300) * time.Minute)
+				candles, err := api.Get_Coinbase_Candles(prod, endpoint, start, end)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(prod, endpoint, len(candles))
+			}
 		}
-		fmt.Println("TFs:")
-		for tf, _ := range exchanges[index].Timeframes {
-			fmt.Println(" : ", exchanges[index].Timeframes[tf])
-		}
-		fmt.Println("\n----------------------------------------\n")
 	}
 
 	defer database.Close()
@@ -77,19 +86,6 @@ func main() {
 	//for acct := range accounts {
 	//	fmt.Println(accounts[acct])
 	//}
-	productID := "BTC-USD"
-	granularity := "ONE_HOUR"
-	start := time.Now().Add(-24 * time.Hour)
-	end := time.Now()
-
-	candles, err := api.Get_Coinbase_Candles(productID, granularity, start, end)
-	if err != nil {
-		fmt.Printf("Error getting candles: %v\n", err)
-		return
-	}
-
-	fmt.Println("Candles:")
-	fmt.Println(candles)
 
 }
 
