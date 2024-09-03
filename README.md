@@ -15,17 +15,24 @@ TODO:
 [x] Write Current Orders
 [x] Write Candles
 [x] Create and populate Exchange data
-[x] Create and account Exchange data
+[ ] Create and account Exchange data
     - [x] Portfolio balances of each coin.
+        - [ ] Write portfolio balance to db
     - [x] fills 
     - [x] Orders 
     - [x] Product price
-    - [ ] Portfolio History (write and retrieve to/from db)
 
-[ ] Coinbase Fetching candles
+[x] Coinbase Fetching candles (including loop for entire candle history)
+    - [x] Get Candles (single run)
+    - [x] Recursive all candle history loop
+[ ] Coinbase Write candles to db
+    - [ ] Create tables based on exchange tfs and watchlist.
+    - [ ] Write candles to db
+    
 [ ] main loop - 
     [ ] fetch all candles with all timeframes from all assets and their exchange according to watchlist
-    [ ] Portfolio
+    [ ] Fetch and update Portfolio
+
 [ ] api/api.go use for exchange specific structs for available timeframes.
 [ ] SQL Events websocket: trigger api call to update backend 
     [ ] portfolio/positions change

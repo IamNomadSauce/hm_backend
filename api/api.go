@@ -1,6 +1,7 @@
 package api
 
 import (
+	"backend/model"
 	"net/url"
 	"fmt"
 	"os"
@@ -368,6 +369,7 @@ func GetPrice(currency string) (float64, error) {
 // --------------------------------------------------------------------------
 // Candles
 // --------------------------------------------------------------------------
+/*
 type Candle struct {
     Timestamp int64   `json:"start"`
     Open      float64 `json:"open"`
@@ -377,7 +379,7 @@ type Candle struct {
     Volume    float64 `json:"volume"`
 }
 
-func (c *Candle) UnmarshalJSON(data []byte) error {
+func (c *model.Candle) UnmarshalJSON(data []byte) error {
     var temp struct {
         Timestamp string `json:"start"`
         Open      string `json:"open"`
@@ -431,7 +433,9 @@ func (c *Candle) UnmarshalJSON(data []byte) error {
     return nil
 }
 
-func Get_Coinbase_Candles(productID string, granularity string, start, end time.Time) ([]Candle, error) {
+*/
+
+func Get_Coinbase_Candles(productID string, granularity string, start, end time.Time) ([]model.Candle, error) {
 	fmt.Println("Get_Coinbase_Candles \n",productID, "\n", granularity, "\n", start, "\n", end, "\n")
     apiKey := os.Getenv("CBAPIKEY")
     apiSecret := os.Getenv("CBAPISECRET")
@@ -481,7 +485,7 @@ func Get_Coinbase_Candles(productID string, granularity string, start, end time.
     }
 
     var candleData struct {
-        Candles []Candle `json:"candles"`
+        Candles []model.Candle `json:"candles"`
     }
 
     err = json.Unmarshal(body, &candleData)
@@ -493,7 +497,7 @@ func Get_Coinbase_Candles(productID string, granularity string, start, end time.
     return candleData.Candles, nil
 }
 
-func All_Candles_Loop(productID string, granularity string, minutes int, startTime time.Time, endTime time.Time, allCandles []Candle) ([]Candle, error) {
+func All_Candles_Loop(productID string, granularity string, minutes int, startTime time.Time, endTime time.Time, allCandles []model.Candle) ([]model.Candle, error) {
     fmt.Println("Looping Through All Candles\n", productID, "\n", granularity, "\n", minutes, "\n", startTime, "\n", endTime, "\n\n---------------")
 
     // Base case to stop recursion

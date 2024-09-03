@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"backend/db"
 	"backend/api"
+	"backend/model"
 	"log"
 
 )
@@ -70,13 +71,18 @@ func main() {
 
 	//start := time.Duration(300 * tf.Minutes) * time.Minute)
 
-	var empty_candles []api.Candle 
+	var empty_candles []model.Candle 
 
 	all_candles, err := api.All_Candles_Loop(product, tf.Endpoint, tf.Minutes, start, time.Now(), empty_candles)
 	if err != nil {
 		fmt.Println("error getting all candles loop", err)
 	}
 	fmt.Println("All Candles Returned:",len(all_candles))
+
+	err = db.Write_Candles(all_candles, product, coinbase_xch.Name, tf.TF)
+	if err != nil {
+		fmt.Println("Error writing candles", err)
+	}
 	defer database.Close()
 
 	api.ApiConnect()
@@ -108,5 +114,4 @@ func main() {
 	//}
 
 }
-
 
