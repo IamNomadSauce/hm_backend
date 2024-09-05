@@ -530,3 +530,41 @@ func All_Candles_Loop(productID string, granularity string, minutes int, startTi
     return All_Candles_Loop(productID, granularity, minutes, newStartTime, endTime, allCandles)
 }
 
+func Fill_Exchange(exchange model.Exchange, full bool) error{
+	fmt.Println("Fill Whole Exchange")
+	fmt.Println(exchange.Watchlist)
+	fmt.Println(exchange.Timeframes)
+	watchlist := exchange.Watchlist
+	timeframes := exchange.Timeframes
+
+	var candles []model.Candle
+
+	for wl, _ := range watchlist {
+		
+		for tf, _ := range timeframes {
+			if full {
+				all_candles, err := All_Candles(watchlist[wl], timeframes[wl].Endpoint, timeframes[tf].Minutes, candles)
+				if err != nil {
+					fmt.Println("Error getting all candles", err, watchlist[wl], timeframes[tf])
+				}
+
+			} else {
+				minutes := timeframes[tf].Minutes
+				end := time.Now()
+				start := end.Add(-time.Duration(minutes * 300) * time.Minute
+				candles, err := Get_Coinbase_Candles(watchlist[wl], timeframes[tf].Endpoint, start, end)
+				if err != nil {
+					fmt.Println("Error getting candles: ", err, watchlist[wl], timeframes[tf])
+				}
+			}
+		}
+	}
+
+	return nil
+
+
+} 
+
+
+
+

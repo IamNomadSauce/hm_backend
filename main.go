@@ -1,11 +1,11 @@
 package main
 
 import (
-	"time"
+	_"time"
 	"fmt"
 	"backend/db"
 	"backend/api"
-	"backend/model"
+	_"backend/model"
 	"log"
 
 )
@@ -60,7 +60,12 @@ func main() {
 	}
 	*/
 
-	coinbase_xch := exchanges[0]
+	coinbase := exchanges[0]
+	err = api.Fill_Exchange(coinbase)
+	if err != nil {
+		fmt.Println("Error Fill exchange", err)
+	}
+	/*
 	product := coinbase_xch.Watchlist[0].Product
 	tf := coinbase_xch.Timeframes[len(coinbase_xch.Timeframes)-1]
 	end := time.Now()
@@ -83,6 +88,7 @@ func main() {
 	if err != nil {
 		fmt.Println("Error writing candles", err)
 	}
+	*/
 	defer database.Close()
 
 	api.ApiConnect()

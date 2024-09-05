@@ -278,7 +278,7 @@ func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
     }
     defer tx.Rollback()
 
-	product = strings.Replace(product, "-", "", -1)
+	product = strings.Replace(product, "-", "_", -1)
 
     _, err = tx.Exec(fmt.Sprintf(`
         CREATE TABLE IF NOT EXISTS %s_%s_%s (
