@@ -61,7 +61,7 @@ func main() {
 	*/
 
 	coinbase := exchanges[0]
-	err = api.Fill_Exchange(coinbase)
+	err = api.Fill_Exchange(coinbase, true)
 	if err != nil {
 		fmt.Println("Error Fill exchange", err)
 	}

@@ -2,6 +2,8 @@ package api
 
 import (
 	"backend/model"
+	"backend/db"
+	_"database/sql"
 	"net/url"
 	"fmt"
 	"os"
@@ -534,27 +536,40 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 	fmt.Println("Fill Whole Exchange")
 	fmt.Println(exchange.Watchlist)
 	fmt.Println(exchange.Timeframes)
+
+
 	watchlist := exchange.Watchlist
 	timeframes := exchange.Timeframes
 
-	var candles []model.Candle
-
 	for wl, _ := range watchlist {
+
+		product := watchlist[wl].Product
 		
 		for tf, _ := range timeframes {
+			timeframe := timeframes[tf]
+			var candles []model.Candle
+			start_time := time.Now().Add(-time.Duration(300 * timeframe.Minutes) * time.Minute)
 			if full {
-				all_candles, err := All_Candles(watchlist[wl], timeframes[wl].Endpoint, timeframes[tf].Minutes, candles)
+				candles, err := All_Candles_Loop(product, timeframe.Endpoint, timeframe.Minutes, start_time, time.Now(), candles)
 				if err != nil {
-					fmt.Println("Error getting all candles", err, watchlist[wl], timeframes[tf])
+					fmt.Println("Error getting all candles", err, product, timeframe.TF)
+				}
+				err = db.Write_Candles(candles, product, exchange.Name, timeframe.TF)
+				if err != nil {
+					fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
 				}
 
 			} else {
 				minutes := timeframes[tf].Minutes
 				end := time.Now()
-				start := end.Add(-time.Duration(minutes * 300) * time.Minute
-				candles, err := Get_Coinbase_Candles(watchlist[wl], timeframes[tf].Endpoint, start, end)
+				start := end.Add(-time.Duration(minutes * 300) * time.Minute)
+				candles, err := Get_Coinbase_Candles(product, timeframe.Endpoint, start, end)
 				if err != nil {
-					fmt.Println("Error getting candles: ", err, watchlist[wl], timeframes[tf])
+					fmt.Println("Error getting candles: ", err, product, timeframe.TF)
+				}
+				err = db.Write_Candles(candles, product, exchange.Name, timeframe.TF)
+				if err != nil {
+					fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
 				}
 			}
 		}
