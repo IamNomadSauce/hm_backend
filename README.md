@@ -1,5 +1,7 @@
 Back end system for retrieving and storing market candlestick data
 
+Use requires a postgres database
+
 hm_backend
 -- DB
   |-- db.go
