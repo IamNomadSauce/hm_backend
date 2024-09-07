@@ -1,0 +1,6625 @@
+Main 
+2024/09/07 11:37:54 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:54 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:54 
+------------------------------
+ CreateTables 
+------------------------------
+
+2024/09/07 11:37:54 
+------------------------------
+ ListTables 
+------------------------------
+
+2024/09/07 11:37:54  - btc_usd_1d_coinbase
+2024/09/07 11:37:54  - btc_usd_1h_coinbase
+2024/09/07 11:37:54  - xlm_usd_1h_coinbase
+2024/09/07 11:37:54  - orders
+2024/09/07 11:37:54  - exchanges
+2024/09/07 11:37:54  - fills
+2024/09/07 11:37:54  - watchlist
+2024/09/07 11:37:54  - btc_usd_1m_coinbase
+2024/09/07 11:37:54  - btc_usd_2h_coinbase
+2024/09/07 11:37:54  - timeframes
+2024/09/07 11:37:54  - xlm_usd_2h_coinbase
+2024/09/07 11:37:54  - btc_usd_6h_coinbase
+2024/09/07 11:37:54  - xlm_usd_6h_coinbase
+2024/09/07 11:37:54  - xlm_usd_5m_coinbase
+2024/09/07 11:37:54  - xlm_usd_1d_coinbase
+2024/09/07 11:37:54  - xlm_usd_15m_coinbase
+2024/09/07 11:37:54  - btc_usd_5m_coinbase
+2024/09/07 11:37:54  - btc_usd_15m_coinbase
+2024/09/07 11:37:54  - btc_usd_30m_coinbase
+2024/09/07 11:37:54  - xlm_usd_30m_coinbase
+2024/09/07 11:37:54  - xlm_usd_1m_coinbase
+2024/09/07 11:37:54 
+-------------------------------------
+ Get All Exchanges 
+-------------------------------------
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:37:54.675239916 -0400 EDT m=-17999.936284295 
+ 2024-09-07 11:37:54.675239916 -0400 EDT m=+0.063715705 
+
+2024/09/07 11:37:54 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:54 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:54 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:55 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:37:55.063030499 -0400 EDT m=-89999.548493711 
+ 2024-09-07 11:37:55.063030499 -0400 EDT m=+0.451506289 
+
+2024/09/07 11:37:55 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:55 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:55 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:55 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:37:55.278568419 -0400 EDT m=-269999.332955792 
+ 2024-09-07 11:37:55.278568419 -0400 EDT m=+0.667044208 
+
+2024/09/07 11:37:55 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:55 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:55 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:55 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:37:55.475788211 -0400 EDT m=-539999.135736000 
+ 2024-09-07 11:37:55.475788211 -0400 EDT m=+0.864264000 
+
+2024/09/07 11:37:55 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:55 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:55 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:55 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:37:55.681309909 -0400 EDT m=-1079998.930214301 
+ 2024-09-07 11:37:55.681309909 -0400 EDT m=+1.069785699 
+
+2024/09/07 11:37:55 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:55 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:55 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:55 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:37:55.89010922 -0400 EDT m=-2159998.721414990 
+ 2024-09-07 11:37:55.89010922 -0400 EDT m=+1.278585010 
+
+2024/09/07 11:37:56 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:56 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:56 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:56 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:37:56.103825995 -0400 EDT m=-6479998.507698215 
+ 2024-09-07 11:37:56.103825995 -0400 EDT m=+1.492301785 
+
+2024/09/07 11:37:56 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:56 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:56 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:56 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:37:56.308803595 -0500 EST m=-25919998.302720596 
+ 2024-09-07 11:37:56.308803595 -0400 EDT m=+1.697279404 
+
+2024/09/07 11:37:56 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:56 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:56 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:56 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:37:56.519460106 -0400 EDT m=-17998.092064105 
+ 2024-09-07 11:37:56.519460106 -0400 EDT m=+1.907935895 
+
+2024/09/07 11:37:56 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:56 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:56 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:56 Total candles inserted or updated: 288
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:37:56.738859365 -0400 EDT m=-89997.872664845 
+ 2024-09-07 11:37:56.738859365 -0400 EDT m=+2.127335155 
+
+2024/09/07 11:37:56 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:56 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:56 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:56 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:37:56.955507631 -0400 EDT m=-269997.656016580 
+ 2024-09-07 11:37:56.955507631 -0400 EDT m=+2.343983420 
+
+2024/09/07 11:37:57 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:57 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:57 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:57 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:37:57.163121672 -0400 EDT m=-539997.448402538 
+ 2024-09-07 11:37:57.163121672 -0400 EDT m=+2.551597462 
+
+2024/09/07 11:37:57 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:57 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:57 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:57 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:37:57.393161935 -0400 EDT m=-1079997.218362276 
+ 2024-09-07 11:37:57.393161935 -0400 EDT m=+2.781637724 
+
+2024/09/07 11:37:57 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:57 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:57 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:57 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:37:57.605574573 -0400 EDT m=-2159997.005949637 
+ 2024-09-07 11:37:57.605574573 -0400 EDT m=+2.994050363 
+
+2024/09/07 11:37:57 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:57 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:57 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:57 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:37:57.81101059 -0400 EDT m=-6479996.800513602 
+ 2024-09-07 11:37:57.81101059 -0400 EDT m=+3.199486398 
+
+2024/09/07 11:37:57 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:57 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:57 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:58 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:37:58.022074073 -0500 EST m=-25919996.589450137 
+ 2024-09-07 11:37:58.022074073 -0400 EDT m=+3.410549863 
+
+2024/09/07 11:37:58 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:37:58 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:37:58 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:37:58 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:38:58.292148864 -0400 EDT m=-17936.319375328 
+ 2024-09-07 11:38:58.292148864 -0400 EDT m=+63.680624672 
+
+2024/09/07 11:38:58 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:38:58 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:38:58 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:38:58 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:38:58.507333935 -0400 EDT m=-89936.104190256 
+ 2024-09-07 11:38:58.507333935 -0400 EDT m=+63.895809744 
+
+2024/09/07 11:38:58 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:38:58 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:38:58 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:38:58 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:38:58.76493625 -0400 EDT m=-269935.846587961 
+ 2024-09-07 11:38:58.76493625 -0400 EDT m=+64.153412039 
+
+2024/09/07 11:38:58 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:38:58 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:38:58 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:38:58 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:38:58.979379911 -0400 EDT m=-539935.632144299 
+ 2024-09-07 11:38:58.979379911 -0400 EDT m=+64.367855701 
+
+2024/09/07 11:38:59 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:38:59 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:38:59 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:38:59 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:38:59.181842636 -0400 EDT m=-1079935.429681574 
+ 2024-09-07 11:38:59.181842636 -0400 EDT m=+64.570318426 
+
+2024/09/07 11:38:59 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:38:59 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:38:59 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:38:59 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:38:59.394090532 -0400 EDT m=-2159935.217433660 
+ 2024-09-07 11:38:59.394090532 -0400 EDT m=+64.782566340 
+
+2024/09/07 11:38:59 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:38:59 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:38:59 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:38:59 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:38:59.665891587 -0400 EDT m=-6479934.945632605 
+ 2024-09-07 11:38:59.665891587 -0400 EDT m=+65.054367395 
+
+2024/09/07 11:38:59 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:38:59 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:38:59 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:38:59 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:38:59.872917618 -0500 EST m=-25919934.738606593 
+ 2024-09-07 11:38:59.872917618 -0400 EDT m=+65.261393407 
+
+2024/09/07 11:38:59 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:38:59 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:38:59 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:00 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:39:00.07965634 -0400 EDT m=-17934.531867870 
+ 2024-09-07 11:39:00.07965634 -0400 EDT m=+65.468132130 
+
+2024/09/07 11:39:00 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:39:00 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:39:00 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:00 Total candles inserted or updated: 288
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:39:00.316580596 -0400 EDT m=-89934.294943614 
+ 2024-09-07 11:39:00.316580596 -0400 EDT m=+65.705056386 
+
+2024/09/07 11:39:00 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:39:00 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:39:00 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:00 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:39:00.537000089 -0400 EDT m=-269934.074524121 
+ 2024-09-07 11:39:00.537000089 -0400 EDT m=+65.925475879 
+
+2024/09/07 11:39:00 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:39:00 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:39:00 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:00 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:39:00.745281278 -0400 EDT m=-539933.866242932 
+ 2024-09-07 11:39:00.745281278 -0400 EDT m=+66.133757068 
+
+2024/09/07 11:39:00 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:39:00 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:39:00 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:00 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:39:00.946272703 -0400 EDT m=-1079933.665251508 
+ 2024-09-07 11:39:00.946272703 -0400 EDT m=+66.334748492 
+
+2024/09/07 11:39:01 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:39:01 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:39:01 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:01 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:39:01.149151048 -0400 EDT m=-2159933.462373162 
+ 2024-09-07 11:39:01.149151048 -0400 EDT m=+66.537626838 
+
+2024/09/07 11:39:01 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:39:01 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:39:01 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:01 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:39:01.369635022 -0400 EDT m=-6479933.241889188 
+ 2024-09-07 11:39:01.369635022 -0400 EDT m=+66.758110812 
+
+2024/09/07 11:39:01 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:39:01 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:39:01 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:01 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:39:01.609331013 -0500 EST m=-25919933.002193197 
+ 2024-09-07 11:39:01.609331013 -0400 EDT m=+66.997806803 
+
+2024/09/07 11:39:01 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:39:01 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:39:01 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:39:01 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:40:01.877680128 -0400 EDT m=-17872.733844082 
+ 2024-09-07 11:40:01.877680128 -0400 EDT m=+127.266155918 
+
+2024/09/07 11:40:02 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:02 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:02 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:02 Total candles inserted or updated: 299
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:40:02.084713316 -0400 EDT m=-89872.526810894 
+ 2024-09-07 11:40:02.084713316 -0400 EDT m=+127.473189106 
+
+2024/09/07 11:40:02 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:02 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:02 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:02 Total candles inserted or updated: 299
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:40:02.290680546 -0400 EDT m=-269872.320843664 
+ 2024-09-07 11:40:02.290680546 -0400 EDT m=+127.679156336 
+
+2024/09/07 11:40:02 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:02 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:02 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:02 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:40:02.510594376 -0400 EDT m=-539872.100929834 
+ 2024-09-07 11:40:02.510594376 -0400 EDT m=+127.899070166 
+
+2024/09/07 11:40:02 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:02 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:02 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:02 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:40:02.739630986 -0400 EDT m=-1079871.871893224 
+ 2024-09-07 11:40:02.739630986 -0400 EDT m=+128.128106776 
+
+2024/09/07 11:40:02 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:02 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:02 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:02 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:40:02.972152649 -0400 EDT m=-2159871.639371562 
+ 2024-09-07 11:40:02.972152649 -0400 EDT m=+128.360628438 
+
+2024/09/07 11:40:03 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:03 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:03 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:03 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:40:03.183544797 -0400 EDT m=-6479871.427979414 
+ 2024-09-07 11:40:03.183544797 -0400 EDT m=+128.572020586 
+
+2024/09/07 11:40:03 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:03 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:03 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:03 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:40:03.415662376 -0500 EST m=-25919871.195861834 
+ 2024-09-07 11:40:03.415662376 -0400 EDT m=+128.804138166 
+
+2024/09/07 11:40:03 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:03 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:03 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:03 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:40:03.621358983 -0400 EDT m=-17870.990165227 
+ 2024-09-07 11:40:03.621358983 -0400 EDT m=+129.009834773 
+
+2024/09/07 11:40:03 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:03 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:03 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:03 Total candles inserted or updated: 288
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:40:03.818838383 -0400 EDT m=-89870.792685827 
+ 2024-09-07 11:40:03.818838383 -0400 EDT m=+129.207314173 
+
+2024/09/07 11:40:03 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:03 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:03 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:04 Total candles inserted or updated: 299
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:40:04.030383046 -0400 EDT m=-269870.581141164 
+ 2024-09-07 11:40:04.030383046 -0400 EDT m=+129.418858836 
+
+2024/09/07 11:40:04 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:04 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:04 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:04 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:40:04.233383213 -0400 EDT m=-539870.378140997 
+ 2024-09-07 11:40:04.233383213 -0400 EDT m=+129.621859003 
+
+2024/09/07 11:40:04 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:04 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:04 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:04 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:40:04.432074494 -0400 EDT m=-1079870.179449717 
+ 2024-09-07 11:40:04.432074494 -0400 EDT m=+129.820550283 
+
+2024/09/07 11:40:04 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:04 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:04 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:04 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:40:04.634639671 -0400 EDT m=-2159869.976884540 
+ 2024-09-07 11:40:04.634639671 -0400 EDT m=+130.023115460 
+
+2024/09/07 11:40:04 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:04 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:04 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:04 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:40:04.836312163 -0400 EDT m=-6479869.775212047 
+ 2024-09-07 11:40:04.836312163 -0400 EDT m=+130.224787953 
+
+2024/09/07 11:40:04 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:04 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:04 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:05 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:40:05.034848096 -0500 EST m=-25919869.576676115 
+ 2024-09-07 11:40:05.034848096 -0400 EDT m=+130.423323885 
+
+2024/09/07 11:40:05 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:40:05 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:40:05 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:40:05 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:41:05.345410635 -0400 EDT m=-17809.266113464 
+ 2024-09-07 11:41:05.345410635 -0400 EDT m=+190.733886536 
+
+2024/09/07 11:41:05 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:05 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:05 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:05 Total candles inserted or updated: 299
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:41:05.632814546 -0400 EDT m=-89808.978709627 
+ 2024-09-07 11:41:05.632814546 -0400 EDT m=+191.021290373 
+
+2024/09/07 11:41:05 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:05 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:05 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:05 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:41:05.912680567 -0400 EDT m=-269808.698843643 
+ 2024-09-07 11:41:05.912680567 -0400 EDT m=+191.301156357 
+
+2024/09/07 11:41:06 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:06 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:06 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:06 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:41:06.117842007 -0400 EDT m=-539808.493682204 
+ 2024-09-07 11:41:06.117842007 -0400 EDT m=+191.506317796 
+
+2024/09/07 11:41:06 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:06 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:06 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:06 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:41:06.319385119 -0400 EDT m=-1079808.292139092 
+ 2024-09-07 11:41:06.319385119 -0400 EDT m=+191.707860908 
+
+2024/09/07 11:41:06 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:06 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:06 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:06 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:41:06.535898346 -0400 EDT m=-2159808.075625864 
+ 2024-09-07 11:41:06.535898346 -0400 EDT m=+191.924374136 
+
+2024/09/07 11:41:06 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:06 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:06 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:06 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:41:06.754619192 -0400 EDT m=-6479807.856905019 
+ 2024-09-07 11:41:06.754619192 -0400 EDT m=+192.143094981 
+
+2024/09/07 11:41:06 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:06 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:06 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:06 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:41:06.984444405 -0500 EST m=-25919807.627079806 
+ 2024-09-07 11:41:06.984444405 -0400 EDT m=+192.372920194 
+
+2024/09/07 11:41:07 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:07 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:07 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:07 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:41:07.193252209 -0400 EDT m=-17807.418272001 
+ 2024-09-07 11:41:07.193252209 -0400 EDT m=+192.581727999 
+
+2024/09/07 11:41:07 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:07 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:07 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:07 Total candles inserted or updated: 288
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:41:07.411717024 -0400 EDT m=-89807.199807168 
+ 2024-09-07 11:41:07.411717024 -0400 EDT m=+192.800192832 
+
+2024/09/07 11:41:07 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:07 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:07 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:07 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:41:07.621639137 -0400 EDT m=-269806.989885073 
+ 2024-09-07 11:41:07.621639137 -0400 EDT m=+193.010114927 
+
+2024/09/07 11:41:07 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:07 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:07 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:07 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:41:07.831833078 -0400 EDT m=-539806.779691132 
+ 2024-09-07 11:41:07.831833078 -0400 EDT m=+193.220308868 
+
+2024/09/07 11:41:07 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:07 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:07 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:08 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:41:08.046510772 -0400 EDT m=-1079806.565013438 
+ 2024-09-07 11:41:08.046510772 -0400 EDT m=+193.434986562 
+
+2024/09/07 11:41:08 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:08 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:08 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:08 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:41:08.266744308 -0400 EDT m=-2159806.344779903 
+ 2024-09-07 11:41:08.266744308 -0400 EDT m=+193.655220097 
+
+2024/09/07 11:41:08 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:08 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:08 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:08 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:41:08.474270659 -0400 EDT m=-6479806.137253551 
+ 2024-09-07 11:41:08.474270659 -0400 EDT m=+193.862746449 
+
+2024/09/07 11:41:08 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:08 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:08 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:08 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:41:08.678248052 -0500 EST m=-25919805.933276159 
+ 2024-09-07 11:41:08.678248052 -0400 EDT m=+194.066723841 
+
+2024/09/07 11:41:08 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:41:08 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:41:08 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:41:08 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:42:08.944747402 -0400 EDT m=-17745.666776735 
+ 2024-09-07 11:42:08.944747402 -0400 EDT m=+254.333223265 
+
+2024/09/07 11:42:09 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:09 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:09 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:09 Total candles inserted or updated: 299
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:42:09.220090441 -0400 EDT m=-89745.391433751 
+ 2024-09-07 11:42:09.220090441 -0400 EDT m=+254.608566249 
+
+2024/09/07 11:42:09 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:09 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:09 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:09 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:42:09.435714692 -0400 EDT m=-269745.175809518 
+ 2024-09-07 11:42:09.435714692 -0400 EDT m=+254.824190482 
+
+2024/09/07 11:42:09 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:09 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:09 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:09 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:42:09.651687065 -0400 EDT m=-539744.959837145 
+ 2024-09-07 11:42:09.651687065 -0400 EDT m=+255.040162855 
+
+2024/09/07 11:42:09 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:09 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:09 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:09 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:42:09.868331443 -0400 EDT m=-1079744.743192749 
+ 2024-09-07 11:42:09.868331443 -0400 EDT m=+255.256807251 
+
+2024/09/07 11:42:10 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:10 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:10 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:10 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:42:10.081948553 -0400 EDT m=-2159744.529575658 
+ 2024-09-07 11:42:10.081948553 -0400 EDT m=+255.470424342 
+
+2024/09/07 11:42:10 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:10 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:10 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:10 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:42:10.291531603 -0400 EDT m=-6479744.319992589 
+ 2024-09-07 11:42:10.291531603 -0400 EDT m=+255.680007411 
+
+2024/09/07 11:42:10 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:10 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:10 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:10 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:42:10.530086076 -0500 EST m=-25919744.081438135 
+ 2024-09-07 11:42:10.530086076 -0400 EDT m=+255.918561865 
+
+2024/09/07 11:42:10 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:10 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:10 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:10 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:42:10.740548903 -0400 EDT m=-17743.870975289 
+ 2024-09-07 11:42:10.740548903 -0400 EDT m=+256.129024711 
+
+2024/09/07 11:42:10 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:10 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:10 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:10 Total candles inserted or updated: 288
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:42:10.948508711 -0400 EDT m=-89743.663015499 
+ 2024-09-07 11:42:10.948508711 -0400 EDT m=+256.336984501 
+
+2024/09/07 11:42:11 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:11 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:11 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:11 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:42:11.154065776 -0400 EDT m=-269743.457458435 
+ 2024-09-07 11:42:11.154065776 -0400 EDT m=+256.542541565 
+
+2024/09/07 11:42:11 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:11 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:11 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:11 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:42:11.409313903 -0400 EDT m=-539743.202210308 
+ 2024-09-07 11:42:11.409313903 -0400 EDT m=+256.797789692 
+
+2024/09/07 11:42:11 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:11 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:11 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:11 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:42:11.634852568 -0400 EDT m=-1079742.976671643 
+ 2024-09-07 11:42:11.634852568 -0400 EDT m=+257.023328357 
+
+2024/09/07 11:42:11 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:11 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:11 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:11 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:42:11.839802349 -0400 EDT m=-2159742.771721861 
+ 2024-09-07 11:42:11.839802349 -0400 EDT m=+257.228278139 
+
+2024/09/07 11:42:11 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:11 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:11 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:12 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:42:12.045366914 -0400 EDT m=-6479742.566157297 
+ 2024-09-07 11:42:12.045366914 -0400 EDT m=+257.433842703 
+
+2024/09/07 11:42:12 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:12 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:12 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:12 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:42:12.280096138 -0500 EST m=-25919742.331428073 
+ 2024-09-07 11:42:12.280096138 -0400 EDT m=+257.668571927 
+
+2024/09/07 11:42:12 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:42:12 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:42:12 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:42:12 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:43:12.61864146 -0400 EDT m=-17681.992882639 
+ 2024-09-07 11:43:12.61864146 -0400 EDT m=+318.007117361 
+
+2024/09/07 11:43:12 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:12 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:12 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:12 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:43:12.916566978 -0400 EDT m=-89681.694957214 
+ 2024-09-07 11:43:12.916566978 -0400 EDT m=+318.305042786 
+
+2024/09/07 11:43:13 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:13 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:13 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:13 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:43:13.190728106 -0400 EDT m=-269681.420796105 
+ 2024-09-07 11:43:13.190728106 -0400 EDT m=+318.579203895 
+
+2024/09/07 11:43:13 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:13 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:13 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:13 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:43:13.411499599 -0400 EDT m=-539681.200024611 
+ 2024-09-07 11:43:13.411499599 -0400 EDT m=+318.799975389 
+
+2024/09/07 11:43:13 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:13 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:13 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:13 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:43:13.620444461 -0400 EDT m=-1079680.991079731 
+ 2024-09-07 11:43:13.620444461 -0400 EDT m=+319.008920269 
+
+2024/09/07 11:43:13 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:13 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:13 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:13 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:43:13.825553109 -0400 EDT m=-2159680.785971101 
+ 2024-09-07 11:43:13.825553109 -0400 EDT m=+319.214028899 
+
+2024/09/07 11:43:13 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:13 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:13 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:14 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:43:14.069986347 -0400 EDT m=-6479680.541537863 
+ 2024-09-07 11:43:14.069986347 -0400 EDT m=+319.458462137 
+
+2024/09/07 11:43:14 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:14 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:14 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:14 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:43:14.300956026 -0500 EST m=-25919680.310568184 
+ 2024-09-07 11:43:14.300956026 -0400 EDT m=+319.689431816 
+
+2024/09/07 11:43:14 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:14 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:14 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:14 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:43:14.517186785 -0400 EDT m=-17680.094337426 
+ 2024-09-07 11:43:14.517186785 -0400 EDT m=+319.905662574 
+
+2024/09/07 11:43:14 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:14 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:14 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:14 Total candles inserted or updated: 290
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:43:14.747803009 -0400 EDT m=-89679.863721202 
+ 2024-09-07 11:43:14.747803009 -0400 EDT m=+320.136278798 
+
+2024/09/07 11:43:14 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:14 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:14 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:14 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:43:14.951878199 -0400 EDT m=-269679.659646012 
+ 2024-09-07 11:43:14.951878199 -0400 EDT m=+320.340353988 
+
+2024/09/07 11:43:15 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:15 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:15 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:15 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:43:15.166373088 -0400 EDT m=-539679.445151122 
+ 2024-09-07 11:43:15.166373088 -0400 EDT m=+320.554848878 
+
+2024/09/07 11:43:15 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:15 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:15 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:15 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:43:15.411858396 -0400 EDT m=-1079679.199665796 
+ 2024-09-07 11:43:15.411858396 -0400 EDT m=+320.800334204 
+
+2024/09/07 11:43:15 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:15 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:15 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:15 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:43:15.636664561 -0400 EDT m=-2159678.974859631 
+ 2024-09-07 11:43:15.636664561 -0400 EDT m=+321.025140369 
+
+2024/09/07 11:43:15 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:15 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:15 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:15 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:43:15.837697781 -0400 EDT m=-6479678.773826430 
+ 2024-09-07 11:43:15.837697781 -0400 EDT m=+321.226173570 
+
+2024/09/07 11:43:15 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:15 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:15 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:16 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:43:16.05803071 -0500 EST m=-25919678.553493500 
+ 2024-09-07 11:43:16.05803071 -0400 EDT m=+321.446506500 
+
+2024/09/07 11:43:16 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:43:16 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:43:16 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:43:16 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:44:16.305776094 -0400 EDT m=-17618.305748024 
+ 2024-09-07 11:44:16.305776094 -0400 EDT m=+381.694251976 
+
+2024/09/07 11:44:16 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:16 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:16 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:16 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:44:16.584799213 -0400 EDT m=-89618.026724961 
+ 2024-09-07 11:44:16.584799213 -0400 EDT m=+381.973275039 
+
+2024/09/07 11:44:16 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:16 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:16 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:16 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:44:16.850259033 -0400 EDT m=-269617.761265177 
+ 2024-09-07 11:44:16.850259033 -0400 EDT m=+382.238734823 
+
+2024/09/07 11:44:16 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:16 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:16 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:17 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:44:17.06703252 -0400 EDT m=-539617.544463320 
+ 2024-09-07 11:44:17.06703252 -0400 EDT m=+382.455536680 
+
+2024/09/07 11:44:17 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:17 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:17 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:17 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:44:17.267687561 -0400 EDT m=-1079617.343836650 
+ 2024-09-07 11:44:17.267687561 -0400 EDT m=+382.656163350 
+
+2024/09/07 11:44:17 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:17 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:17 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:17 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:44:17.484287996 -0400 EDT m=-2159617.127236215 
+ 2024-09-07 11:44:17.484287996 -0400 EDT m=+382.872763785 
+
+2024/09/07 11:44:17 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:17 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:17 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:17 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:44:17.677877467 -0400 EDT m=-6479616.933646743 
+ 2024-09-07 11:44:17.677877467 -0400 EDT m=+383.066353257 
+
+2024/09/07 11:44:17 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:17 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:17 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:17 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:44:17.89584741 -0500 EST m=-25919616.715676782 
+ 2024-09-07 11:44:17.89584741 -0400 EDT m=+383.284323218 
+
+2024/09/07 11:44:18 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:18 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:18 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:18 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:44:18.090681595 -0400 EDT m=-17616.520842597 
+ 2024-09-07 11:44:18.090681595 -0400 EDT m=+383.479157403 
+
+2024/09/07 11:44:18 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:18 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:18 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:18 Total candles inserted or updated: 289
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:44:18.28747783 -0400 EDT m=-89616.324046362 
+ 2024-09-07 11:44:18.28747783 -0400 EDT m=+383.675953638 
+
+2024/09/07 11:44:18 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:18 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:18 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:18 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:44:18.492355834 -0400 EDT m=-269616.119168376 
+ 2024-09-07 11:44:18.492355834 -0400 EDT m=+383.880831624 
+
+2024/09/07 11:44:18 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:18 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:18 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:18 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:44:18.705921521 -0400 EDT m=-539615.905602690 
+ 2024-09-07 11:44:18.705921521 -0400 EDT m=+384.094397310 
+
+2024/09/07 11:44:18 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:18 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:18 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:18 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:44:18.917423252 -0400 EDT m=-1079615.694100958 
+ 2024-09-07 11:44:18.917423252 -0400 EDT m=+384.305899042 
+
+2024/09/07 11:44:19 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:19 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:19 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:19 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:44:19.124468988 -0400 EDT m=-2159615.487055223 
+ 2024-09-07 11:44:19.124468988 -0400 EDT m=+384.512944777 
+
+2024/09/07 11:44:19 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:19 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:19 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:19 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:44:19.322846059 -0400 EDT m=-6479615.288678133 
+ 2024-09-07 11:44:19.322846059 -0400 EDT m=+384.711321867 
+
+2024/09/07 11:44:19 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:19 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:19 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:19 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:44:19.52971065 -0500 EST m=-25919615.081813541 
+ 2024-09-07 11:44:19.52971065 -0400 EDT m=+384.918186459 
+
+2024/09/07 11:44:19 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:44:19 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:44:19 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:44:19 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:45:19.79736693 -0400 EDT m=-17554.814157206 
+ 2024-09-07 11:45:19.79736693 -0400 EDT m=+445.185842794 
+
+2024/09/07 11:45:19 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:19 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:19 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:20 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:45:20.097089419 -0400 EDT m=-89554.514434662 
+ 2024-09-07 11:45:20.097089419 -0400 EDT m=+445.485565338 
+
+2024/09/07 11:45:20 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:20 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:20 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:20 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:45:20.309272151 -0400 EDT m=-269554.302252060 
+ 2024-09-07 11:45:20.309272151 -0400 EDT m=+445.697747940 
+
+2024/09/07 11:45:20 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:20 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:20 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:20 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:45:20.512940344 -0400 EDT m=-539554.098583866 
+ 2024-09-07 11:45:20.512940344 -0400 EDT m=+445.901416134 
+
+2024/09/07 11:45:20 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:20 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:20 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:20 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:45:20.718552829 -0400 EDT m=-1079553.892971381 
+ 2024-09-07 11:45:20.718552829 -0400 EDT m=+446.107028619 
+
+2024/09/07 11:45:20 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:20 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:20 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:20 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:45:20.94453467 -0400 EDT m=-2159553.666989522 
+ 2024-09-07 11:45:20.94453467 -0400 EDT m=+446.333010478 
+
+2024/09/07 11:45:21 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:21 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:21 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:21 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:45:21.147650487 -0400 EDT m=-6479553.463873724 
+ 2024-09-07 11:45:21.147650487 -0400 EDT m=+446.536126276 
+
+2024/09/07 11:45:21 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:21 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:21 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:21 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:45:21.345869891 -0500 EST m=-25919553.265654320 
+ 2024-09-07 11:45:21.345869891 -0400 EDT m=+446.734345680 
+
+2024/09/07 11:45:21 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:21 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:21 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:21 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:45:21.554187891 -0400 EDT m=-17553.057336319 
+ 2024-09-07 11:45:21.554187891 -0400 EDT m=+446.942663681 
+
+2024/09/07 11:45:21 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:21 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:21 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:21 Total candles inserted or updated: 289
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:45:21.764165745 -0400 EDT m=-89552.847358466 
+ 2024-09-07 11:45:21.764165745 -0400 EDT m=+447.152641534 
+
+2024/09/07 11:45:21 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:21 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:21 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:21 Total candles inserted or updated: 299
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:45:21.991433355 -0400 EDT m=-269552.620090856 
+ 2024-09-07 11:45:21.991433355 -0400 EDT m=+447.379909144 
+
+2024/09/07 11:45:22 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:22 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:22 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:22 Total candles inserted or updated: 299
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:45:22.190977564 -0400 EDT m=-539552.420546628 
+ 2024-09-07 11:45:22.190977564 -0400 EDT m=+447.579453372 
+
+2024/09/07 11:45:22 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:22 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:22 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:22 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:45:22.397150018 -0400 EDT m=-1079552.214374192 
+ 2024-09-07 11:45:22.397150018 -0400 EDT m=+447.785625808 
+
+2024/09/07 11:45:22 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:22 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:22 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:22 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:45:22.594099542 -0400 EDT m=-2159552.017424668 
+ 2024-09-07 11:45:22.594099542 -0400 EDT m=+447.982575332 
+
+2024/09/07 11:45:22 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:22 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:22 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:22 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:45:22.792130821 -0400 EDT m=-6479551.819393390 
+ 2024-09-07 11:45:22.792130821 -0400 EDT m=+448.180606610 
+
+2024/09/07 11:45:22 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:22 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:22 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:22 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:45:22.992259758 -0500 EST m=-25919551.619264453 
+ 2024-09-07 11:45:22.992259758 -0400 EDT m=+448.380735547 
+
+2024/09/07 11:45:23 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:45:23 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:45:23 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:45:23 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:46:23.254045796 -0400 EDT m=-17491.357478304 
+ 2024-09-07 11:46:23.254045796 -0400 EDT m=+508.642521696 
+
+2024/09/07 11:46:23 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:23 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:23 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:23 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:46:23.539565388 -0400 EDT m=-89491.071958823 
+ 2024-09-07 11:46:23.539565388 -0400 EDT m=+508.928041177 
+
+2024/09/07 11:46:23 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:23 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:23 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:23 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:46:23.739943776 -0400 EDT m=-269490.871580434 
+ 2024-09-07 11:46:23.739943776 -0400 EDT m=+509.128419566 
+
+2024/09/07 11:46:23 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:23 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:23 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:23 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:46:23.938881159 -0400 EDT m=-539490.672643052 
+ 2024-09-07 11:46:23.938881159 -0400 EDT m=+509.327356948 
+
+2024/09/07 11:46:24 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:24 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:24 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:24 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:46:24.150763485 -0400 EDT m=-1079490.460760726 
+ 2024-09-07 11:46:24.150763485 -0400 EDT m=+509.539239274 
+
+2024/09/07 11:46:24 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:24 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:24 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:24 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:46:24.359910999 -0400 EDT m=-2159490.251613211 
+ 2024-09-07 11:46:24.359910999 -0400 EDT m=+509.748386789 
+
+2024/09/07 11:46:24 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:24 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:24 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:24 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:46:24.560327721 -0400 EDT m=-6479490.051196490 
+ 2024-09-07 11:46:24.560327721 -0400 EDT m=+509.948803510 
+
+2024/09/07 11:46:24 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:24 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:24 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:24 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:46:24.782456419 -0500 EST m=-25919489.829067792 
+ 2024-09-07 11:46:24.782456419 -0400 EDT m=+510.170932208 
+
+2024/09/07 11:46:24 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:24 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:24 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:25 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:46:25.001590644 -0400 EDT m=-17489.609933566 
+ 2024-09-07 11:46:25.001590644 -0400 EDT m=+510.390066434 
+
+2024/09/07 11:46:25 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:25 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:25 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:25 Total candles inserted or updated: 289
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:46:25.209139323 -0400 EDT m=-89489.402384887 
+ 2024-09-07 11:46:25.209139323 -0400 EDT m=+510.597615113 
+
+2024/09/07 11:46:25 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:25 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:25 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:25 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:46:25.40673905 -0400 EDT m=-269489.204785161 
+ 2024-09-07 11:46:25.40673905 -0400 EDT m=+510.795214839 
+
+2024/09/07 11:46:25 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:25 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:25 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:25 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:46:25.605683525 -0400 EDT m=-539489.005840686 
+ 2024-09-07 11:46:25.605683525 -0400 EDT m=+510.994159314 
+
+2024/09/07 11:46:25 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:25 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:25 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:25 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:46:25.816609353 -0400 EDT m=-1079488.794914839 
+ 2024-09-07 11:46:25.816609353 -0400 EDT m=+511.205085161 
+
+2024/09/07 11:46:25 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:25 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:25 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:26 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:46:26.019112048 -0400 EDT m=-2159488.592412162 
+ 2024-09-07 11:46:26.019112048 -0400 EDT m=+511.407587838 
+
+2024/09/07 11:46:26 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:26 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:26 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:26 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:46:26.217933341 -0400 EDT m=-6479488.393590851 
+ 2024-09-07 11:46:26.217933341 -0400 EDT m=+511.606409149 
+
+2024/09/07 11:46:26 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:26 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:26 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:26 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:46:26.419557907 -0500 EST m=-25919488.191966303 
+ 2024-09-07 11:46:26.419557907 -0400 EDT m=+511.808033697 
+
+2024/09/07 11:46:26 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:46:26 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:46:26 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:46:26 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:47:26.642119988 -0400 EDT m=-17427.969404149 
+ 2024-09-07 11:47:26.642119988 -0400 EDT m=+572.030595851 
+
+2024/09/07 11:47:26 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:26 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:26 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:26 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:47:26.936787529 -0400 EDT m=-89427.674736682 
+ 2024-09-07 11:47:26.936787529 -0400 EDT m=+572.325263318 
+
+2024/09/07 11:47:27 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:27 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:27 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:27 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:47:27.13566822 -0400 EDT m=-269427.475855990 
+ 2024-09-07 11:47:27.13566822 -0400 EDT m=+572.524144010 
+
+2024/09/07 11:47:27 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:27 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:27 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:27 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:47:27.345995592 -0400 EDT m=-539427.265528619 
+ 2024-09-07 11:47:27.345995592 -0400 EDT m=+572.734471381 
+
+2024/09/07 11:47:27 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:27 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:27 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:27 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:47:27.551860874 -0400 EDT m=-1079427.059663336 
+ 2024-09-07 11:47:27.551860874 -0400 EDT m=+572.940336664 
+
+2024/09/07 11:47:27 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:27 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:27 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:27 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:47:27.752650765 -0400 EDT m=-2159426.858873445 
+ 2024-09-07 11:47:27.752650765 -0400 EDT m=+573.141126555 
+
+2024/09/07 11:47:27 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:27 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:27 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:27 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:47:27.952357365 -0400 EDT m=-6479426.659166846 
+ 2024-09-07 11:47:27.952357365 -0400 EDT m=+573.340833154 
+
+2024/09/07 11:47:28 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:28 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:28 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:28 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:47:28.16006783 -0500 EST m=-25919426.451456381 
+ 2024-09-07 11:47:28.16006783 -0400 EDT m=+573.548543619 
+
+2024/09/07 11:47:28 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:28 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:28 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:28 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:47:28.38075422 -0400 EDT m=-17426.230769991 
+ 2024-09-07 11:47:28.38075422 -0400 EDT m=+573.769230009 
+
+2024/09/07 11:47:28 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:28 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:28 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:28 Total candles inserted or updated: 290
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:47:28.578403308 -0400 EDT m=-89426.033120902 
+ 2024-09-07 11:47:28.578403308 -0400 EDT m=+573.966879098 
+
+2024/09/07 11:47:28 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:28 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:28 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:28 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:47:28.782555572 -0400 EDT m=-269425.828968639 
+ 2024-09-07 11:47:28.782555572 -0400 EDT m=+574.171031361 
+
+2024/09/07 11:47:28 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:28 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:28 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:28 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:47:28.997563158 -0400 EDT m=-539425.613961053 
+ 2024-09-07 11:47:28.997563158 -0400 EDT m=+574.386038947 
+
+2024/09/07 11:47:29 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:29 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:29 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:29 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:47:29.20905369 -0400 EDT m=-1079425.402470520 
+ 2024-09-07 11:47:29.20905369 -0400 EDT m=+574.597529480 
+
+2024/09/07 11:47:29 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:29 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:29 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:29 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:47:29.399872277 -0400 EDT m=-2159425.211651933 
+ 2024-09-07 11:47:29.399872277 -0400 EDT m=+574.788348067 
+
+2024/09/07 11:47:29 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:29 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:29 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:29 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:47:29.59632791 -0400 EDT m=-6479425.015196301 
+ 2024-09-07 11:47:29.59632791 -0400 EDT m=+574.984803699 
+
+2024/09/07 11:47:29 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:29 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:29 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:29 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:47:29.795504447 -0500 EST m=-25919424.816019745 
+ 2024-09-07 11:47:29.795504447 -0400 EDT m=+575.183980255 
+
+2024/09/07 11:47:29 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:47:29 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:47:29 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:47:29 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:48:30.013316936 -0400 EDT m=-17364.598207182 
+ 2024-09-07 11:48:30.013316936 -0400 EDT m=+635.401792818 
+
+2024/09/07 11:48:30 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:30 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:30 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:30 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:48:30.277058396 -0400 EDT m=-89364.334465815 
+ 2024-09-07 11:48:30.277058396 -0400 EDT m=+635.665534185 
+
+2024/09/07 11:48:30 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:30 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:30 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:30 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:48:30.491966754 -0400 EDT m=-269364.119557457 
+ 2024-09-07 11:48:30.491966754 -0400 EDT m=+635.880442543 
+
+2024/09/07 11:48:30 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:30 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:30 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:30 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:48:30.719418935 -0400 EDT m=-539363.892105275 
+ 2024-09-07 11:48:30.719418935 -0400 EDT m=+636.107894725 
+
+2024/09/07 11:48:30 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:30 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:30 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:30 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:48:30.926157765 -0400 EDT m=-1079363.685366390 
+ 2024-09-07 11:48:30.926157765 -0400 EDT m=+636.314633610 
+
+2024/09/07 11:48:31 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:31 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:31 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:31 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:48:31.158074666 -0400 EDT m=-2159363.453449526 
+ 2024-09-07 11:48:31.158074666 -0400 EDT m=+636.546550474 
+
+2024/09/07 11:48:31 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:31 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:31 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:31 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:48:31.377271117 -0400 EDT m=-6479363.234253093 
+ 2024-09-07 11:48:31.377271117 -0400 EDT m=+636.765746907 
+
+2024/09/07 11:48:31 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:31 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:31 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:31 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:48:31.593811422 -0500 EST m=-25919363.017712770 
+ 2024-09-07 11:48:31.593811422 -0400 EDT m=+636.982287230 
+
+2024/09/07 11:48:31 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:31 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:31 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:31 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:48:31.810414355 -0400 EDT m=-17362.801109856 
+ 2024-09-07 11:48:31.810414355 -0400 EDT m=+637.198890144 
+
+2024/09/07 11:48:31 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:31 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:31 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:32 Total candles inserted or updated: 291
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:48:32.044037997 -0400 EDT m=-89362.567486213 
+ 2024-09-07 11:48:32.044037997 -0400 EDT m=+637.432513787 
+
+2024/09/07 11:48:32 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:32 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:32 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:32 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:48:32.261814683 -0400 EDT m=-269362.349709527 
+ 2024-09-07 11:48:32.261814683 -0400 EDT m=+637.650290473 
+
+2024/09/07 11:48:32 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:32 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:32 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:32 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:48:32.497348229 -0400 EDT m=-539362.114175981 
+ 2024-09-07 11:48:32.497348229 -0400 EDT m=+637.885824019 
+
+2024/09/07 11:48:32 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:32 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:32 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:32 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:48:32.713338324 -0400 EDT m=-1079361.898185887 
+ 2024-09-07 11:48:32.713338324 -0400 EDT m=+638.101814113 
+
+2024/09/07 11:48:32 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:32 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:32 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:32 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:48:32.972292701 -0400 EDT m=-2159361.639231509 
+ 2024-09-07 11:48:32.972292701 -0400 EDT m=+638.360768491 
+
+2024/09/07 11:48:33 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:33 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:33 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:33 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:48:33.196692245 -0400 EDT m=-6479361.414831965 
+ 2024-09-07 11:48:33.196692245 -0400 EDT m=+638.585168035 
+
+2024/09/07 11:48:33 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:33 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:33 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:33 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:48:33.407808592 -0500 EST m=-25919361.203715618 
+ 2024-09-07 11:48:33.407808592 -0400 EDT m=+638.796284382 
+
+2024/09/07 11:48:33 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:48:33 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:48:33 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:48:33 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:49:33.629939001 -0400 EDT m=-17300.981585080 
+ 2024-09-07 11:49:33.629939001 -0400 EDT m=+699.018414920 
+
+2024/09/07 11:49:33 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:33 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:33 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:33 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:49:33.912943023 -0400 EDT m=-89300.698581187 
+ 2024-09-07 11:49:33.912943023 -0400 EDT m=+699.301418813 
+
+2024/09/07 11:49:34 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:34 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:34 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:34 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:49:34.114878261 -0400 EDT m=-269300.496645931 
+ 2024-09-07 11:49:34.114878261 -0400 EDT m=+699.503354069 
+
+2024/09/07 11:49:34 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:34 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:34 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:34 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:49:34.31804325 -0400 EDT m=-539300.293480960 
+ 2024-09-07 11:49:34.31804325 -0400 EDT m=+699.706519040 
+
+2024/09/07 11:49:34 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:34 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:34 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:34 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:49:34.598463921 -0400 EDT m=-1079300.013060290 
+ 2024-09-07 11:49:34.598463921 -0400 EDT m=+699.986939710 
+
+2024/09/07 11:49:34 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:34 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:34 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:34 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:49:34.821067346 -0400 EDT m=-2159299.790456864 
+ 2024-09-07 11:49:34.821067346 -0400 EDT m=+700.209543136 
+
+2024/09/07 11:49:34 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:34 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:34 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:35 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:49:35.025314109 -0400 EDT m=-6479299.586210102 
+ 2024-09-07 11:49:35.025314109 -0400 EDT m=+700.413789898 
+
+2024/09/07 11:49:35 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:35 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:35 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:35 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:49:35.231219299 -0500 EST m=-25919299.380304912 
+ 2024-09-07 11:49:35.231219299 -0400 EDT m=+700.619695088 
+
+2024/09/07 11:49:35 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:35 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:35 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:35 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:49:35.442760294 -0400 EDT m=-17299.168763916 
+ 2024-09-07 11:49:35.442760294 -0400 EDT m=+700.831236084 
+
+2024/09/07 11:49:35 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:35 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:35 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:35 Total candles inserted or updated: 291
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:49:35.647260958 -0400 EDT m=-89298.964263252 
+ 2024-09-07 11:49:35.647260958 -0400 EDT m=+701.035736748 
+
+2024/09/07 11:49:35 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:35 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:35 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:35 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:49:35.896504462 -0400 EDT m=-269298.715019748 
+ 2024-09-07 11:49:35.896504462 -0400 EDT m=+701.284980252 
+
+2024/09/07 11:49:36 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:36 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:36 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:36 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:49:36.097691013 -0400 EDT m=-539298.513833198 
+ 2024-09-07 11:49:36.097691013 -0400 EDT m=+701.486166802 
+
+2024/09/07 11:49:36 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:36 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:36 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:36 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:49:36.302477708 -0400 EDT m=-1079298.309046502 
+ 2024-09-07 11:49:36.302477708 -0400 EDT m=+701.690953498 
+
+2024/09/07 11:49:36 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:36 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:36 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:36 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:49:36.523154416 -0400 EDT m=-2159298.088369776 
+ 2024-09-07 11:49:36.523154416 -0400 EDT m=+701.911630224 
+
+2024/09/07 11:49:36 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:36 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:36 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:36 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:49:36.728223735 -0400 EDT m=-6479297.883300457 
+ 2024-09-07 11:49:36.728223735 -0400 EDT m=+702.116699543 
+
+2024/09/07 11:49:36 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:36 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:36 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:36 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:49:36.940967742 -0500 EST m=-25919297.670556450 
+ 2024-09-07 11:49:36.940967742 -0400 EDT m=+702.329443550 
+
+2024/09/07 11:49:37 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:49:37 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:49:37 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:49:37 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:50:37.181909202 -0400 EDT m=-17237.429614879 
+ 2024-09-07 11:50:37.181909202 -0400 EDT m=+762.570385121 
+
+2024/09/07 11:50:37 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:37 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:37 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:37 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:50:37.439068028 -0400 EDT m=-89237.172456164 
+ 2024-09-07 11:50:37.439068028 -0400 EDT m=+762.827543836 
+
+2024/09/07 11:50:37 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:37 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:37 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:37 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:50:37.637187799 -0400 EDT m=-269236.974336411 
+ 2024-09-07 11:50:37.637187799 -0400 EDT m=+763.025663589 
+
+2024/09/07 11:50:37 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:37 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:37 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:37 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:50:37.842074112 -0400 EDT m=-539236.769450099 
+ 2024-09-07 11:50:37.842074112 -0400 EDT m=+763.230549901 
+
+2024/09/07 11:50:37 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:37 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:37 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:38 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:50:38.051773895 -0400 EDT m=-1079236.559750315 
+ 2024-09-07 11:50:38.051773895 -0400 EDT m=+763.440249685 
+
+2024/09/07 11:50:38 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:38 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:38 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:38 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:50:38.261328127 -0400 EDT m=-2159236.350196084 
+ 2024-09-07 11:50:38.261328127 -0400 EDT m=+763.649803916 
+
+2024/09/07 11:50:38 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:38 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:38 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:38 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:50:38.478901779 -0400 EDT m=-6479236.132622413 
+ 2024-09-07 11:50:38.478901779 -0400 EDT m=+763.867377587 
+
+2024/09/07 11:50:38 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:38 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:38 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:38 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:50:38.678760143 -0500 EST m=-25919235.932764067 
+ 2024-09-07 11:50:38.678760143 -0400 EDT m=+764.067235933 
+
+2024/09/07 11:50:38 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:38 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:38 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:38 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:50:38.885099147 -0400 EDT m=-17235.726425064 
+ 2024-09-07 11:50:38.885099147 -0400 EDT m=+764.273574936 
+
+2024/09/07 11:50:39 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:39 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:39 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:39 Total candles inserted or updated: 291
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:50:39.097184306 -0400 EDT m=-89235.514339905 
+ 2024-09-07 11:50:39.097184306 -0400 EDT m=+764.485660095 
+
+2024/09/07 11:50:39 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:39 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:39 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:39 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:50:39.307185231 -0400 EDT m=-269235.304338979 
+ 2024-09-07 11:50:39.307185231 -0400 EDT m=+764.695661021 
+
+2024/09/07 11:50:39 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:39 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:39 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:39 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:50:39.521201756 -0400 EDT m=-539235.090322454 
+ 2024-09-07 11:50:39.521201756 -0400 EDT m=+764.909677546 
+
+2024/09/07 11:50:39 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:39 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:39 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:39 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:50:39.732501191 -0400 EDT m=-1079234.879023019 
+ 2024-09-07 11:50:39.732501191 -0400 EDT m=+765.120976981 
+
+2024/09/07 11:50:39 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:39 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:39 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:39 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:50:39.951240171 -0400 EDT m=-2159234.660284040 
+ 2024-09-07 11:50:39.951240171 -0400 EDT m=+765.339715960 
+
+2024/09/07 11:50:40 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:40 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:40 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:40 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:50:40.149694639 -0400 EDT m=-6479234.461829571 
+ 2024-09-07 11:50:40.149694639 -0400 EDT m=+765.538170429 
+
+2024/09/07 11:50:40 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:40 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:40 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:40 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:50:40.359434756 -0500 EST m=-25919234.252089455 
+ 2024-09-07 11:50:40.359434756 -0400 EDT m=+765.747910545 
+
+2024/09/07 11:50:40 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:50:40 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:50:40 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:50:40 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:51:40.59657813 -0400 EDT m=-17174.014945988 
+ 2024-09-07 11:51:40.59657813 -0400 EDT m=+825.985054012 
+
+2024/09/07 11:51:40 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:40 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:40 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:40 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:51:40.856367048 -0400 EDT m=-89173.755157144 
+ 2024-09-07 11:51:40.856367048 -0400 EDT m=+826.244842856 
+
+2024/09/07 11:51:41 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:41 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:41 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:41 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:51:41.146788239 -0400 EDT m=-269173.464735953 
+ 2024-09-07 11:51:41.146788239 -0400 EDT m=+826.535264047 
+
+2024/09/07 11:51:41 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:41 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:41 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:41 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:51:41.423019726 -0400 EDT m=-539173.188504484 
+ 2024-09-07 11:51:41.423019726 -0400 EDT m=+826.811495516 
+
+2024/09/07 11:51:41 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:41 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:41 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:41 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:51:41.615984751 -0400 EDT m=-1079172.995539459 
+ 2024-09-07 11:51:41.615984751 -0400 EDT m=+827.004460541 
+
+2024/09/07 11:51:41 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:41 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:41 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:41 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:51:41.818830611 -0400 EDT m=-2159172.792693599 
+ 2024-09-07 11:51:41.818830611 -0400 EDT m=+827.207306401 
+
+2024/09/07 11:51:41 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:41 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:41 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:42 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:51:42.023466215 -0400 EDT m=-6479172.588057996 
+ 2024-09-07 11:51:42.023466215 -0400 EDT m=+827.411942004 
+
+2024/09/07 11:51:42 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:42 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:42 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:42 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:51:42.229477836 -0500 EST m=-25919172.382046375 
+ 2024-09-07 11:51:42.229477836 -0400 EDT m=+827.617953625 
+
+2024/09/07 11:51:42 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:42 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:42 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:42 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:51:42.425023416 -0400 EDT m=-17172.186500776 
+ 2024-09-07 11:51:42.425023416 -0400 EDT m=+827.813499224 
+
+2024/09/07 11:51:42 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:42 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:42 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:42 Total candles inserted or updated: 291
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:51:42.635294632 -0400 EDT m=-89171.976229578 
+ 2024-09-07 11:51:42.635294632 -0400 EDT m=+828.023770422 
+
+2024/09/07 11:51:42 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:42 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:42 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:42 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:51:42.838694905 -0400 EDT m=-269171.772829306 
+ 2024-09-07 11:51:42.838694905 -0400 EDT m=+828.227170694 
+
+2024/09/07 11:51:42 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:42 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:42 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:43 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:51:43.048387898 -0400 EDT m=-539171.563136312 
+ 2024-09-07 11:51:43.048387898 -0400 EDT m=+828.436863688 
+
+2024/09/07 11:51:43 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:43 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:43 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:43 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:51:43.263172983 -0400 EDT m=-1079171.348351228 
+ 2024-09-07 11:51:43.263172983 -0400 EDT m=+828.651648772 
+
+2024/09/07 11:51:43 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:43 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:43 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:43 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:51:43.468422462 -0400 EDT m=-2159171.143101729 
+ 2024-09-07 11:51:43.468422462 -0400 EDT m=+828.856898271 
+
+2024/09/07 11:51:43 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:43 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:43 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:43 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:51:43.68003166 -0400 EDT m=-6479170.931492550 
+ 2024-09-07 11:51:43.68003166 -0400 EDT m=+829.068507450 
+
+2024/09/07 11:51:43 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:43 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:43 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:43 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:51:43.884103934 -0500 EST m=-25919170.727420276 
+ 2024-09-07 11:51:43.884103934 -0400 EDT m=+829.272579724 
+
+2024/09/07 11:51:44 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:51:44 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:51:44 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:51:44 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:52:44.1366242 -0400 EDT m=-17110.474899937 
+ 2024-09-07 11:52:44.1366242 -0400 EDT m=+889.525100063 
+
+2024/09/07 11:52:44 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:44 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:44 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:44 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:52:44.432222188 -0400 EDT m=-89110.179302004 
+ 2024-09-07 11:52:44.432222188 -0400 EDT m=+889.820697996 
+
+2024/09/07 11:52:44 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:44 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:44 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:44 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:52:44.6419679 -0400 EDT m=-269109.969556311 
+ 2024-09-07 11:52:44.6419679 -0400 EDT m=+890.030443689 
+
+2024/09/07 11:52:44 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:44 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:44 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:44 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:52:44.854900538 -0400 EDT m=-539109.756623654 
+ 2024-09-07 11:52:44.854900538 -0400 EDT m=+890.243376346 
+
+2024/09/07 11:52:45 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:45 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:45 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:45 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:52:45.095828868 -0400 EDT m=-1079109.515695324 
+ 2024-09-07 11:52:45.095828868 -0400 EDT m=+890.484304676 
+
+2024/09/07 11:52:45 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:45 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:45 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:45 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:52:45.306321412 -0400 EDT m=-2159109.305202798 
+ 2024-09-07 11:52:45.306321412 -0400 EDT m=+890.694797202 
+
+2024/09/07 11:52:45 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:45 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:45 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:45 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:52:45.504441352 -0400 EDT m=-6479109.107082859 
+ 2024-09-07 11:52:45.504441352 -0400 EDT m=+890.892917141 
+
+2024/09/07 11:52:45 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:45 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:45 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:45 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:52:45.701434435 -0500 EST m=-25919108.910089775 
+ 2024-09-07 11:52:45.701434435 -0400 EDT m=+891.089910225 
+
+2024/09/07 11:52:45 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:45 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:45 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:45 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:52:45.907134674 -0400 EDT m=-17108.704389536 
+ 2024-09-07 11:52:45.907134674 -0400 EDT m=+891.295610464 
+
+2024/09/07 11:52:46 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:46 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:46 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:46 Total candles inserted or updated: 291
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:52:46.16037893 -0400 EDT m=-89108.451145281 
+ 2024-09-07 11:52:46.16037893 -0400 EDT m=+891.548854719 
+
+2024/09/07 11:52:46 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:46 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:46 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:46 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:52:46.382699376 -0400 EDT m=-269108.228824834 
+ 2024-09-07 11:52:46.382699376 -0400 EDT m=+891.771175166 
+
+2024/09/07 11:52:46 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:46 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:46 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:46 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:52:46.582514473 -0400 EDT m=-539108.029009737 
+ 2024-09-07 11:52:46.582514473 -0400 EDT m=+891.970990263 
+
+2024/09/07 11:52:46 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:46 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:46 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:46 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:52:46.787629621 -0400 EDT m=-1079107.823894590 
+ 2024-09-07 11:52:46.787629621 -0400 EDT m=+892.176105410 
+
+2024/09/07 11:52:46 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:46 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:46 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:47 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:52:47.005689413 -0400 EDT m=-2159107.605834798 
+ 2024-09-07 11:52:47.005689413 -0400 EDT m=+892.394165202 
+
+2024/09/07 11:52:47 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:47 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:47 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:47 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:52:47.281410487 -0400 EDT m=-6479107.330113724 
+ 2024-09-07 11:52:47.281410487 -0400 EDT m=+892.669886276 
+
+2024/09/07 11:52:47 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:47 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:47 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:47 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:52:47.487560848 -0500 EST m=-25919107.123963363 
+ 2024-09-07 11:52:47.487560848 -0400 EDT m=+892.876036637 
+
+2024/09/07 11:52:47 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:52:47 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:52:47 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:52:47 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:53:47.743549587 -0400 EDT m=-17046.867974530 
+ 2024-09-07 11:53:47.743549587 -0400 EDT m=+953.132025470 
+
+2024/09/07 11:53:47 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:47 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:47 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:48 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:53:48.045953895 -0400 EDT m=-89046.565570297 
+ 2024-09-07 11:53:48.045953895 -0400 EDT m=+953.434429703 
+
+2024/09/07 11:53:48 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:48 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:48 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:48 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:53:48.300819599 -0400 EDT m=-269046.310704575 
+ 2024-09-07 11:53:48.300819599 -0400 EDT m=+953.689295425 
+
+2024/09/07 11:53:48 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:48 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:48 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:48 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:53:48.501280036 -0400 EDT m=-539046.110244175 
+ 2024-09-07 11:53:48.501280036 -0400 EDT m=+953.889755825 
+
+2024/09/07 11:53:48 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:48 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:48 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:48 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:53:48.705024714 -0400 EDT m=-1079045.906499497 
+ 2024-09-07 11:53:48.705024714 -0400 EDT m=+954.093500503 
+
+2024/09/07 11:53:48 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:48 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:48 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:48 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:53:48.906779411 -0400 EDT m=-2159045.704744781 
+ 2024-09-07 11:53:48.906779411 -0400 EDT m=+954.295255219 
+
+2024/09/07 11:53:49 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:49 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:49 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:49 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:53:49.10426858 -0400 EDT m=-6479045.507255630 
+ 2024-09-07 11:53:49.10426858 -0400 EDT m=+954.492744370 
+
+2024/09/07 11:53:49 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:49 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:49 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:49 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:53:49.301200212 -0500 EST m=-25919045.310323999 
+ 2024-09-07 11:53:49.301200212 -0400 EDT m=+954.689676001 
+
+2024/09/07 11:53:49 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:49 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:49 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:49 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:53:49.494570073 -0400 EDT m=-17045.116954119 
+ 2024-09-07 11:53:49.494570073 -0400 EDT m=+954.883045881 
+
+2024/09/07 11:53:49 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:49 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:49 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:49 Total candles inserted or updated: 291
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:53:49.692587969 -0400 EDT m=-89044.918936241 
+ 2024-09-07 11:53:49.692587969 -0400 EDT m=+955.081063759 
+
+2024/09/07 11:53:49 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:49 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:49 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:49 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:53:49.889267719 -0400 EDT m=-269044.722256492 
+ 2024-09-07 11:53:49.889267719 -0400 EDT m=+955.277743508 
+
+2024/09/07 11:53:50 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:50 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:50 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:50 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:53:50.099840282 -0400 EDT m=-539044.511683928 
+ 2024-09-07 11:53:50.099840282 -0400 EDT m=+955.488316072 
+
+2024/09/07 11:53:50 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:50 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:50 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:50 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:53:50.316379532 -0400 EDT m=-1079044.295144679 
+ 2024-09-07 11:53:50.316379532 -0400 EDT m=+955.704855321 
+
+2024/09/07 11:53:50 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:50 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:50 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:50 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:53:50.524306041 -0400 EDT m=-2159044.087218151 
+ 2024-09-07 11:53:50.524306041 -0400 EDT m=+955.912781849 
+
+2024/09/07 11:53:50 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:50 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:50 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:50 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:53:50.737344722 -0400 EDT m=-6479043.874179488 
+ 2024-09-07 11:53:50.737344722 -0400 EDT m=+956.125820512 
+
+2024/09/07 11:53:50 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:50 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:50 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:50 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:53:50.934617457 -0500 EST m=-25919043.676906753 
+ 2024-09-07 11:53:50.934617457 -0400 EDT m=+956.323093247 
+
+2024/09/07 11:53:51 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:53:51 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:53:51 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:53:51 Total candles inserted or updated: 300
+Fill Whole Exchange
+[{1 BTC-USD 1} {2 XLM-USD 1}]
+[{1 1 1m ONE_MINUTE 1} {3 1 5m FIVE_MINUTE 5} {4 1 15m FIFTEEN_MINUTE 15} {5 1 30m THIRTY_MINUTE 30} {6 1 1h ONE_HOUR 60} {7 1 2h TWO_HOUR 120} {9 1 6h SIX_HOUR 360} {12 1 1d ONE_DAY 1440}]
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:54:51.143272235 -0400 EDT m=-16983.468251846 
+ 2024-09-07 11:54:51.143272235 -0400 EDT m=+1016.531748154 
+
+2024/09/07 11:54:51 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:51 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:51 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:51 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:54:51.430782628 -0400 EDT m=-88983.180741564 
+ 2024-09-07 11:54:51.430782628 -0400 EDT m=+1016.819258436 
+
+2024/09/07 11:54:51 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:51 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:51 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:51 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:54:51.631831651 -0400 EDT m=-268982.979692559 
+ 2024-09-07 11:54:51.631831651 -0400 EDT m=+1017.020307441 
+
+2024/09/07 11:54:51 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:51 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:51 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:51 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:54:51.844722683 -0400 EDT m=-538982.766801528 
+ 2024-09-07 11:54:51.844722683 -0400 EDT m=+1017.233198472 
+
+2024/09/07 11:54:51 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:51 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:51 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:52 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_HOUR 
+ 2024-08-25 23:54:52.044567943 -0400 EDT m=-1078982.566956267 
+ 2024-09-07 11:54:52.044567943 -0400 EDT m=+1017.433043733 
+
+2024/09/07 11:54:52 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:52 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:52 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:52 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ TWO_HOUR 
+ 2024-08-13 11:54:52.255357591 -0400 EDT m=-2158982.356166620 
+ 2024-09-07 11:54:52.255357591 -0400 EDT m=+1017.643833380 
+
+2024/09/07 11:54:52 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:52 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:52 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:52 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ SIX_HOUR 
+ 2024-06-24 11:54:52.493760611 -0400 EDT m=-6478982.117763581 
+ 2024-09-07 11:54:52.493760611 -0400 EDT m=+1017.882236419 
+
+2024/09/07 11:54:52 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:52 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:52 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:52 Total candles inserted or updated: 300
+BTC-USD
+BTC-USD
+Get_Coinbase_Candles 
+ BTC-USD 
+ ONE_DAY 
+ 2023-11-12 10:54:52.702861063 -0500 EST m=-25918981.908663147 
+ 2024-09-07 11:54:52.702861063 -0400 EDT m=+1018.091336853 
+
+2024/09/07 11:54:52 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:52 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:52 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:52 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_MINUTE 
+ 2024-09-07 06:54:52.915129133 -0400 EDT m=-16981.696395077 
+ 2024-09-07 11:54:52.915129133 -0400 EDT m=+1018.303604923 
+
+2024/09/07 11:54:53 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:53 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:53 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:53 Total candles inserted or updated: 291
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIVE_MINUTE 
+ 2024-09-06 10:54:53.120196994 -0400 EDT m=-88981.491327217 
+ 2024-09-07 11:54:53.120196994 -0400 EDT m=+1018.508672783 
+
+2024/09/07 11:54:53 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:53 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:53 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:53 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ FIFTEEN_MINUTE 
+ 2024-09-04 08:54:53.324391694 -0400 EDT m=-268981.287132516 
+ 2024-09-07 11:54:53.324391694 -0400 EDT m=+1018.712867484 
+
+2024/09/07 11:54:53 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:53 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:53 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:53 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ THIRTY_MINUTE 
+ 2024-09-01 05:54:53.526836832 -0400 EDT m=-538981.084687379 
+ 2024-09-07 11:54:53.526836832 -0400 EDT m=+1018.915312621 
+
+2024/09/07 11:54:53 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:53 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:53 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:53 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_HOUR 
+ 2024-08-25 23:54:53.736269722 -0400 EDT m=-1078980.875254488 
+ 2024-09-07 11:54:53.736269722 -0400 EDT m=+1019.124745512 
+
+2024/09/07 11:54:53 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:53 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:53 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:53 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ TWO_HOUR 
+ 2024-08-13 11:54:53.944586698 -0400 EDT m=-2158980.666937512 
+ 2024-09-07 11:54:53.944586698 -0400 EDT m=+1019.333062488 
+
+2024/09/07 11:54:54 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:54 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:54 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:54 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ SIX_HOUR 
+ 2024-06-24 11:54:54.154474707 -0400 EDT m=-6478980.457049503 
+ 2024-09-07 11:54:54.154474707 -0400 EDT m=+1019.542950497 
+
+2024/09/07 11:54:54 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:54 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:54 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:54 Total candles inserted or updated: 300
+XLM-USD
+XLM-USD
+Get_Coinbase_Candles 
+ XLM-USD 
+ ONE_DAY 
+ 2023-11-12 10:54:54.368235204 -0500 EST m=-25918980.243289007 
+ 2024-09-07 11:54:54.368235204 -0400 EDT m=+1019.756710993 
+
+2024/09/07 11:54:54 
+------------------------------
+ Write Candles 
+------------------------------
+
+2024/09/07 11:54:54 
+------------------------------
+ DBConnect 
+------------------------------
+
+2024/09/07 11:54:54 Host: localhost
+Port: 5432
+User: postgres
+PW: 1qaz
+DB: hedgemoney
+2024/09/07 11:54:54 Total candles inserted or updated: 300

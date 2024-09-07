@@ -38,7 +38,7 @@ func DBConnect() (*sql.DB, error) {
     password = os.Getenv("PG_PASS")
     dbname = os.Getenv("PG_DBNAME")
 
-    log.Printf("Host: %s\nPort: %d\nUser: %s\nPW: %s\nDB: %s\n", host, port, user, password, dbname)
+    //log.Printf("Host: %s\nPort: %d\nUser: %s\nPW: %s\nDB: %s\n", host, port, user, password, dbname)
 
     // Connect to the default 'postgres' database to check for the existence of the target database
     psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
