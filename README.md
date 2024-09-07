@@ -11,10 +11,10 @@ hm_backend
 TODO:
 - Backend
     - [x] DB Create Tables if not exist
-[x] Write Fills
-[x] Write Current Orders
-[x] Write Candles
-[x] Create and populate Exchange data
+    - [x] Write Fills
+    - [x] Write Current Orders
+    - [x] Write Candles
+    - [x] Create and populate Exchange data
 [ ] Create and account Exchange data
     - [x] Portfolio balances of each coin.
         - [ ] Write portfolio balance to db
