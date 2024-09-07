@@ -30,7 +30,7 @@ TODO:
         - [ ] Write candles to db
     
 - [ ] main loop - 
-    - [ ] fetch all candles with all timeframes from all assets and their exchange according to watchlist
+    - [x] fetch all candles with all timeframes from all assets and their exchange according to watchlist
     - [ ] Fetch and update Portfolio
 
     - [ ] api/api.go use for exchange specific structs for available timeframes.
