@@ -2,7 +2,8 @@ package db
 
 import (
     "database/sql"
-    "fmt"
+	"fmt"
+    "log"
     _"github.com/lib/pq"
     "os"
     "github.com/joho/godotenv"
@@ -81,31 +82,31 @@ var dbname string
 
 func DBConnect() (*sql.DB, error) {
 	
-	fmt.Println("\n------------------------------\n DBConnect \n------------------------------\n")
+	log.Println("\n------------------------------\n DBConnect \n------------------------------\n")
 	err := godotenv.Load()
 	if err != nil {
-	fmt.Printf("Error loading .env file %v\n", err)
+	log.Printf("Error loading .env file %v\n", err)
 
 	}
     host = os.Getenv("PG_HOST")
     portStr := os.Getenv("PG_PORT")
     port, err := strconv.Atoi(portStr)
     if err != nil {
-        fmt.Printf("Invalid port number: %v\n", err)
+        log.Printf("Invalid port number: %v\n", err)
         return nil, err
     }
     user = os.Getenv("PG_USER")
     password = os.Getenv("PG_PASS")
     dbname = os.Getenv("PG_DBNAME")
 
-    fmt.Printf("Host: %s\nPort: %d\nUser: %s\nPW: %s\nDB: %s\n", host, port, user, password, dbname)
+    log.Printf("Host: %s\nPort: %d\nUser: %s\nPW: %s\nDB: %s\n", host, port, user, password, dbname)
 
     // Connect to the default 'postgres' database to check for the existence of the target database
     psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
     db, err := sql.Open("postgres", psqlInfo)
     if err != nil {
-        fmt.Println("Error opening Postgres", err)
+        log.Println("Error opening Postgres", err)
         return nil, err
     }
     //defer db.Close()
@@ -115,7 +116,7 @@ func DBConnect() (*sql.DB, error) {
 }
 
 func CreateTables(db *sql.DB) error {
-	fmt.Println("\n------------------------------\n CreateTables \n------------------------------\n")
+	log.Println("\n------------------------------\n CreateTables \n------------------------------\n")
 
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS exchanges (
@@ -124,7 +125,7 @@ func CreateTables(db *sql.DB) error {
 		);
 	`)
 	if err != nil { 
-		fmt.Println("Failed to create exchanges table: ", err)
+		log.Println("Failed to create exchanges table: ", err)
 	}
 
 	_, err = db.Exec(`
@@ -137,7 +138,7 @@ func CreateTables(db *sql.DB) error {
 		);
 	`)
 	if err != nil { 
-		fmt.Println("Failed to create timeframes table: ", err)
+		log.Println("Failed to create timeframes table: ", err)
 	}
 
 	_, err = db.Exec(`
@@ -155,7 +156,7 @@ func CreateTables(db *sql.DB) error {
 		
 	`)
 	if err != nil { 
-		fmt.Println("Failed to create orders table: ", err)
+		log.Println("Failed to create orders table: ", err)
 	}
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS fills (
@@ -174,7 +175,7 @@ func CreateTables(db *sql.DB) error {
 		);
 	`)
 	if err != nil { 
-		fmt.Println("Failed to create fills table: ", err)
+		log.Println("Failed to create fills table: ", err)
 	}
 
 	_, err = db.Exec(`
@@ -185,17 +186,17 @@ func CreateTables(db *sql.DB) error {
 		);
 	`)
 	if err != nil { 
-		fmt.Println("Failed to create watchlist table: ", err)
+		log.Println("Failed to create watchlist table: ", err)
 	}
 
 	return nil
 }
 
 func ListTables(db *sql.DB) error {
-	fmt.Println("\n------------------------------\n ListTables \n------------------------------\n")
+	log.Println("\n------------------------------\n ListTables \n------------------------------\n")
 	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
 	if err != nil {
-		fmt.Println("Error listing tables", err)
+		log.Println("Error listing tables", err)
 		return err
 	}
 	defer rows.Close()
@@ -203,10 +204,10 @@ func ListTables(db *sql.DB) error {
 	for rows.Next() {
 		var tableName string
 		if err := rows.Scan(&tableName); err != nil{
-			fmt.Println("Error scanning table name", err)
+			log.Println("Error scanning table name", err)
 			return err
 		}
-		fmt.Println(" -", tableName)
+		log.Println(" -", tableName)
 	}
 
 	return nil
@@ -215,7 +216,7 @@ func ListTables(db *sql.DB) error {
 
 
 func Write_Order(orders []model.Order) { // Current Orders for all accounts
-	fmt.Println("\n------------------------------\n Write Order \n------------------------------\n")
+	log.Println("\n------------------------------\n Write Order \n------------------------------\n")
 	
 	db, err := DBConnect()
 	if err != nil {
@@ -241,11 +242,11 @@ func Write_Order(orders []model.Order) { // Current Orders for all accounts
 		}
 	}
 
-	fmt.Println(len(orders), "orders added to db")
+	log.Println(len(orders), "orders added to db")
 }
 
 func Write_Fill(fills []model.Fill) {
-	fmt.Println("\n------------------------------\n Write Fills \n------------------------------\n")
+	log.Println("\n------------------------------\n Write Fills \n------------------------------\n")
 
 	db, _ := DBConnect()
 	defer db.Close()
@@ -261,13 +262,13 @@ func Write_Fill(fills []model.Fill) {
 		}
 	}
 
-	fmt.Println(len(fills), "fills added to db successfully")
+	log.Println(len(fills), "fills added to db successfully")
 }
 
 // ---------------------------------------------------------------
 
 func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
-    fmt.Println("\n------------------------------\n Write Candles \n------------------------------\n")
+    log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
 
     db, _ := DBConnect()
     defer db.Close()
@@ -322,7 +323,7 @@ func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
         return fmt.Errorf("Failed to commit transaction: %w", err)
     }
 
-    fmt.Printf("Total candles inserted or updated: %d\n", successCount)
+    log.Printf("Total candles inserted or updated: %d\n", successCount)
     return nil
 }
 
@@ -345,18 +346,18 @@ func Add_Watchlist(product, exchange string) error {
 
 //	exchange, err := Get_Exchange(id)
 //	if err != nil {
-//		fmt.Println("Error getting exchange", err)
+//		log.Println("Error getting exchange", err)
 //	}
 //}
 
 func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
-	fmt.Sprintf("\n-------------------------------------\n Get Exchange  %v\n-------------------------------------\n", id)
+	log.Printf("\n-------------------------------------\n Get Exchange  %v\n-------------------------------------\n", id)
 
 	var exchange model.Exchange
 
 	xch_row, err := db.Query("SELECT id, name FROM exchanges WHERE id = $1", id)
 	if err != nil {
-		fmt.Println("Error retrieving exchange from id")
+		log.Println("Error retrieving exchange from id")
 	}
 	defer xch_row.Close()
 
@@ -368,7 +369,7 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 }
 
 func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
-	fmt.Sprintf("\n-------------------------------------\n Get All Exchanges \n-------------------------------------\n")
+	log.Printf("\n-------------------------------------\n Get All Exchanges \n-------------------------------------\n")
 
 	var exchanges []model.Exchange
 
