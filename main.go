@@ -7,6 +7,7 @@ import (
 	"backend/api"
 	_"backend/model"
 	"log"
+	"time"
 
 )
 
@@ -61,9 +62,13 @@ func main() {
 	*/
 
 	coinbase := exchanges[0]
-	err = api.Fill_Exchange(coinbase, true)
-	if err != nil {
-		fmt.Println("Error Fill exchange", err)
+	for {
+		err = api.Fill_Exchange(coinbase, false)
+		if err != nil {
+			fmt.Println("Error Fill exchange", err)
+		}
+
+		time.Sleep(1 * time.Minute)
 	}
 	/*
 	product := coinbase_xch.Watchlist[0].Product

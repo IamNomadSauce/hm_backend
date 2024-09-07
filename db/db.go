@@ -278,7 +278,7 @@ func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
     }
     defer tx.Rollback()
 
-	product = strings.Replace(product, "-", "_", -1)
+    product = strings.Replace(product, "-", "_", -1)
 
     _, err = tx.Exec(fmt.Sprintf(`
         CREATE TABLE IF NOT EXISTS %s_%s_%s (
@@ -309,18 +309,20 @@ func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
     }
     defer stmt.Close()
 
+    successCount := 0
     for _, candle := range candles {
         _, err := stmt.Exec(candle.Timestamp, candle.Open, candle.High, candle.Low, candle.Close, candle.Volume)
         if err != nil {
             return fmt.Errorf("Failed to insert candle: %w", err)
         }
+        successCount++
     }
 
     if err := tx.Commit(); err != nil {
         return fmt.Errorf("Failed to commit transaction: %w", err)
     }
 
-    fmt.Println("Candles inserted successfully.")
+    fmt.Printf("Total candles inserted or updated: %d\n", successCount)
     return nil
 }
 

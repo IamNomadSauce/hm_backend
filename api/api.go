@@ -547,6 +547,8 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 		
 		for tf, _ := range timeframes {
 			timeframe := timeframes[tf]
+			fmt.Println(product)
+			fmt.Println(product)
 			var candles []model.Candle
 			start_time := time.Now().Add(-time.Duration(300 * timeframe.Minutes) * time.Minute)
 			if full {
@@ -574,10 +576,7 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 			}
 		}
 	}
-
 	return nil
-
-
 } 
 
 
