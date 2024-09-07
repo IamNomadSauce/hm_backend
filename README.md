@@ -10,7 +10,7 @@ hm_backend
 
 TODO:
 - Backend
-[x] DB Create Tables if not exist
+    - [x] DB Create Tables if not exist
 [x] Write Fills
 [x] Write Current Orders
 [x] Write Candles
