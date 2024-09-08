@@ -449,13 +449,15 @@ func All_Candles_Loop(productID string, granularity string, minutes int, startTi
         return nil, fmt.Errorf("error getting candles: %v", err)
     }
 
-    fmt.Println("CANDLES:\n", len(candles))
+    //fmt.Println("CANDLES:\n", len(candles))
     allCandles = append(allCandles, candles...)
-    fmt.Println("Candles Total\n", len(allCandles))
+    //fmt.Println("Candles Total\n", len(allCandles))
     if len(candles) == 0 {
+		/*
         fmt.Println("\n--------------------\n")
         fmt.Println("Loop Finished with: ", len(allCandles), "candles")
         fmt.Println("\n--------------------\n")
+		*/
         return allCandles, nil
     }
 
@@ -482,7 +484,6 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 		
 		for tf, _ := range timeframes {
 			timeframe := timeframes[tf]
-			fmt.Println(product)
 			fmt.Println(product)
 			var candles []model.Candle
 			start_time := time.Now().Add(-time.Duration(300 * timeframe.Minutes) * time.Minute)
