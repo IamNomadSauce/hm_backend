@@ -55,6 +55,8 @@ func main() {
 	go func() {
 		log.Println("Starting HTTP server goroutine")
 		http.HandleFunc("/", handleMain)
+		http.HandleFunc("/get_candles", handleCandlesRequest)
+
 		log.Println("Server starting on :31337")
 		err := http.ListenAndServe(":31337", nil)
 		if err != nil {
@@ -69,4 +71,26 @@ func handleMain(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("HElo world"))
 }
+
+func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
+	log.Print("Get Candles Request")
+
+	candles, err := api.Get_Candles()
+	if err != nil {
+		log.Printf("Error getting candles handleCandlesRequest %v", err)
+		return
+	}
+
+	jsonData, err := json.Marshal(candles)
+	if err != nil {
+		fmt.Printf("Error marshalling candles %v", err) 
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	w.Write(jsonData)
+}
+
+
 

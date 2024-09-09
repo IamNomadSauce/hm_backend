@@ -96,7 +96,7 @@ func Get_Coinbase_Fills() []Fill {
 	if err != nil {
 		fmt.Println("Readall Err ", err)
 	}
-
+	
 	var response struct {
 		Fills []Fill `json:"fills"`
 	}
@@ -514,6 +514,28 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 	}
 	return nil
 } 
+
+// ------------------------------------------------------------------------
+// 
+// ------------------------------------------------------------------------
+
+func Get_Candles(exchange, product, timeframe string) []model.Candle {
+	fmt.Println("Get_Candles:API")
+
+	candles, err := db.Get_Candles()
+
+
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

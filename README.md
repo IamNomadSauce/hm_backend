@@ -17,6 +17,8 @@ TODO:
     - [x] Write Current Orders
     - [x] Write Candles
     - [x] Create and populate Exchange data
+    - [ ] API
+        - [ ] Retrieve and send candles to client
 [ ] Create and account Exchange data
     - [x] Portfolio balances of each coin.
         - [ ] Write portfolio balance to db
@@ -27,9 +29,9 @@ TODO:
     - [x] Coinbase Fetching candles (including loop for entire candle history)
         - [x] Get Candles (single run)
         - [x] Recursive all candle history loop
-    - [ ] Coinbase Write candles to db
-        - [ ] Create tables based on exchange tfs and watchlist.
-        - [ ] Write candles to db
+    - [x] Coinbase Write candles to db
+        - [x] Create tables based on exchange tfs and watchlist.
+        - [x] Write candles to db
     
 - [ ] main loop - 
     - [x] fetch all candles with all timeframes from all assets and their exchange according to watchlist
@@ -39,9 +41,16 @@ TODO:
     - [ ] SQL Events websocket: trigger api call to update backend 
     - [ ] portfolio/positions change
     - [ ] orders triggered
+
 - Server (serving data to client)
     - [ ] http API
     - [ ] websocket stream
+    
+- Client:
+    - [ ] Templates for chart page
+        - [ ] Navbar
+        - [ ] Chart/graph
+    - [ ] Websocket (frontend and backend)
 
 ------------------
 
