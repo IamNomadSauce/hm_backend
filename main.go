@@ -6,6 +6,7 @@ import (
 	"backend/api"
 	_"backend/model"
 	"log"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -37,6 +38,7 @@ func main() {
     }
     log.Println("Exchanges", exchanges)
 
+
     go func() {
         if len(exchanges) > 0 {
             coinbase := exchanges[0]
@@ -55,7 +57,8 @@ func main() {
 	go func() {
 		log.Println("Starting HTTP server goroutine")
 		http.HandleFunc("/", handleMain)
-		http.HandleFunc("/get_candles", handleCandlesRequest)
+		http.HandleFunc("/exchanges", handleExchangesRequest)
+		//http.HandleFunc("/get_candles", handleCandlesRequest)
 
 		log.Println("Server starting on :31337")
 		err := http.ListenAndServe(":31337", nil)
@@ -72,6 +75,28 @@ func handleMain(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("HElo world"))
 }
 
+func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
+	log.Print("Handle Exchanges Request")
+
+	exchanges, err := api.Get_Exchanges()
+	if err != nil {
+		log.Printf("Error getting exchanges from API: %v", err)
+	}
+
+	jsonData, err := json.Marshal(exchanges)
+	if err != nil {
+		log.Printf("Error marshalling exchanges: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	w.Write(jsonData)
+
+
+
+}
+
+/*
 func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 	log.Print("Get Candles Request")
 
@@ -91,6 +116,6 @@ func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(jsonData)
 }
-
+*/
 
 

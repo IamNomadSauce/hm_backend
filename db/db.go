@@ -152,8 +152,6 @@ func ListTables(db *sql.DB) error {
 	return nil
 }
 
-
-
 func Write_Order(orders []model.Order) { // Current Orders for all accounts
 	log.Println("\n------------------------------\n Write Order \n------------------------------\n")
 	
@@ -413,6 +411,7 @@ func Get_Timeframes(id int, db *sql.DB) ([]model.Timeframe, error) {
 	return timeframes, nil
 }
 
+/*
 func Get_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
     log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
 
@@ -454,7 +453,7 @@ func Get_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
     return candles, nil
 }
 
-
+*/
 
 
 

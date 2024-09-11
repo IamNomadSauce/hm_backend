@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"backend/model"
 	"backend/db"
 	_"database/sql"
@@ -519,6 +520,21 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 // 
 // ------------------------------------------------------------------------
 
+func Get_Exchanges() ([]model.Exchange, error) {
+	database, err := db.DBConnect()
+	if err != nil {
+		log.Printf("Error Connecting: %v", err)
+	}
+
+	exchanges, err := db.Get_Exchanges(database)
+	if err != nil {
+		log.Printf("Error getting exchanges: API:\n %v", err)
+	}
+
+	return exchanges, nil
+}
+
+/*
 func Get_Candles(exchange, product, timeframe string) []model.Candle {
 	fmt.Println("Get_Candles:API")
 
@@ -526,17 +542,5 @@ func Get_Candles(exchange, product, timeframe string) []model.Candle {
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
+*/
 
