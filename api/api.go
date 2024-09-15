@@ -531,6 +531,8 @@ func Get_Exchanges() ([]model.Exchange, error) {
 		log.Printf("Error getting exchanges: API:\n %v", err)
 	}
 
+	log.Print("\nAPI:Get_Exchanges:Exchanges:\n", exchanges)
+
 	return exchanges, nil
 }
 

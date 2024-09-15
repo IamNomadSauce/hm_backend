@@ -308,7 +308,10 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		xch.Orders, _ = Get_Orders(xch.ID, db)
 		xch.Fills, _ = Get_Fills(xch.ID, db)
 		xch.Watchlist, _ = Get_Watchlist(xch.ID, db)
+		log.Print("\nEXCHANGE\n",xch)
+		log.Print("\nWATCHLIST\n",xch.Watchlist)
 		exchanges = append(exchanges, xch)
+
 	}
 
 	return exchanges, nil
@@ -365,7 +368,7 @@ func Get_Fills(id int, db *sql.DB) ([]model.Fill, error) {
 }
 
 func Get_Watchlist(id int, db *sql.DB) ([]model.Watchlist, error) {
-	fmt.Sprintf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", id)
+	log.Printf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", id)
 
 	var watchlist []model.Watchlist
 
@@ -385,6 +388,7 @@ func Get_Watchlist(id int, db *sql.DB) ([]model.Watchlist, error) {
 		watchlist = append(watchlist, ticker)
 
 	}
+	log.Println(watchlist)
 	return watchlist, nil
 }
 

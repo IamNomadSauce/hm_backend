@@ -83,6 +83,10 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error getting exchanges from API: %v", err)
 	}
 
+	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Name)
+	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Timeframes)
+	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Watchlist)
+
 	jsonData, err := json.Marshal(exchanges)
 	if err != nil {
 		log.Printf("Error marshalling exchanges: %v", err)
