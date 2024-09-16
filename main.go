@@ -58,7 +58,7 @@ func main() {
 		log.Println("Starting HTTP server goroutine")
 		http.HandleFunc("/", handleMain)
 		http.HandleFunc("/exchanges", handleExchangesRequest)
-		//http.HandleFunc("/get_candles", handleCandlesRequest)
+		http.HandleFunc("/candles", handleCandlesRequest)
 
 		log.Println("Server starting on :31337")
 		err := http.ListenAndServe(":31337", nil)
@@ -82,10 +82,11 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Error getting exchanges from API: %v", err)
 	}
-
+	/*
 	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Name)
 	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Timeframes)
 	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Watchlist)
+	*/
 
 	jsonData, err := json.Marshal(exchanges)
 	if err != nil {
@@ -100,11 +101,16 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/*
 func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
-	log.Print("Get Candles Request")
+	log.Print("\n-----------------------------\n Get Candles Request \n-----------------------------\n")
 
-	candles, err := api.Get_Candles()
+	product := r.URL.Query().Get("product")
+	timeframe := r.URL.Query().Get("timeframe")
+	exchange := r.URL.Query().Get("exchange")
+
+	log.Printf("Request:main: %s_%s_%s", product, timeframe, exchange)
+
+	candles, err := api.Get_Candles(product, timeframe, exchange)
 	if err != nil {
 		log.Printf("Error getting candles handleCandlesRequest %v", err)
 		return
@@ -120,6 +126,6 @@ func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(jsonData)
 }
-*/
+
 
 

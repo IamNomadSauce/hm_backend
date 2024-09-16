@@ -531,18 +531,25 @@ func Get_Exchanges() ([]model.Exchange, error) {
 		log.Printf("Error getting exchanges: API:\n %v", err)
 	}
 
-	log.Print("\nAPI:Get_Exchanges:Exchanges:\n", exchanges)
+	//log.Print("\nAPI:Get_Exchanges:Exchanges:\n", exchanges)
 
 	return exchanges, nil
 }
 
-/*
-func Get_Candles(exchange, product, timeframe string) []model.Candle {
-	fmt.Println("Get_Candles:API")
 
-	candles, err := db.Get_Candles()
+func Get_Candles(exchange, product, timeframe string) ([]model.Candle, error) {
+	fmt.Println("\n-----------------------------\n Get_Candles:API \n-----------------------------\n")
+	fmt.Println("Request:API: ", product, timeframe, exchange)
 
+	candles, err := db.Get_Candles(product, timeframe, exchange)
+	if err != nil {
+		log.Printf("Error connecting: %v", err)
+	}
+
+	log.Print("API get candles: ", len(candles))
+
+	return candles, nil
 
 }
-*/
+
 

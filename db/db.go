@@ -207,7 +207,10 @@ func Write_Fill(fills []model.Fill) {
 func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
     log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
 
-    db, _ := DBConnect()
+    db, err := DBConnect()
+	if err != nil {
+		fmt.Println("Error connecting: DB", err)
+	}
     defer db.Close()
 
     tx, err := db.Begin()
@@ -415,17 +418,21 @@ func Get_Timeframes(id int, db *sql.DB) ([]model.Timeframe, error) {
 	return timeframes, nil
 }
 
-/*
-func Get_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
+func Get_Candles(product, tf, xch string) ([]model.Candle, error) {
     log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
 
     var candles []model.Candle
+
+	db, err := DBConnect()
+	if err != nil {
+		fmt.Print("Error connecting to db: get_candles", err)
+	}
 
     // Construct the table name
     tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
 
     // Use parameterized query to prevent SQL injection
-    query := fmt.Sprintf("SELECT id, timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp DESC LIMIT 1000", tableName)
+    query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp DESC LIMIT 1000", tableName)
     
     candle_rows, err := db.Query(query)
     if err != nil {
@@ -436,7 +443,6 @@ func Get_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
     for candle_rows.Next() {
         var candle model.Candle
         err := candle_rows.Scan(
-            &candle.ID,
             &candle.Timestamp,
             &candle.Open,
             &candle.High,
@@ -457,7 +463,7 @@ func Get_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
     return candles, nil
 }
 
-*/
+
 
 
 

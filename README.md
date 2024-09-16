@@ -48,7 +48,8 @@ TODO:
     
 - Client:
     - [ ] Templates for chart page
-        - [ ] Navbar
+        - [x] Navbar
+        - [x] Exchanges bar
         - [ ] Chart/graph
     - [ ] Websocket (frontend and backend)
 
