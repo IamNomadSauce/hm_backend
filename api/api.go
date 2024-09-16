@@ -537,11 +537,12 @@ func Get_Exchanges() ([]model.Exchange, error) {
 }
 
 
-func Get_Candles(exchange, product, timeframe string) ([]model.Candle, error) {
+func Get_Candles(product, timeframe, exchange string) ([]model.Candle, error) {
 	fmt.Println("\n-----------------------------\n Get_Candles:API \n-----------------------------\n")
 	fmt.Println("Request:API: ", product, timeframe, exchange)
 
 	candles, err := db.Get_Candles(product, timeframe, exchange)
+	
 	if err != nil {
 		log.Printf("Error connecting: %v", err)
 	}
@@ -549,6 +550,7 @@ func Get_Candles(exchange, product, timeframe string) ([]model.Candle, error) {
 	log.Print("API get candles: ", len(candles))
 
 	return candles, nil
+
 
 }
 
