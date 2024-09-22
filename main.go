@@ -76,7 +76,7 @@ func handleMain(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
-	log.Print("Handle Exchanges Request")
+	log.Print("\n-----------------------------------\n Handle Exchanges Request \n-----------------------------------\n")
 
 	exchanges, err := api.Get_Exchanges()
 	if err != nil {
@@ -96,9 +96,6 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	w.Write(jsonData)
-
-
-
 }
 
 func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
@@ -126,6 +123,22 @@ func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(jsonData)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
