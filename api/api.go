@@ -522,19 +522,8 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 
 func Get_Exchanges() ([]model.Exchange, error) {
 	fmt.Println("\n-----------------------------\n API:Get_Exchanges\n-----------------------------\n")
-	database, err := db.DBConnect()
-	if err != nil {
-		log.Printf("Error Connecting: %v", err)
-	}
 
-	exchanges, err := db.Get_Exchanges(database)
-	if err != nil {
-		log.Printf("Error getting exchanges: API:\n %v", err)
-	}
-
-	//log.Print("\nAPI:Get_Exchanges:Exchanges:\n", exchanges)
-
-	return exchanges, nil
+	return db.Get_Exchanges()
 }
 
 

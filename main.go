@@ -16,28 +16,27 @@ func main() {
     fmt.Println("Main ")
 
     // Connect to DB
-    database, err := db.DBConnect()
+    err := db.DBConnect()
     if err != nil {
         log.Fatal("Error on main db connection:", err)
     }
-    defer database.Close()
+    defer db.DB.Close()
 
-    err = db.CreateTables(database)
+    err = db.CreateTables()
     if err != nil {
         log.Fatal("Error creating tables:", err)
     }
 
-    err = db.ListTables(database)
+    err = db.ListTables()
     if err != nil {
         log.Fatal("Error listing tables:", err)
     }
 
-    exchanges, err := db.Get_Exchanges(database)
+    exchanges, err := db.Get_Exchanges()
     if err != nil {
         log.Fatal("Error getting exchanges:", err)
     }
     log.Println("Exchanges", exchanges)
-
 
     go func() {
         if len(exchanges) > 0 {

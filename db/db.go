@@ -18,8 +18,9 @@ var port int
 var user string
 var password string
 var dbname string
+var DB *sql.DB
 
-func DBConnect() (*sql.DB, error) {
+func DBConnect() error {
 	
 	log.Println("\n------------------------------\n DBConnect \n------------------------------\n")
 	err := godotenv.Load()
@@ -32,7 +33,7 @@ func DBConnect() (*sql.DB, error) {
     port, err := strconv.Atoi(portStr)
     if err != nil {
         log.Printf("Invalid port number: %v\n", err)
-        return nil, err
+        return err
     }
     user = os.Getenv("PG_USER")
     password = os.Getenv("PG_PASS")
@@ -43,21 +44,20 @@ func DBConnect() (*sql.DB, error) {
     // Connect to the default 'postgres' database to check for the existence of the target database
     psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-    db, err := sql.Open("postgres", psqlInfo)
+    DB, err = sql.Open("postgres", psqlInfo)
     if err != nil {
         log.Println("Error opening Postgres", err)
-        return nil, err
+        return err
     }
-    //defer db.Close()
 
-    return db, nil
-
+	log.Println("Successfully connected to database")
+    return nil
 }
 
-func CreateTables(db *sql.DB) error {
+func CreateTables() error {
 	log.Println("\n------------------------------\n CreateTables \n------------------------------\n")
 
-	_, err := db.Exec(`
+	_, err := DB.Exec(`
 		CREATE TABLE IF NOT EXISTS exchanges (
 			id SERIAL PRIMARY KEY,
 			name VARCHAR(255) NOT NULL
@@ -67,7 +67,7 @@ func CreateTables(db *sql.DB) error {
 		log.Println("Failed to create exchanges table: ", err)
 	}
 
-	_, err = db.Exec(`
+	_, err = DB.Exec(`
 		CREATE TABLE IF NOT EXISTS timeframes (
 			id SERIAL PRIMARY KEY,
 			xch_id INTEGER REFERENCES exchanges(id),
@@ -80,7 +80,7 @@ func CreateTables(db *sql.DB) error {
 		log.Println("Failed to create timeframes table: ", err)
 	}
 
-	_, err = db.Exec(`
+	_, err = DB.Exec(`
 		CREATE TABLE IF NOT EXISTS orders (
 			orderid VARCHAR(255) UNIQUE NOT NULL, 
 			productid VARCHAR(255) NOT NULL, 
@@ -97,7 +97,7 @@ func CreateTables(db *sql.DB) error {
 	if err != nil { 
 		log.Println("Failed to create orders table: ", err)
 	}
-	_, err = db.Exec(`
+	_, err = DB.Exec(`
 		CREATE TABLE IF NOT EXISTS fills (
 			entryID VARCHAR(255) UNIQUE NOT NULL, 
 			tradeID VARCHAR(255) NOT NULL, 
@@ -117,7 +117,7 @@ func CreateTables(db *sql.DB) error {
 		log.Println("Failed to create fills table: ", err)
 	}
 
-	_, err = db.Exec(`
+	_, err = DB.Exec(`
 		CREATE TABLE IF NOT EXISTS watchlist (
 			id SERIAL PRIMARY KEY,
 			xch_id INTEGER REFERENCES exchanges(id),
@@ -131,9 +131,9 @@ func CreateTables(db *sql.DB) error {
 	return nil
 }
 
-func ListTables(db *sql.DB) error {
+func ListTables() error {
 	log.Println("\n------------------------------\n ListTables \n------------------------------\n")
-	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+	rows, err := DB.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
 	if err != nil {
 		log.Println("Error listing tables", err)
 		return err
@@ -155,14 +155,7 @@ func ListTables(db *sql.DB) error {
 func Write_Order(orders []model.Order) { // Current Orders for all accounts
 	log.Println("\n------------------------------\n Write Order \n------------------------------\n")
 	
-	db, err := DBConnect()
-	if err != nil {
-		fmt.Sprintf("Error connecting to db %v", err)
-	}
-	
-	defer db.Close()
-
-	_, err = db.Exec("DELECT FROM Orders;")
+	_, err := DB.Exec("DELECT FROM Orders;")
 	if err != nil {
 		fmt.Sprintf("Failed to delect existing orders: \n%v", err)
 	}
@@ -172,7 +165,7 @@ func Write_Order(orders []model.Order) { // Current Orders for all accounts
 	VALUES(?,?,?,?,?,?,?,?,?);
 	`
 	for _, order := range orders {
-		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.XchID, order.MarketCategory, order.Price, order.Size)
+		_, err := DB.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.XchID, order.MarketCategory, order.Price, order.Size)
 		if err != nil {
 			fmt.Sprintf("Error inserting into Order table: \n%v", err)
 
@@ -185,15 +178,12 @@ func Write_Order(orders []model.Order) { // Current Orders for all accounts
 func Write_Fill(fills []model.Fill) {
 	log.Println("\n------------------------------\n Write Fills \n------------------------------\n")
 
-	db, _ := DBConnect()
-	defer db.Close()
-	
 	insertQuery := `
 	REPLACE INTO fills (entryID, tradeID, orderID, time, tradetype, price, size, side, commission, productid, xch_id, marketcategory);
 	`
 
 	for _, fill := range fills {
-		_, err := db.Exec(insertQuery, fill.EntryID, fill.TradeID, fill.OrderID, fill.Timestamp, fill.TradeType, fill.Price, fill.Size, fill.Side, fill.Commission, fill.ProductID, fill.XchID, fill.MarketCategory)
+		_, err := DB.Exec(insertQuery, fill.EntryID, fill.TradeID, fill.OrderID, fill.Timestamp, fill.TradeType, fill.Price, fill.Size, fill.Side, fill.Commission, fill.ProductID, fill.XchID, fill.MarketCategory)
 		if err != nil {
 			fmt.Sprintf("Error inserting fill: \n%v", err)
 		}
@@ -207,13 +197,7 @@ func Write_Fill(fills []model.Fill) {
 func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
     log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
 
-    db, err := DBConnect()
-	if err != nil {
-		fmt.Println("Error connecting: DB", err)
-	}
-    defer db.Close()
-
-    tx, err := db.Begin()
+    tx, err := DB.Begin()
     if err != nil {
         return fmt.Errorf("Failed to begin transaction: %w", err)
     }
@@ -273,12 +257,12 @@ func Add_Watchlist(product, exchange string) error {
 	return nil
 }
 
-func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
+func Get_Exchange(id int) (model.Exchange, error) {
 	log.Printf("\n-------------------------------------\n Get Exchange  %v\n-------------------------------------\n", id)
 
 	var exchange model.Exchange
 
-	xch_row, err := db.Query("SELECT id, name FROM exchanges WHERE id = $1", id)
+	xch_row, err := DB.Query("SELECT id, name FROM exchanges WHERE id = $1", id)
 	if err != nil {
 		log.Println("Error retrieving exchange from id")
 	}
@@ -291,12 +275,12 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	return exchange, nil
 }
 
-func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
+func Get_Exchanges() ([]model.Exchange, error) {
 	log.Printf("\n-------------------------------------\n Get All Exchanges \n-------------------------------------\n")
 
 	var exchanges []model.Exchange
 
-	xchRows, err := db.Query("SELECT * FROM exchanges")
+	xchRows, err := DB.Query("SELECT * FROM exchanges")
 	if err != nil {
 		return exchanges, fmt.Errorf("Error getting exchanges: %v", err)
 	}
@@ -307,10 +291,10 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		if err := xchRows.Scan(&xch.ID, &xch.Name); err != nil {
 			return exchanges, fmt.Errorf("Error scanning exchange: %w", err)
 		}
-		xch.Timeframes, _ = Get_Timeframes(xch.ID, db)
-		xch.Orders, _ = Get_Orders(xch.ID, db)
-		xch.Fills, _ = Get_Fills(xch.ID, db)
-		xch.Watchlist, _ = Get_Watchlist(xch.ID, db)
+		xch.Timeframes, _ = Get_Timeframes(xch.ID)
+		xch.Orders, _ = Get_Orders(xch.ID)
+		xch.Fills, _ = Get_Fills(xch.ID)
+		xch.Watchlist, _ = Get_Watchlist(xch.ID)
 		log.Print("\nEXCHANGE\n",xch)
 		log.Print("\nWATCHLIST\n",xch.Watchlist)
 		exchanges = append(exchanges, xch)
@@ -320,11 +304,11 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 	return exchanges, nil
 }
 
-func Get_Orders(id int, db *sql.DB) ([]model.Order, error) {
+func Get_Orders(id int) ([]model.Order, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Orders  %v\n-------------------------------------\n", id)
 
 	var orders []model.Order
-	orderRows, err := db.Query("SELECT orderid, productid, tradetype, side, price, size, xch_id, marketcategory, time FROM orders WHERE xch_id = $1", id)
+	orderRows, err := DB.Query("SELECT orderid, productid, tradetype, side, price, size, xch_id, marketcategory, time FROM orders WHERE xch_id = $1", id)
 	if err != nil {
 		fmt.Sprintf("Error retrieving orders for %d \n%v", id, err)
 	}
@@ -345,11 +329,11 @@ func Get_Orders(id int, db *sql.DB) ([]model.Order, error) {
 
 }
 
-func Get_Fills(id int, db *sql.DB) ([]model.Fill, error) {
+func Get_Fills(id int) ([]model.Fill, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Fills  %v\n-------------------------------------\n", id)
 
 	var fills []model.Fill
-	fillRows, err := db.Query("SELECT entryid, tradeid, orderid, tradetype, price, size, side, commission, productid, xch_id, marketcategory, time FROM fills WHERE xch_id = $1", id)
+	fillRows, err := DB.Query("SELECT entryid, tradeid, orderid, tradetype, price, size, side, commission, productid, xch_id, marketcategory, time FROM fills WHERE xch_id = $1", id)
 	if err != nil {
 		fmt.Sprintf("Error retrieving fills for %d \n%v", id, err)
 	}
@@ -370,12 +354,12 @@ func Get_Fills(id int, db *sql.DB) ([]model.Fill, error) {
 
 }
 
-func Get_Watchlist(id int, db *sql.DB) ([]model.Watchlist, error) {
+func Get_Watchlist(id int) ([]model.Watchlist, error) {
 	log.Printf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", id)
 
 	var watchlist []model.Watchlist
 
-	watchlistRows, err := db.Query("SELECT id, product, xch_id FROM watchlist WHERE xch_id = $1", id)
+	watchlistRows, err := DB.Query("SELECT id, product, xch_id FROM watchlist WHERE xch_id = $1", id)
 	if err != nil {
 		return watchlist, fmt.Errorf("Error retrieving watchlist: %w", err)
 	}
@@ -395,12 +379,12 @@ func Get_Watchlist(id int, db *sql.DB) ([]model.Watchlist, error) {
 	return watchlist, nil
 }
 
-func Get_Timeframes(id int, db *sql.DB) ([]model.Timeframe, error) {
+func Get_Timeframes(id int) ([]model.Timeframe, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Timeframes  %v\n-------------------------------------\n", id)
 
 	var timeframes []model.Timeframe
 
-	timeframe_rows, err := db.Query("SELECT id, xch_id, tf, minutes, endpoint FROM timeframes WHERE xch_id = $1", id)
+	timeframe_rows, err := DB.Query("SELECT id, xch_id, tf, minutes, endpoint FROM timeframes WHERE xch_id = $1", id)
 	if err != nil {
 		return timeframes, fmt.Errorf("Error querying timeframes: %w", err)
 	}
@@ -423,18 +407,13 @@ func Get_Candles(product, tf, xch string) ([]model.Candle, error) {
 
     var candles []model.Candle
 
-	db, err := DBConnect()
-	if err != nil {
-		fmt.Print("Error connecting to db: get_candles", err)
-	}
-
     // Construct the table name
     tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
 
     // Use parameterized query to prevent SQL injection
     query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp DESC LIMIT 1000", tableName)
     
-    candle_rows, err := db.Query(query)
+    candle_rows, err := DB.Query(query)
     if err != nil {
         return nil, fmt.Errorf("error querying candles: %w", err)
     }
