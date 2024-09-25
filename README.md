@@ -17,8 +17,8 @@ TODO:
     - [x] Write Current Orders
     - [x] Write Candles
     - [x] Create and populate Exchange data
-    - [ ] API
-        - [ ] Retrieve and send candles to client
+    - [x] API
+        - [x] Retrieve and send candles to client
 [ ] Create and account Exchange data
     - [x] Portfolio balances of each coin.
         - [ ] Write portfolio balance to db
@@ -35,7 +35,7 @@ TODO:
     
 - [ ] main loop - 
     - [x] fetch all candles with all timeframes from all assets and their exchange according to watchlist
-    - [ ] Fetch and update Portfolio
+    - [x] Fetch and update Portfolio
 
     - [ ] api/api.go use for exchange specific structs for available timeframes.
     - [ ] SQL Events websocket: trigger api call to update backend 
@@ -47,11 +47,52 @@ TODO:
     - [ ] websocket stream
     
 - Client:
-    - [ ] Templates for chart page
+    - [x] Templates for chart page
         - [x] Navbar
         - [x] Exchanges bar
-        - [ ] Chart/graph
+        - [x] Chart/graph
     - [ ] Websocket (frontend and backend)
+
+- Chart:
+    - [ ] Drawing tools
+        - [x] Lines
+        - [x] Boxes
+        - [ ] Add tools to db
+    - [x] Exchange, tf, and asset bar
+    - [x] Render candle data
+    - [x] Pan & zoom
+    - [ ] Websocket rendering
+
+- Exchanges
+    - [ ] Coinbase
+        - [x] Candle Retrieval and storage from exchange
+        - [x] Client candle retrieval
+        - [x] Watchlist
+        - [ ] Account & portfolio balance tracking
+
+    - [ ] Alpaca
+        - [ ] Candle Retrieval and storage from exchange
+        - [ ] Client candle retrieval
+        - [ ] Watchlist
+        - [ ] Account & portfolio balance tracking
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ------------------
 
