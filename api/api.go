@@ -574,10 +574,20 @@ func Check_Candle_Gaps(exchange model.Exchange) {
 	fmt.Println("Timeframes: ", exchange.Timeframes)
 	fmt.Println("\n------------------\n")
 
+	for asset, _ := range exchange.Watchlist {
+		for tf, _ := range exchange.Timeframes {
+			fmt.Println(exchange.Name, exchange.Watchlist[asset], exchange.Timeframes[tf])
+			candles, err := db.Get_All_Candles(exchange.Name, exchange.Wathclist[asset], exchange.Timeframes[tf])
+			temp := candles[0]
+			for (i=0; i < len(candles) - 1; i++) {
 
 
-
+			}
+		}
+	}
 }
+
+//func Gap_Check(candles []model.Candle ) (gap
 
 
 
