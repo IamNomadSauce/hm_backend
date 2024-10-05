@@ -442,6 +442,45 @@ func Get_Candles(product, tf, xch string) ([]model.Candle, error) {
     return candles, nil
 }
 
+func Get_All_Candles(product, tf, xch string) ([]model.Candle, error) {
+    log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
+
+    var candles []model.Candle
+
+    // Construct the table name
+    tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
+
+    // Use parameterized query to prevent SQL injection
+    query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp", tableName)
+    
+    candle_rows, err := DB.Query(query)
+    if err != nil {
+        return nil, fmt.Errorf("error querying candles: %w", err)
+    }
+    defer candle_rows.Close()
+
+    for candle_rows.Next() {
+        var candle model.Candle
+        err := candle_rows.Scan(
+            &candle.Timestamp,
+            &candle.Open,
+            &candle.High,
+            &candle.Low,
+            &candle.Close,
+            &candle.Volume,
+        )
+        if err != nil {
+            return nil, fmt.Errorf("error scanning candle row: %w", err)
+        }
+        candles = append(candles, candle)
+    }
+
+    if err = candle_rows.Err(); err != nil {
+        return nil, fmt.Errorf("error iterating candle rows: %w", err)
+    }
+
+    return candles, nil
+}
 
 
 

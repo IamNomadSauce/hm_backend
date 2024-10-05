@@ -8,7 +8,7 @@ import (
 	"log"
 	"encoding/json"
 	"net/http"
-	"time"
+	//"time"
 
 )
 
@@ -32,15 +32,19 @@ func main() {
         log.Fatal("Error listing tables:", err)
     }
 
+
     exchanges, err := db.Get_Exchanges()
     if err != nil {
         log.Fatal("Error getting exchanges:", err)
     }
     log.Println("Exchanges", exchanges)
 
+
+	coinbase := exchanges[0]
+	api.Check_Candle_Gaps(coinbase)
+/*
     go func() {
         if len(exchanges) > 0 {
-            coinbase := exchanges[0]
             for {
                 err = api.Fill_Exchange(coinbase, false)
                 if err != nil {
@@ -52,6 +56,7 @@ func main() {
             log.Println("No exchanges found")
         }
     }()
+*/
 
 	go func() {
 		log.Println("Starting HTTP server goroutine")
@@ -67,6 +72,8 @@ func main() {
 	}()
 	select{}
 }
+
+
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
 	log.Print("Connected to Main")

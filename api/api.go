@@ -467,8 +467,8 @@ func All_Candles_Loop(productID string, granularity string, minutes int, startTi
     endTime = startTime
 
     // Recursive call
-    return All_Candles_Loop(productID, granularity, minutes, newStartTime, endTime, allCandles)
-}
+		return All_Candles_Loop(productID, granularity, minutes, newStartTime, endTime, allCandles)
+		}
 
 func Fill_Exchange(exchange model.Exchange, full bool) error{
 	fmt.Println("Fill Whole Exchange")
@@ -516,6 +516,26 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 	return nil
 } 
 
+
+// ------------------------------------------------------------------------
+// 
+// ------------------------------------------------------------------------
+
+func Gap_Search(exchange model.Exchange) {
+	fmt.Println("Data gap search")
+
+	// for each asset in watchlist
+	//		for each timeframe in timeframe
+	//			Get All candles from db
+	//		
+	//			interval := time.Now().Add(-time.Duration(300 * timeframe.Minutes) * time.Minute)
+	//			for each candle := candles:
+	//				candle_a = candle[
+
+
+}
+
+
 // ------------------------------------------------------------------------
 // 
 // ------------------------------------------------------------------------
@@ -543,5 +563,36 @@ func Get_Candles(product, timeframe, exchange string) ([]model.Candle, error) {
 
 
 }
+
+// ------------------------------------------------------------------------
+
+func Check_Candle_Gaps(exchange model.Exchange) {
+	fmt.Println("\n------------------\nCheck Candle Gaps")
+	
+	fmt.Println("Exchange: ", exchange.Name)
+	fmt.Println("Watchlist: ", exchange.Watchlist)
+	fmt.Println("Timeframes: ", exchange.Timeframes)
+	fmt.Println("\n------------------\n")
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
