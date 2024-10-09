@@ -405,6 +405,7 @@ func Get_Timeframes(id int) ([]model.Timeframe, error) {
 func Get_Candles(product, tf, xch string) ([]model.Candle, error) {
     log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
 
+	product = strings.Trim("-", "_")
     var candles []model.Candle
 
     // Construct the table name
@@ -446,6 +447,9 @@ func Get_All_Candles(product, tf, xch string) ([]model.Candle, error) {
     log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
 
     var candles []model.Candle
+
+	product = strings.Replace(product, "-", "_", -1)
+	fmt.Println(product)
 
     // Construct the table name
     tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)

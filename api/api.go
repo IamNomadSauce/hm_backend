@@ -568,23 +568,55 @@ func Get_Candles(product, timeframe, exchange string) ([]model.Candle, error) {
 
 func Check_Candle_Gaps(exchange model.Exchange) {
 	fmt.Println("\n------------------\nCheck Candle Gaps")
+	//fmt.Println(exchange)
 	
-	fmt.Println("Exchange: ", exchange.Name)
-	fmt.Println("Watchlist: ", exchange.Watchlist)
-	fmt.Println("Timeframes: ", exchange.Timeframes)
+
+	name := exchange.Name
+	watchlist := exchange.Watchlist
+	timeframes := exchange.Timeframes
+
+	fmt.Println("Exchange: ", name)
+	fmt.Println("Watchlist: ", watchlist)
+	fmt.Println("Timeframes: ", timeframes)
 	fmt.Println("\n------------------\n")
 
-	for asset, _ := range exchange.Watchlist {
-		for tf, _ := range exchange.Timeframes {
-			fmt.Println(exchange.Name, exchange.Watchlist[asset], exchange.Timeframes[tf])
-			candles, err := db.Get_All_Candles(exchange.Name, exchange.Wathclist[asset], exchange.Timeframes[tf])
-			temp := candles[0]
-			for (i=0; i < len(candles) - 1; i++) {
-
-
+	for asset, _ := range watchlist {
+		fmt.Println("ASSET", watchlist[asset].Product)
+		for tf, _ := range timeframes {
+			fmt.Printf("%s_%s_%s\n", name, watchlist[asset].Product, timeframes[tf].TF)
+			candles, err := db.Get_All_Candles(watchlist[asset].Product, timeframes[tf].TF, name)
+			if err != nil {
+				fmt.Printf("Error scanning candles: %v", err)
+			}
+			for i:= 1; i < len(candles) -1; i++ {
+				c_1 := candles[i].Timestamp
+				c_0 := candles[i-1].Timestamp
+				fmt.Println(watchlist[asset].Product, timeframes[tf].TF, name, c_0, c_1, c_1-c_0, timeframes[tf].Minutes)
 			}
 		}
 	}
+	/*
+	for asset, _ := range exchange.Watchlist {
+		for tf, _ := range exchange.Timeframes {
+			fmt.Println(exchange.Name, exchange.Watchlist[asset], exchange.Timeframes[tf])
+			candles, err := db.Get_All_Candles(exchange.Name, exchange.Wathclist[asset], exchange.Timeframes[tf]) if err != nil {
+				fmt.Printf("Error scanning candles: %v", err)
+			}
+
+			temp := candles[0]
+			for i:=0; i < len(candles) - 1; i++ {
+				temp = candles[i]
+				temp2 := candles[i+1]
+				
+				time1 := temp.Time
+				time2 := temp2.Time
+
+				fmt.Println("Time Delta", time2, time1)
+				fmt.Println(exchange.Timeframes.Minutes)
+			}
+		}
+	}
+	*/
 }
 
 //func Gap_Check(candles []model.Candle ) (gap
