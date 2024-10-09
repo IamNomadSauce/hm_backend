@@ -42,7 +42,8 @@ func main() {
 
 	coinbase := exchanges[0]
 	api.Check_Candle_Gaps(coinbase)
-/*
+
+	/*
     go func() {
         if len(exchanges) > 0 {
             for {
@@ -56,7 +57,6 @@ func main() {
             log.Println("No exchanges found")
         }
     }()
-*/
 
 	go func() {
 		log.Println("Starting HTTP server goroutine")
@@ -71,6 +71,7 @@ func main() {
 		}
 	}()
 	select{}
+	*/
 }
 
 

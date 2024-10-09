@@ -435,7 +435,7 @@ func Get_Coinbase_Candles(productID string, granularity string, start, end time.
     return candleData.Candles, nil
 }
 
-func All_Candles_Loop(productID string, granularity string, minutes int, startTime time.Time, endTime time.Time, allCandles []model.Candle) ([]model.Candle, error) {
+func All_Candles_Loop(productID string, granularity string, minutes int64, startTime time.Time, endTime time.Time, allCandles []model.Candle) ([]model.Candle, error) {
     fmt.Println("Looping Through All Candles\n", productID, "\n", granularity, "\n", minutes, "\n", startTime, "\n", endTime, "\n\n---------------")
 
     // Base case to stop recursion
@@ -589,9 +589,13 @@ func Check_Candle_Gaps(exchange model.Exchange) {
 				fmt.Printf("Error scanning candles: %v", err)
 			}
 			for i:= 1; i < len(candles) -1; i++ {
+				timeframe := timeframes[tf]
 				c_1 := candles[i].Timestamp
 				c_0 := candles[i-1].Timestamp
-				fmt.Println(watchlist[asset].Product, timeframes[tf].TF, name, c_0, c_1, c_1-c_0, timeframes[tf].Minutes)
+				delta := c_1 - c_0
+				if delta > timeframe.Minutes * 60 {
+					fmt.Println("\n------------------------------\nGAP Found: ", watchlist[asset].Product, timeframe.TF, name, c_0, c_1, delta, timeframe.Minutes)
+				}
 			}
 		}
 	}

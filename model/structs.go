@@ -70,11 +70,11 @@ func (c *Candle) UnmarshalJSON(data []byte) error {
 }
 
 type Timeframe struct {
-	ID                  int     `db:"id"`
-	XchID               int     `db:"xch_id"`
+	ID                  int64     `db:"id"`
+	XchID               int64     `db:"xch_id"`
 	TF                  string  `db:"label"`
 	Endpoint            string  `db:"endpoint"`
-	Minutes             int     `db:"minutes"`
+	Minutes             int64     `db:"minutes"`
 }
 
 type Exchange struct {
