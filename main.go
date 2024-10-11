@@ -8,7 +8,7 @@ import (
 	"log"
 	"encoding/json"
 	"net/http"
-	//"time"
+	"time"
 
 )
 
@@ -43,7 +43,7 @@ func main() {
 	coinbase := exchanges[0]
 	api.Check_Candle_Gaps(coinbase)
 
-	/*
+
     go func() {
         if len(exchanges) > 0 {
             for {
@@ -58,6 +58,8 @@ func main() {
         }
     }()
 
+
+
 	go func() {
 		log.Println("Starting HTTP server goroutine")
 		http.HandleFunc("/", handleMain)
@@ -70,8 +72,8 @@ func main() {
 			log.Printf("HTTP server error: %v", err)
 		}
 	}()
+
 	select{}
-	*/
 }
 
 

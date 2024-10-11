@@ -19,7 +19,11 @@ TODO:
     - [x] Create and populate Exchange data
     - [x] API
         - [x] Retrieve and send candles to client
-[ ] Create and account Exchange data
+    - [ ] Candle Gap Integrity Check
+        - [ ] Pass Timeframe data into loops
+        - [ ] Recursive Coinbase candle retrieval
+
+- [ ] Create and account Exchange data
     - [x] Portfolio balances of each coin.
         - [ ] Write portfolio balance to db
     - [x] fills 
@@ -43,7 +47,7 @@ TODO:
     - [ ] orders triggered
 
 - Server (serving data to client)
-    - [ ] http API
+    - [x] http API
     - [ ] websocket stream
     
 - Client:
