@@ -373,8 +373,9 @@ func GetPrice(currency string) (float64, error) {
 // Candles
 // --------------------------------------------------------------------------
 
-func Get_Coinbase_Candles(productID string, granularity string, start, end time.Time) ([]model.Candle, error) {
-	fmt.Println("\n-------------------------\nGet_Coinbase_Candles \n",productID, "\n", granularity, "\n", start, "\n", end, "\n")
+
+func Get_Coinbase_Candles(productID string, timeframe model.Timeframe, start, end time.Time) ([]model.Candle, error) {
+	fmt.Println("\n-------------------------\nGet_Coinbase_Candles \n",productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
     apiKey := os.Getenv("CBAPIKEY")
     apiSecret := os.Getenv("CBAPISECRET")
 
@@ -383,7 +384,7 @@ func Get_Coinbase_Candles(productID string, granularity string, start, end time.
     method := "GET"
 
     query := url.Values{}
-    query.Add("granularity", granularity)
+    query.Add("granularity", timeframe.Endpoint)
     query.Add("start", strconv.FormatInt(start.Unix(), 10))
     query.Add("end", strconv.FormatInt(end.Unix(), 10))
 
@@ -435,8 +436,9 @@ func Get_Coinbase_Candles(productID string, granularity string, start, end time.
     return candleData.Candles, nil
 }
 
-func All_Candles_Loop(productID string, granularity string, minutes int64, startTime time.Time, endTime time.Time, allCandles []model.Candle) ([]model.Candle, error) {
-    fmt.Println("Looping Through All Candles\n", productID, "\n", granularity, "\n", minutes, "\n", startTime, "\n", endTime, "\n\n---------------")
+func All_Candles_Loop(productID string, timeframe model.Timeframe, startTime time.Time, endTime time.Time, allCandles []model.Candle) ([]model.Candle, error) {
+	minutes := timeframe.Minutes
+    fmt.Println("Looping Through All Candles\n", productID, "\n", timeframe.Endpoint, "\n", minutes, "\n", startTime, "\n", endTime, "\n\n---------------")
 
     // Base case to stop recursion
     if startTime.After(endTime) || startTime.Equal(endTime) {
@@ -445,7 +447,7 @@ func All_Candles_Loop(productID string, granularity string, minutes int64, start
     }
 
     // Retrieve candles for the current time frame
-    candles, err := Get_Coinbase_Candles(productID, granularity, startTime, endTime)
+    candles, err := Get_Coinbase_Candles(productID, timeframe, startTime, endTime)
     if err != nil {
         return nil, fmt.Errorf("error getting candles: %v", err)
     }
@@ -467,8 +469,8 @@ func All_Candles_Loop(productID string, granularity string, minutes int64, start
     endTime = startTime
 
     // Recursive call
-		return All_Candles_Loop(productID, granularity, minutes, newStartTime, endTime, allCandles)
-		}
+	return All_Candles_Loop(productID, timeframe, newStartTime, endTime, allCandles)
+}
 
 func Fill_Exchange(exchange model.Exchange, full bool) error{
 	fmt.Println("Fill Whole Exchange")
@@ -489,7 +491,7 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 			var candles []model.Candle
 			start_time := time.Now().Add(-time.Duration(350 * timeframe.Minutes) * time.Minute)
 			if full {
-				candles, err := All_Candles_Loop(product, timeframe.Endpoint, timeframe.Minutes, start_time, time.Now(), candles)
+				candles, err := All_Candles_Loop(product, timeframe, start_time, time.Now(), candles)
 				if err != nil {
 					fmt.Println("Error getting all candles", err, product, timeframe.TF)
 				}
@@ -502,7 +504,7 @@ func Fill_Exchange(exchange model.Exchange, full bool) error{
 				minutes := timeframes[tf].Minutes
 				end := time.Now()
 				start := end.Add(-time.Duration(minutes * 350) * time.Minute)
-				candles, err := Get_Coinbase_Candles(product, timeframe.Endpoint, start, end)
+				candles, err := Get_Coinbase_Candles(product, timeframe, start, end)
 				if err != nil {
 					fmt.Println("Error getting candles: ", err, product, timeframe.TF)
 				}
@@ -600,6 +602,7 @@ func Check_Candle_Gaps(exchange model.Exchange) {
 				c_0 := candles[i-1].Timestamp
 				c_0_time := time.Unix(c_0, 0)
 				delta := c_1 - c_0
+				fmt.Println("---------------------------------\n", c_0, c_0_time, "\n", c_1, c_1_time)
 				if delta > timeframe.Minutes * 60  {
 					count++
 					num_candles := delta / (timeframe.Minutes*60)
@@ -611,16 +614,13 @@ func Check_Candle_Gaps(exchange model.Exchange) {
 					fmt.Println(delta / 60, "minutes")
 					fmt.Println(num_candles, "Candles")
 
-					if num_candles > 350 {
-						fmt.Println("Candles over the limit")
-					}
-
-
-					candles, err := Get_Coinbase_Candles(product, timeframe.Endpoint, c_0_time, c_1_time)
+						
+					var candles []model.Candle
+					all_candles, err := All_Candles_Loop(product, timeframe, c_0_time, c_1_time, candles)
 					if err != nil {
 						fmt.Println("Error getting candles: ", err, product, timeframe.TF)
 					}
-					err = db.Write_Candles(candles, product, exchange.Name, timeframe.TF)
+					err = db.Write_Candles(all_candles, product, exchange.Name, timeframe.TF)
 					if err != nil {
 						fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
 					}
