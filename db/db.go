@@ -196,6 +196,7 @@ func Write_Fill(fills []model.Fill) {
 
 func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
     log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
+	log.Println(product, tf, exchange, len(candles))
 
     tx, err := DB.Begin()
     if err != nil {
@@ -405,8 +406,9 @@ func Get_Timeframes(id int) ([]model.Timeframe, error) {
 func Get_Candles(product, tf, xch string) ([]model.Candle, error) {
     log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
 
-	product = strings.Trim("-", "_")
+	//product = strings.Trim("-", "_")
     var candles []model.Candle
+    log.Printf("DB:Get Candles2 %s_%s_%s", product, tf, xch)
 
     // Construct the table name
     tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
@@ -416,7 +418,7 @@ func Get_Candles(product, tf, xch string) ([]model.Candle, error) {
     
     candle_rows, err := DB.Query(query)
     if err != nil {
-        return nil, fmt.Errorf("error querying candles: %w", err)
+        return nil, fmt.Errorf("Error querying candles: %w", err)
     }
     defer candle_rows.Close()
 
@@ -444,7 +446,7 @@ func Get_Candles(product, tf, xch string) ([]model.Candle, error) {
 }
 
 func Get_All_Candles(product, tf, xch string) ([]model.Candle, error) {
-    log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
+    log.Printf("DB:Get All Candles %s_%s_%s", product, tf, xch)
 
     var candles []model.Candle
 

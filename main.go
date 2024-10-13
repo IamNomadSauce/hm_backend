@@ -41,7 +41,7 @@ func main() {
 
 
 	coinbase := exchanges[0]
-	api.Check_Candle_Gaps(coinbase)
+	//api.Check_Candle_Gaps(coinbase)
 
 
     go func() {
