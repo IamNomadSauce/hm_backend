@@ -33,20 +33,30 @@ func main() {
     }
 
 
-    exchanges, err := db.Get_Exchanges()
+    db_exchanges, err := db.Get_Exchanges()
     if err != nil {
         log.Fatal("Error getting exchanges:", err)
     }
-    log.Println("Exchanges", exchanges)
+    log.Println("Exchanges", db_exchanges)
 
+	var exchanges []Exchange
 
-	coinbase := exchanges[0]
+	coinbase := db_exchanges[0]
 	//api.Check_Candle_Gaps(coinbase)
 
 
     go func() {
-        if len(exchanges) > 0 {
+        if len(db_exchanges) > 0 {
             for {
+				for _, name := range db_exchanges {
+					exchange, err := model.NewExchange(name)
+					if err != nil {
+						log.Printf("Error creating exchange %v", err)
+						continue
+					}
+					exchanges = append(exchanges, exchange)
+				}
+
                 err = api.Fill_Exchange(coinbase, false)
                 if err != nil {
                     log.Println("Error Fill exchange:", err)
@@ -76,6 +86,16 @@ func main() {
 	select{}
 }
 
+func fetchDataForExchanges(exchanges []Exchange) {
+	for {
+		for _, exchange := range exchanges {
+			orders, err := exchange.GetOrders()
+			if err != nil {
+				log.Printf("Error fetching orders: %v", err)
+			}
+		}
+	}
+}
 
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +127,7 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
+#func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 	log.Print("\n-----------------------------\n Get Candles Request \n-----------------------------\n")
 
 	product := r.URL.Query().Get("product")

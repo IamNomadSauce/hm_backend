@@ -15,6 +15,91 @@ type Candle struct {
     Volume float64
 }
 
+
+type Timeframe struct {
+	ID                  int64     `db:"id"`
+	XchID               int64     `db:"xch_id"`
+	TF                  string  `db:"label"`
+	Endpoint            string  `db:"endpoint"`
+	Minutes             int64     `db:"minutes"`
+}
+
+/*
+type Exchange struct {
+	 ID          int
+	 Name        string
+	 Timeframes  []Timeframe
+	 Orders      []Order
+	 Fills       []Fill
+	 Watchlist   []Product
+}
+*/
+
+type Exchange interface {
+	GetTimeframes() ([]Timeframe, error)
+	GetWatchlist() ([]Product, error)
+	GetFills() ([]Fill, error)
+	GetPortfolio() ([]Asset, error)
+	GetOrders() ([]Order, error)
+	GetCandles() ([]Candle, error)
+}
+
+type Product struct {
+	ID int
+	Name string
+	XchID int
+}
+
+type Asset struct {
+	Symbol Product
+	Amount	float
+	Value	float
+}
+
+type Watchlist struct {
+	ID                  int     `db:"id"`
+	Product             string  `db:"product"`
+	XchID               int     `db:"xch_id"`
+}
+
+type Order struct {
+	Timestamp           int64  `db:"time"`
+	OrderID             string `db:"orderid"`  // Exchange specific order identifier
+	ProductID           string `db:"productid"` // xbt_usd_15
+	TradeType           string `db:"tradetype"` // Long / Short
+	Side                string `db:"side"` // buy / sell
+	XchID               int    `db:"xch_id"`
+	MarketCategory      string `db:"marketcategory"` // (crypto / equities)_(spot / futures)
+	Price               string `db:"price"` // instrument_currency
+	Size                string `db:"size"` // How many of instrument
+}
+
+type Fill struct {
+	Timestamp       int     `db:"time"`
+	EntryID         string  `db:"entryid"`
+	TradeID         string  `db:"tradeid"`
+	OrderID         string  `db:"orderid"`
+	TradeType       string  `db:"tradetype"`
+	Price           string  `db:"price"`
+	Size            string  `db:"size"`
+	Side            string  `db:"side"`
+	Commission      string  `db:"commission"`
+	ProductID       string  `db:"productid"`
+	XchID           int     `db:"xch_id"`
+	MarketCategory  string  `db:"marketcategory"`
+}
+
+func NewExchange(exchangeName string) (Exchange, error) {
+	switch exchangeName {
+	case "coinbase":
+		return &CoinbaseExchange{}, nil
+	case "alpaca":
+		return &AlpacaExchange{}, nil
+	default:
+		return nil, fmt.Error("Unsupported Exchange: %s", exchangeName)
+	}
+}
+
 func (c *Candle) UnmarshalJSON(data []byte) error {
     var temp struct {
         Timestamp string `json:"start"`
@@ -69,53 +154,8 @@ func (c *Candle) UnmarshalJSON(data []byte) error {
     return nil
 }
 
-type Timeframe struct {
-	ID                  int64     `db:"id"`
-	XchID               int64     `db:"xch_id"`
-	TF                  string  `db:"label"`
-	Endpoint            string  `db:"endpoint"`
-	Minutes             int64     `db:"minutes"`
-}
 
-type Exchange struct {
-	 ID          int
-	 Name        string
-	 Timeframes  []Timeframe
-	 Orders      []Order
-	 Fills       []Fill
-	 Watchlist   []Watchlist
-}
 
-type Watchlist struct {
-	ID                  int     `db:"id"`
-	Product             string  `db:"product"`
-	XchID               int     `db:"xch_id"`
-}
 
-type Order struct {
-	Timestamp           int64  `db:"time"`
-	OrderID             string `db:"orderid"`  // Exchange specific order identifier
-	ProductID           string `db:"productid"` // xbt_usd_15
-	TradeType           string `db:"tradetype"` // Long / Short
-	Side                string `db:"side"` // buy / sell
-	XchID               int    `db:"xch_id"`
-	MarketCategory      string `db:"marketcategory"` // (crypto / equities)_(spot / futures)
-	Price               string `db:"price"` // instrument_currency
-	Size                string `db:"size"` // How many of instrument
-}
 
-type Fill struct {
-	Timestamp       int     `db:"time"`
-	EntryID         string  `db:"entryid"`
-	TradeID         string  `db:"tradeid"`
-	OrderID         string  `db:"orderid"`
-	TradeType       string  `db:"tradetype"`
-	Price           string  `db:"price"`
-	Size            string  `db:"size"`
-	Side            string  `db:"side"`
-	Commission      string  `db:"commission"`
-	ProductID       string  `db:"productid"`
-	XchID           int     `db:"xch_id"`
-	MarketCategory  string  `db:"marketcategory"`
-}
 
