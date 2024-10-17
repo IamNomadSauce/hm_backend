@@ -57,6 +57,7 @@ func main() {
 					exchanges = append(exchanges, exchange)
 				}
 
+				// Add fetchDataForExchanges function here
                 err = api.Fill_Exchange(coinbase, false)
                 if err != nil {
                     log.Println("Error Fill exchange:", err)
@@ -87,12 +88,30 @@ func main() {
 }
 
 func fetchDataForExchanges(exchanges []Exchange) {
-	for {
-		for _, exchange := range exchanges {
-			orders, err := exchange.GetOrders()
-			if err != nil {
-				log.Printf("Error fetching orders: %v", err)
-			}
+	for _, exchange := range exchanges {
+		orders, err := exchange.GetOrders()
+		if err != nil {
+			log.Printf("Error fetching orders: %v", err)
+		}
+		fills, err := exchange.GetFills()
+		if err != nil {
+			log.Printf("Error fetching orders: %v", err)
+		}
+		timeframes, err := exchange.GetTimeframes()
+		if err != nil {
+			log.Printf("Error fetching orders: %v", err)
+		}
+		watchlist, err := exchange.GetWatchlist()
+		if err != nil {
+			log.Printf("Error fetching orders: %v", err)
+		}
+		portfolio, err := exchange.GetPortfolio()
+		if err != nil {
+			log.Printf("Error fetching orders: %v", err)
+		}
+		candles, err := exchange.GetCandles()
+		if err != nil {
+			log.Printf("Error fetching orders: %v", err)
 		}
 	}
 }
