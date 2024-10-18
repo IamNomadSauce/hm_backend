@@ -1,41 +1,55 @@
 package model
 
-type CoinbaseExch struct {
-	ID int
-	Name string
-	Timeframes []Timeframe
-	Orders []Order
-	Fills []Fill
-	Watchlist []Product
-	Portfolio []Asset
-)
+import "time"
 
-func (c *CoinbaseExchange) GetOrders() ([]Order, error) {
+type CoinbaseAPI struct {
+	APIKey       string
+	APISecret    string
+	BaseURL      string
+	RateLimit    int
+	RateWindow   time.Duration
+	RequestCount int
+	LastRequest  time.Time
+
+	SupportedOrderTypes []string
+	SupportedTimeframes []string
+	MinimumOrderSizes   map[string]float64
+	MakerFee            float64
+	TakerFee            float64
+}
+
+// Exchange operation
+func (api *CoinbaseAPI) FetchOrders(exchange *Exchange) ([]Order, error) {
 	var orders []Order
 	return orders, nil
 }
 
-func (c *CoinbaseExchange) GetCandles(symbol, tf string) ([]Candle, error) {
+// Exchange operation
+func (api *CoinbaseAPI) FetchCandles(exchange *Exchange, product string, timeframe string) ([]Candle, error) {
 	var candles []Candle
 	return candles, nil
 }
 
-func (c *CoinbaseExchange) GetFills() ([]Fill, error) {
+// Exchange operation
+func (api *CoinbaseAPI) FetchFills() ([]Fill, error) {
 	var fills []Fill
 	return fills, nil
 }
 
-func (c *CoinbaseExchange) GetPortfolio() ([]Asset, error) {
-	var assets []Asset
-	return assets, nil
+// Exchange operation
+func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
+	var portfolio []Asset
+	return portfolio, nil
 }
 
-func (c *CoinbaseExchange) GetWatchlist() ([]Product, error) {
-	var product []Product
-	return product, nil
+// Database operation
+func (api *CoinbaseAPI) FetchWatchlist() ([]Product, error) {
+	var products []Product
+	return products, nil
 }
 
-func (c *CoinbaseExchange) GetTimeframes() ([]Timeframe, error) {
+// Database operation
+func (api *CoinbaseAPI) FetchTimeframes() ([]Timeframe, error) {
 	var timeframes []Timeframe
 	return timeframes, nil
 }

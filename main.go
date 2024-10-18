@@ -1,55 +1,53 @@
 package main
 
 import (
-	"fmt"
-	"backend/db"
 	"backend/api"
-	_"backend/model"
-	"log"
+	"backend/db"
+	"backend/model"
+	_ "backend/model"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
-
 )
 
 func main() {
-    fmt.Println("Main ")
+	fmt.Println("Main ")
 
-    // Connect to DB
-    err := db.DBConnect()
-    if err != nil {
-        log.Fatal("Error on main db connection:", err)
-    }
-    defer db.DB.Close()
+	// Connect to DB
+	err := db.DBConnect()
+	if err != nil {
+		log.Fatal("Error on main db connection:", err)
+	}
+	defer db.DB.Close()
 
-    err = db.CreateTables()
-    if err != nil {
-        log.Fatal("Error creating tables:", err)
-    }
+	err = db.CreateTables()
+	if err != nil {
+		log.Fatal("Error creating tables:", err)
+	}
 
-    err = db.ListTables()
-    if err != nil {
-        log.Fatal("Error listing tables:", err)
-    }
+	err = db.ListTables()
+	if err != nil {
+		log.Fatal("Error listing tables:", err)
+	}
 
+	db_exchanges, err := db.Get_Exchanges()
+	if err != nil {
+		log.Fatal("Error getting exchanges:", err)
+	}
+	log.Println("Exchanges", db_exchanges)
 
-    db_exchanges, err := db.Get_Exchanges()
-    if err != nil {
-        log.Fatal("Error getting exchanges:", err)
-    }
-    log.Println("Exchanges", db_exchanges)
-
-	var exchanges []Exchange
+	var exchanges []model.Exchange
 
 	coinbase := db_exchanges[0]
 	//api.Check_Candle_Gaps(coinbase)
 
-
-    go func() {
-        if len(db_exchanges) > 0 {
-            for {
-				for _, name := range db_exchanges {
-					exchange, err := model.NewExchange(name)
+	go func() {
+		if len(db_exchanges) > 0 {
+			for {
+				for _, xch := range db_exchanges {
+					exchange, err := model.NewExchange(xch.Name)
 					if err != nil {
 						log.Printf("Error creating exchange %v", err)
 						continue
@@ -58,18 +56,16 @@ func main() {
 				}
 
 				// Add fetchDataForExchanges function here
-                err = api.Fill_Exchange(coinbase, false)
-                if err != nil {
-                    log.Println("Error Fill exchange:", err)
-                }
-                time.Sleep(1 * time.Minute)
-            }
-        } else {
-            log.Println("No exchanges found")
-        }
-    }()
-
-
+				err = api.Fill_Exchange(coinbase, false)
+				if err != nil {
+					log.Println("Error Fill exchange:", err)
+				}
+				time.Sleep(1 * time.Minute)
+			}
+		} else {
+			log.Println("No exchanges found")
+		}
+	}()
 
 	go func() {
 		log.Println("Starting HTTP server goroutine")
@@ -84,38 +80,49 @@ func main() {
 		}
 	}()
 
-	select{}
+	select {}
 }
 
 func fetchDataForExchanges(exchanges []Exchange) {
 	for _, exchange := range exchanges {
+
 		orders, err := exchange.GetOrders()
 		if err != nil {
 			log.Printf("Error fetching orders: %v", err)
 		}
+		fmt.Println("Orders:", orders)
+
 		fills, err := exchange.GetFills()
 		if err != nil {
 			log.Printf("Error fetching orders: %v", err)
 		}
+		fmt.Println("Fills:", fills)
+
 		timeframes, err := exchange.GetTimeframes()
 		if err != nil {
 			log.Printf("Error fetching orders: %v", err)
 		}
+		fmt.Println("Timeframes:", timeframes)
+
 		watchlist, err := exchange.GetWatchlist()
 		if err != nil {
-			log.Printf("Error fetching orders: %v", err)
+			log.Printf("Error fetching watchlist: %v", err)
 		}
+		fmt.Println("Watchlist:", watchlist)
+
 		portfolio, err := exchange.GetPortfolio()
 		if err != nil {
-			log.Printf("Error fetching orders: %v", err)
+			log.Printf("Error fetching portfolio: %v", err)
 		}
+		fmt.Println("Portfolio:", portfolio)
+
 		candles, err := exchange.GetCandles()
 		if err != nil {
-			log.Printf("Error fetching orders: %v", err)
+			log.Printf("Error fetching candles: %v", err)
 		}
+		fmt.Println("Candles:", candles)
 	}
 }
-
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
 	log.Print("Connected to Main")
@@ -131,9 +138,9 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error getting exchanges from API: %v", err)
 	}
 	/*
-	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Name)
-	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Timeframes)
-	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Watchlist)
+		log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Name)
+		log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Timeframes)
+		log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Watchlist)
 	*/
 
 	jsonData, err := json.Marshal(exchanges)
@@ -146,7 +153,7 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-#func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
+func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 	log.Print("\n-----------------------------\n Get Candles Request \n-----------------------------\n")
 
 	product := r.URL.Query().Get("product")
@@ -163,7 +170,7 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 
 	jsonData, err := json.Marshal(candles)
 	if err != nil {
-		fmt.Printf("Error marshalling candles %v", err) 
+		fmt.Printf("Error marshalling candles %v", err)
 		return
 	}
 
@@ -171,22 +178,3 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(jsonData)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
