@@ -7,6 +7,7 @@ type CoinbaseAPI struct {
 	APISecret    string
 	BaseURL      string
 	RateLimit    int
+	CandleLimit  int
 	RateWindow   time.Duration
 	RequestCount int
 	LastRequest  time.Time
@@ -25,7 +26,7 @@ func (api *CoinbaseAPI) FetchOrders(exchange *Exchange) ([]Order, error) {
 }
 
 // Exchange operation
-func (api *CoinbaseAPI) FetchCandles(exchange *Exchange, product string, timeframe string) ([]Candle, error) {
+func (api *CoinbaseAPI) FetchCandles(product string, timeframe string, start, end time.Time) ([]Candle, error) {
 	var candles []Candle
 	return candles, nil
 }

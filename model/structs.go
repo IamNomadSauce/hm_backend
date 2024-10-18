@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"strconv"
+	"time"
 )
 
 type Candle struct {
@@ -38,7 +39,7 @@ type ExchangeAPI interface {
 	FetchFills() ([]Fill, error)
 	FetchPortfolio() ([]Asset, error)
 	FetchTimeframes() ([]Order, error)
-	FetchCandles() ([]Candle, error)
+	FetchCandles(product, timeframe string, start, end time.Time) ([]Candle, error)
 }
 
 type Product struct {

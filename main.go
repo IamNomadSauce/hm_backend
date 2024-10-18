@@ -3,7 +3,6 @@ package main
 import (
 	"backend/api"
 	"backend/db"
-	"backend/model"
 	_ "backend/model"
 	"encoding/json"
 	"fmt"
@@ -16,11 +15,11 @@ func main() {
 	fmt.Println("Main ")
 
 	// Connect to DB
-	err := db.DBConnect()
+	database, err := db.DBConnect()
 	if err != nil {
 		log.Fatal("Error on main db connection:", err)
 	}
-	defer db.DB.Close()
+	defer database.Close()
 
 	err = db.CreateTables()
 	if err != nil {
@@ -32,38 +31,19 @@ func main() {
 		log.Fatal("Error listing tables:", err)
 	}
 
-	db_exchanges, err := db.Get_Exchanges()
-	if err != nil {
-		log.Fatal("Error getting exchanges:", err)
-	}
-	log.Println("Exchanges", db_exchanges)
-
-	var exchanges []model.Exchange
-
-	coinbase := db_exchanges[0]
-	//api.Check_Candle_Gaps(coinbase)
-
 	go func() {
-		if len(db_exchanges) > 0 {
-			for {
-				for _, xch := range db_exchanges {
-					exchange, err := model.NewExchange(xch.Name)
-					if err != nil {
-						log.Printf("Error creating exchange %v", err)
-						continue
-					}
-					exchanges = append(exchanges, exchange)
-				}
-
-				// Add fetchDataForExchanges function here
-				err = api.Fill_Exchange(coinbase, false)
-				if err != nil {
-					log.Println("Error Fill exchange:", err)
-				}
-				time.Sleep(1 * time.Minute)
+		for {
+			db_exchanges, err := db.Get_Exchanges(database)
+			if err != nil {
+				log.Fatal("Error getting exchanges:", err)
 			}
-		} else {
-			log.Println("No exchanges found")
+			for _, exchange := range db_exchanges {
+				err := api.Fetch_And_Store_Candles(exchange, database)
+				if err != nil {
+					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
+				}
+			}
+			time.Sleep(1 * time.Minute)
 		}
 	}()
 

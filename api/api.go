@@ -5,6 +5,7 @@ import (
 	"backend/model"
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	_ "database/sql"
 	"encoding/hex"
 	"encoding/json"
@@ -507,13 +508,29 @@ func All_Candles_Loop(productID string, timeframe model.Timeframe, startTime tim
 	return All_Candles_Loop(productID, timeframe, newStartTime, endTime, allCandles)
 }
 
-func Fill_Exchange(exchange model.Exchange, full bool) error {
+func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB) error {
 	fmt.Println("Fill Whole Exchange")
 	fmt.Println(exchange.Watchlist)
 	fmt.Println(exchange.Timeframes)
 
 	watchlist := exchange.Watchlist
 	timeframes := exchange.Timeframes
+
+	for _, product := range exchange.Watchlist {
+		for _, timeframe := range exchange.Timeframes {
+			end := time.Now()
+			start := end.Add(-time.Duration(exchange.API. *timeframe.Minutes) * time.Minute)
+			candles, err := exchange.API.FetchCandles(product.Name, timeframe.TF, start, end)
+			if err != nil {
+				return fmt.Errorf("Error fetching candles for %s %s: %w", product.Name, timeframe.TF, err)
+			}
+			err = db.Write_Candles(candles, product.Name, exchange.Name, timeframe.TF, database)
+			if err != nil {
+				fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
+			}
+		}
+		return nil
+	}
 
 	for wl, _ := range watchlist {
 

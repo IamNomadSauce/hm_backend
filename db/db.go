@@ -1,16 +1,17 @@
 package db
 
 import (
-    "database/sql"
-	"fmt"
-    "log"
-    _"github.com/lib/pq"
-    "os"
-    "github.com/joho/godotenv"
-    "strconv"
-	"strings"
 	"backend/model"
-    _"time"
+	"database/sql"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"strings"
+	_ "time"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 var host string
@@ -18,40 +19,41 @@ var port int
 var user string
 var password string
 var dbname string
-var DB *sql.DB
 
-func DBConnect() error {
-	
+// var DB *sql.DB
+
+func DBConnect() (*sql.DB, error) {
+
 	log.Println("\n------------------------------\n DBConnect \n------------------------------\n")
 	err := godotenv.Load()
 	if err != nil {
-	log.Printf("Error loading .env file %v\n", err)
+		log.Printf("Error loading .env file %v\n", err)
 
 	}
-    host = os.Getenv("PG_HOST")
-    portStr := os.Getenv("PG_PORT")
-    port, err := strconv.Atoi(portStr)
-    if err != nil {
-        log.Printf("Invalid port number: %v\n", err)
-        return err
-    }
-    user = os.Getenv("PG_USER")
-    password = os.Getenv("PG_PASS")
-    dbname = os.Getenv("PG_DBNAME")
+	host = os.Getenv("PG_HOST")
+	portStr := os.Getenv("PG_PORT")
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		log.Printf("Invalid port number: %v\n", err)
+		return nil, err
+	}
+	user = os.Getenv("PG_USER")
+	password = os.Getenv("PG_PASS")
+	dbname = os.Getenv("PG_DBNAME")
 
-    //log.Printf("Host: %s\nPort: %d\nUser: %s\nPW: %s\nDB: %s\n", host, port, user, password, dbname)
+	//log.Printf("Host: %s\nPort: %d\nUser: %s\nPW: %s\nDB: %s\n", host, port, user, password, dbname)
 
-    // Connect to the default 'postgres' database to check for the existence of the target database
-    psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	// Connect to the default 'postgres' database to check for the existence of the target database
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-    DB, err = sql.Open("postgres", psqlInfo)
-    if err != nil {
-        log.Println("Error opening Postgres", err)
-        return err
-    }
+	DB, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Println("Error opening Postgres", err)
+		return nil, err
+	}
 
 	log.Println("Successfully connected to database")
-    return nil
+	return DB, nil
 }
 
 func CreateTables() error {
@@ -63,7 +65,7 @@ func CreateTables() error {
 			name VARCHAR(255) NOT NULL
 		);
 	`)
-	if err != nil { 
+	if err != nil {
 		log.Println("Failed to create exchanges table: ", err)
 	}
 
@@ -76,7 +78,7 @@ func CreateTables() error {
 			endpoint VARCHAR(50) NOT NULL
 		);
 	`)
-	if err != nil { 
+	if err != nil {
 		log.Println("Failed to create timeframes table: ", err)
 	}
 
@@ -94,7 +96,7 @@ func CreateTables() error {
 		);
 		
 	`)
-	if err != nil { 
+	if err != nil {
 		log.Println("Failed to create orders table: ", err)
 	}
 	_, err = DB.Exec(`
@@ -113,7 +115,7 @@ func CreateTables() error {
 			time BIGINT NOT NULL 
 		);
 	`)
-	if err != nil { 
+	if err != nil {
 		log.Println("Failed to create fills table: ", err)
 	}
 
@@ -124,7 +126,7 @@ func CreateTables() error {
 			product VARCHAR(50) NOT NULL
 		);
 	`)
-	if err != nil { 
+	if err != nil {
 		log.Println("Failed to create watchlist table: ", err)
 	}
 
@@ -142,7 +144,7 @@ func ListTables() error {
 
 	for rows.Next() {
 		var tableName string
-		if err := rows.Scan(&tableName); err != nil{
+		if err := rows.Scan(&tableName); err != nil {
 			log.Println("Error scanning table name", err)
 			return err
 		}
@@ -154,7 +156,7 @@ func ListTables() error {
 
 func Write_Order(orders []model.Order) { // Current Orders for all accounts
 	log.Println("\n------------------------------\n Write Order \n------------------------------\n")
-	
+
 	_, err := DB.Exec("DELECT FROM Orders;")
 	if err != nil {
 		fmt.Sprintf("Failed to delect existing orders: \n%v", err)
@@ -194,19 +196,19 @@ func Write_Fill(fills []model.Fill) {
 
 // ---------------------------------------------------------------
 
-func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
-    log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
+func Write_Candles(candles []model.Candle, product, exchange, tf string, db *sql.DB) error {
+	log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
 	log.Println(product, tf, exchange, len(candles))
 
-    tx, err := DB.Begin()
-    if err != nil {
-        return fmt.Errorf("Failed to begin transaction: %w", err)
-    }
-    defer tx.Rollback()
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("Failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
 
-    product = strings.Replace(product, "-", "_", -1)
+	product = strings.Replace(product, "-", "_", -1)
 
-    _, err = tx.Exec(fmt.Sprintf(`
+	_, err = tx.Exec(fmt.Sprintf(`
         CREATE TABLE IF NOT EXISTS %s_%s_%s (
             timestamp BIGINT PRIMARY KEY,
             open    FLOAT NOT NULL,
@@ -216,11 +218,11 @@ func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
             volume  FLOAT NOT NULL
         );
     `, product, tf, exchange))
-    if err != nil {
-        return fmt.Errorf("Failed to create candles table: %w", err)
-    }
+	if err != nil {
+		return fmt.Errorf("Failed to create candles table: %w", err)
+	}
 
-    stmt, err := tx.Prepare(fmt.Sprintf(`
+	stmt, err := tx.Prepare(fmt.Sprintf(`
         INSERT INTO %s_%s_%s (timestamp, open, high, low, close, volume)
         VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (timestamp) DO UPDATE SET
@@ -230,30 +232,29 @@ func Write_Candles(candles []model.Candle, product, exchange, tf string) error {
             close = EXCLUDED.close,
             volume = EXCLUDED.volume
     `, product, tf, exchange))
-    if err != nil {
-        return fmt.Errorf("Failed to prepare statement: %w", err)
-    }
-    defer stmt.Close()
+	if err != nil {
+		return fmt.Errorf("Failed to prepare statement: %w", err)
+	}
+	defer stmt.Close()
 
-    successCount := 0
-    for _, candle := range candles {
-        _, err := stmt.Exec(candle.Timestamp, candle.Open, candle.High, candle.Low, candle.Close, candle.Volume)
-        if err != nil {
-            return fmt.Errorf("Failed to insert candle: %w", err)
-        }
-        successCount++
-    }
+	successCount := 0
+	for _, candle := range candles {
+		_, err := stmt.Exec(candle.Timestamp, candle.Open, candle.High, candle.Low, candle.Close, candle.Volume)
+		if err != nil {
+			return fmt.Errorf("Failed to insert candle: %w", err)
+		}
+		successCount++
+	}
 
-    if err := tx.Commit(); err != nil {
-        return fmt.Errorf("Failed to commit transaction: %w", err)
-    }
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("Failed to commit transaction: %w", err)
+	}
 
-    log.Printf("Total candles inserted or updated: %d\n", successCount)
-    return nil
+	log.Printf("Total candles inserted or updated: %d\n", successCount)
+	return nil
 }
 
 func Add_Watchlist(product, exchange string) error {
-
 
 	return nil
 }
@@ -276,17 +277,17 @@ func Get_Exchange(id int) (model.Exchange, error) {
 	return exchange, nil
 }
 
-func Get_Exchanges() ([]model.Exchange, error) {
+func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 	log.Printf("\n-------------------------------------\n Get All Exchanges \n-------------------------------------\n")
 
 	var exchanges []model.Exchange
 
-	xchRows, err := DB.Query("SELECT * FROM exchanges")
+	xchRows, err := db.Query("SELECT * FROM exchanges")
 	if err != nil {
 		return exchanges, fmt.Errorf("Error getting exchanges: %v", err)
 	}
 
-	for  xchRows.Next() {
+	for xchRows.Next() {
 		var xch model.Exchange
 
 		if err := xchRows.Scan(&xch.ID, &xch.Name); err != nil {
@@ -296,8 +297,8 @@ func Get_Exchanges() ([]model.Exchange, error) {
 		xch.Orders, _ = Get_Orders(xch.ID)
 		xch.Fills, _ = Get_Fills(xch.ID)
 		xch.Watchlist, _ = Get_Watchlist(xch.ID)
-		log.Print("\nEXCHANGE\n",xch)
-		log.Print("\nWATCHLIST\n",xch.Watchlist)
+		log.Print("\nEXCHANGE\n", xch)
+		log.Print("\nWATCHLIST\n", xch.Watchlist)
 		exchanges = append(exchanges, xch)
 
 	}
@@ -316,10 +317,9 @@ func Get_Orders(id int) ([]model.Order, error) {
 
 	defer orderRows.Close()
 
-	
 	for orderRows.Next() {
 		var order model.Order
-		
+
 		if err := orderRows.Scan(&order.OrderID, &order.ProductID, &order.TradeType, &order.Side, &order.Price, &order.Size, &order.XchID, &order.MarketCategory, &order.Timestamp); err != nil {
 			return orders, fmt.Errorf("Error scanning order %w", err)
 		}
@@ -341,10 +341,9 @@ func Get_Fills(id int) ([]model.Fill, error) {
 
 	defer fillRows.Close()
 
-	
 	for fillRows.Next() {
 		var fill model.Fill
-		
+
 		if err := fillRows.Scan(&fill.EntryID, &fill.TradeID, &fill.OrderID, &fill.TradeType, &fill.Price, &fill.Size, &fill.Side, &fill.Commission, &fill.ProductID, &fill.XchID, &fill.MarketCategory, &fill.Timestamp); err != nil {
 			return fills, fmt.Errorf("Error scanning fill %w", err)
 		}
@@ -404,98 +403,86 @@ func Get_Timeframes(id int) ([]model.Timeframe, error) {
 }
 
 func Get_Candles(product, tf, xch string) ([]model.Candle, error) {
-    log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
+	log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
 
 	//product = strings.Trim("-", "_")
-    var candles []model.Candle
-    log.Printf("DB:Get Candles2 %s_%s_%s", product, tf, xch)
+	var candles []model.Candle
+	log.Printf("DB:Get Candles2 %s_%s_%s", product, tf, xch)
 
-    // Construct the table name
-    tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
+	// Construct the table name
+	tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
 
-    // Use parameterized query to prevent SQL injection
-    query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp DESC LIMIT 1000", tableName)
-    
-    candle_rows, err := DB.Query(query)
-    if err != nil {
-        return nil, fmt.Errorf("Error querying candles: %w", err)
-    }
-    defer candle_rows.Close()
+	// Use parameterized query to prevent SQL injection
+	query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp DESC LIMIT 1000", tableName)
 
-    for candle_rows.Next() {
-        var candle model.Candle
-        err := candle_rows.Scan(
-            &candle.Timestamp,
-            &candle.Open,
-            &candle.High,
-            &candle.Low,
-            &candle.Close,
-            &candle.Volume,
-        )
-        if err != nil {
-            return nil, fmt.Errorf("error scanning candle row: %w", err)
-        }
-        candles = append(candles, candle)
-    }
+	candle_rows, err := DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("Error querying candles: %w", err)
+	}
+	defer candle_rows.Close()
 
-    if err = candle_rows.Err(); err != nil {
-        return nil, fmt.Errorf("error iterating candle rows: %w", err)
-    }
+	for candle_rows.Next() {
+		var candle model.Candle
+		err := candle_rows.Scan(
+			&candle.Timestamp,
+			&candle.Open,
+			&candle.High,
+			&candle.Low,
+			&candle.Close,
+			&candle.Volume,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning candle row: %w", err)
+		}
+		candles = append(candles, candle)
+	}
 
-    return candles, nil
+	if err = candle_rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating candle rows: %w", err)
+	}
+
+	return candles, nil
 }
 
 func Get_All_Candles(product, tf, xch string) ([]model.Candle, error) {
-    log.Printf("DB:Get All Candles %s_%s_%s", product, tf, xch)
+	log.Printf("DB:Get All Candles %s_%s_%s", product, tf, xch)
 
-    var candles []model.Candle
+	var candles []model.Candle
 
 	product = strings.Replace(product, "-", "_", -1)
 	fmt.Println(product)
 
-    // Construct the table name
-    tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
+	// Construct the table name
+	tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
 
-    // Use parameterized query to prevent SQL injection
-    query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp", tableName)
-    
-    candle_rows, err := DB.Query(query)
-    if err != nil {
-        return nil, fmt.Errorf("error querying candles: %w", err)
-    }
-    defer candle_rows.Close()
+	// Use parameterized query to prevent SQL injection
+	query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp", tableName)
 
-    for candle_rows.Next() {
-        var candle model.Candle
-        err := candle_rows.Scan(
-            &candle.Timestamp,
-            &candle.Open,
-            &candle.High,
-            &candle.Low,
-            &candle.Close,
-            &candle.Volume,
-        )
-        if err != nil {
-            return nil, fmt.Errorf("error scanning candle row: %w", err)
-        }
-        candles = append(candles, candle)
-    }
+	candle_rows, err := DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying candles: %w", err)
+	}
+	defer candle_rows.Close()
 
-    if err = candle_rows.Err(); err != nil {
-        return nil, fmt.Errorf("error iterating candle rows: %w", err)
-    }
+	for candle_rows.Next() {
+		var candle model.Candle
+		err := candle_rows.Scan(
+			&candle.Timestamp,
+			&candle.Open,
+			&candle.High,
+			&candle.Low,
+			&candle.Close,
+			&candle.Volume,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning candle row: %w", err)
+		}
+		candles = append(candles, candle)
+	}
 
-    return candles, nil
+	if err = candle_rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating candle rows: %w", err)
+	}
+
+	return candles, nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
