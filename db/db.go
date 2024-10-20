@@ -282,24 +282,46 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 
 	var exchanges []model.Exchange
 
-	xchRows, err := db.Query("SELECT * FROM exchanges")
+	rows, err := db.Query("SELECT * FROM exchanges")
 	if err != nil {
-		return exchanges, fmt.Errorf("Error getting exchanges: %v", err)
+		return nil, fmt.Errorf("Error getting exchanges: %v", err)
 	}
 
-	for xchRows.Next() {
-		var xch model.Exchange
+	for rows.Next() {
+		var exchange model.Exchange
 
-		if err := xchRows.Scan(&xch.ID, &xch.Name); err != nil {
-			return exchanges, fmt.Errorf("Error scanning exchange: %w", err)
+		if err := rows.Scan(&exchange.ID, &exchange.Name); err != nil {
+			return nil, fmt.Errorf("Error scanning exchange: %w", err)
 		}
-		xch.Timeframes, _ = Get_Timeframes(xch.ID)
-		xch.Orders, _ = Get_Orders(xch.ID)
-		xch.Fills, _ = Get_Fills(xch.ID)
-		xch.Watchlist, _ = Get_Watchlist(xch.ID)
-		log.Print("\nEXCHANGE\n", xch)
-		log.Print("\nWATCHLIST\n", xch.Watchlist)
-		exchanges = append(exchanges, xch)
+		exchange.Timeframes, err = Get_Timeframes(exchange.ID)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting timeframes: %w", err)
+		}
+		exchange.Orders, err = Get_Orders(exchange.ID)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting orders: %w", err)
+		}
+		exchange.Fills, err = Get_Fills(exchange.ID)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting fills: %w", err)
+		}
+		exchange.Watchlist, err = Get_Watchlist(exchange.ID, db)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting watchlist: %w", err)
+		}
+
+		switch exchange.Name {
+		case "Coinbase":
+			exchange.API = &model.CoinbaseAPI{
+				APIKey:    os.Getenv("COINBASE_API_KEY"),
+				APISecret: os.Getenv("COINBASE_API_SECRET"),
+				BaseURL:   "https://api.coinbase.com",
+			}
+		case "Alpaca":
+		}
+		// log.Print("\nEXCHANGE\n", exchange)
+		// log.Print("\nWATCHLIST\n", exchange.Watchlist)
+		exchanges = append(exchanges, exchange)
 
 	}
 
@@ -354,12 +376,12 @@ func Get_Fills(id int) ([]model.Fill, error) {
 
 }
 
-func Get_Watchlist(id int) ([]model.Watchlist, error) {
+func Get_Watchlist(id int, db *sql.DB) ([]model.Product, error) {
 	log.Printf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", id)
 
-	var watchlist []model.Watchlist
+	var watchlist []model.Product
 
-	watchlistRows, err := DB.Query("SELECT id, product, xch_id FROM watchlist WHERE xch_id = $1", id)
+	watchlistRows, err := db.Query("SELECT id, product, xch_id FROM watchlist WHERE xch_id = $1", id)
 	if err != nil {
 		return watchlist, fmt.Errorf("Error retrieving watchlist: %w", err)
 	}
@@ -367,9 +389,9 @@ func Get_Watchlist(id int) ([]model.Watchlist, error) {
 	defer watchlistRows.Close()
 
 	for watchlistRows.Next() {
-		var ticker model.Watchlist
+		var ticker model.Product
 
-		if err := watchlistRows.Scan(&ticker.ID, &ticker.Product, &ticker.XchID); err != nil {
+		if err := watchlistRows.Scan(&ticker.ID, &ticker.Name, &ticker.XchID); err != nil {
 			return watchlist, fmt.Errorf("Error scanning watchlist: %w", err)
 		}
 		watchlist = append(watchlist, ticker)

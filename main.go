@@ -38,7 +38,7 @@ func main() {
 				log.Fatal("Error getting exchanges:", err)
 			}
 			for _, exchange := range db_exchanges {
-				err := api.Fetch_And_Store_Candles(exchange, database)
+				err := api.Fetch_And_Store_Candles(exchange, database, false)
 				if err != nil {
 					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
 				}

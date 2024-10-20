@@ -508,7 +508,7 @@ func All_Candles_Loop(productID string, timeframe model.Timeframe, startTime tim
 	return All_Candles_Loop(productID, timeframe, newStartTime, endTime, allCandles)
 }
 
-func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB) error {
+func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full bool) error {
 	fmt.Println("Fill Whole Exchange")
 	fmt.Println(exchange.Watchlist)
 	fmt.Println(exchange.Timeframes)
@@ -519,7 +519,7 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB) error {
 	for _, product := range exchange.Watchlist {
 		for _, timeframe := range exchange.Timeframes {
 			end := time.Now()
-			start := end.Add(-time.Duration(exchange.API. *timeframe.Minutes) * time.Minute)
+			start := end.Add(-time.Duration(exchange.API.CandleLimit*timeframe.Minutes) * time.Minute)
 			candles, err := exchange.API.FetchCandles(product.Name, timeframe.TF, start, end)
 			if err != nil {
 				return fmt.Errorf("Error fetching candles for %s %s: %w", product.Name, timeframe.TF, err)
@@ -543,7 +543,7 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB) error {
 			start_time := time.Now().Add(-time.Duration(350*timeframe.Minutes) * time.Minute)
 			if full {
 				candles, err := exchange.API.FetchCandles(product.Name, timeframe.TF, start_time, end)
-				candles, err := All_Candles_Loop(product, timeframe, start_time, time.Now(), candles)
+				// candles, err := All_Candles_Loop(product, timeframe, start_time, time.Now(), candles)
 				if err != nil {
 					fmt.Println("Error getting all candles", err, product, timeframe.TF)
 				}

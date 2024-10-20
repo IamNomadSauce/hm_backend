@@ -34,12 +34,12 @@ type Exchange struct {
 }
 
 type ExchangeAPI interface {
-	FetchOrders([]Timeframe, error)
+	FetchOrders(*Exchange) ([]Order, error)
 	FetchWatchlist() ([]Product, error)
 	FetchFills() ([]Fill, error)
 	FetchPortfolio() ([]Asset, error)
-	FetchTimeframes() ([]Order, error)
-	FetchCandles(product, timeframe string, start, end time.Time) ([]Candle, error)
+	FetchTimeframes() ([]Timeframe, error)
+	FetchCandles(product, timeframe Timeframe, start, end time.Time) ([]Candle, error)
 }
 
 type Product struct {
@@ -49,9 +49,15 @@ type Product struct {
 }
 
 type Asset struct {
-	Symbol Product
-	Amount float64
-	Value  float64
+	Symbol           Product
+	AvailableBalance Balance
+	Hold             Balance
+	Value            float64
+}
+
+type Balance struct {
+	Value    string `json:"value"`
+	Currency string `json:"currency"`
 }
 
 type Watchlist struct {
@@ -70,6 +76,7 @@ type Order struct {
 	MarketCategory string `db:"marketcategory"` // (crypto / equities)_(spot / futures)
 	Price          string `db:"price"`          // instrument_currency
 	Size           string `db:"size"`           // How many of instrument
+	Status         string `db:"status"`
 }
 
 type Fill struct {
