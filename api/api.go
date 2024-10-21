@@ -516,11 +516,11 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 	watchlist := exchange.Watchlist
 	timeframes := exchange.Timeframes
 
-	for _, product := range exchange.Watchlist {
-		for _, timeframe := range exchange.Timeframes {
+	for _, product := range watchlist {
+		for _, timeframe := range timeframes {
 			end := time.Now()
-			start := end.Add(-time.Duration(exchange.API.CandleLimit*timeframe.Minutes) * time.Minute)
-			candles, err := exchange.API.FetchCandles(product.Name, timeframe.TF, start, end)
+			start := end.Add(-time.Duration(exchange.CandleLimit*timeframe.Minutes) * time.Minute)
+			candles, err := exchange.API.FetchCandles(product.Name, timeframe, start, end)
 			if err != nil {
 				return fmt.Errorf("Error fetching candles for %s %s: %w", product.Name, timeframe.TF, err)
 			}
@@ -532,41 +532,6 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 		return nil
 	}
 
-	for wl, _ := range watchlist {
-
-		product := watchlist[wl].Product
-
-		for tf, _ := range timeframes {
-			timeframe := timeframes[tf]
-			fmt.Println(product)
-			var candles []model.Candle
-			start_time := time.Now().Add(-time.Duration(350*timeframe.Minutes) * time.Minute)
-			if full {
-				candles, err := exchange.API.FetchCandles(product.Name, timeframe.TF, start_time, end)
-				// candles, err := All_Candles_Loop(product, timeframe, start_time, time.Now(), candles)
-				if err != nil {
-					fmt.Println("Error getting all candles", err, product, timeframe.TF)
-				}
-				err = db.Write_Candles(candles, product, exchange.Name, timeframe.TF)
-				if err != nil {
-					fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
-				}
-
-			} else {
-				minutes := timeframes[tf].Minutes
-				end := time.Now()
-				start := end.Add(-time.Duration(minutes*350) * time.Minute)
-				candles, err := fetch_Coinbase_Candles(product, timeframe, start, end)
-				if err != nil {
-					fmt.Println("Error getting candles: ", err, product, timeframe.TF)
-				}
-				err = db.Write_Candles(candles, product, exchange.Name, timeframe.TF)
-				if err != nil {
-					fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
-				}
-			}
-		}
-	}
 	return nil
 }
 
@@ -591,18 +556,18 @@ func Gap_Search(exchange model.Exchange) {
 //
 // ------------------------------------------------------------------------
 
-func Get_Exchanges() ([]model.Exchange, error) {
+func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 	fmt.Println("\n-----------------------------\n API:Get_Exchanges\n-----------------------------\n")
 
-	return db.Get_Exchanges()
+	return db.Get_Exchanges(database)
 }
 
 // Get Candles from the Database
-func Get_Candles(product, timeframe, exchange string) ([]model.Candle, error) {
+func Get_Candles(product, timeframe, exchange string, database *sql.DB) ([]model.Candle, error) {
 	fmt.Println("\n-----------------------------\n Get_Candles:API \n-----------------------------\n")
 	fmt.Println("Request:API: ", product, timeframe, exchange)
 
-	candles, err := db.Get_Candles(product, timeframe, exchange)
+	candles, err := db.Get_Candles(product, timeframe, exchange, database)
 
 	if err != nil {
 		log.Printf("Error connecting: %v", err)
@@ -616,84 +581,84 @@ func Get_Candles(product, timeframe, exchange string) ([]model.Candle, error) {
 
 // ------------------------------------------------------------------------
 
-func Check_Candle_Gaps(exchange model.Exchange) {
-	fmt.Println("\n------------------\nCheck Candle Gaps")
-	//fmt.Println(exchange)
+// func Check_Candle_Gaps(exchange model.Exchange) {
+// 	fmt.Println("\n------------------\nCheck Candle Gaps")
+// 	//fmt.Println(exchange)
 
-	name := exchange.Name
-	watchlist := exchange.Watchlist
-	timeframes := exchange.Timeframes
+// 	name := exchange.Name
+// 	watchlist := exchange.Watchlist
+// 	timeframes := exchange.Timeframes
 
-	fmt.Println("Exchange: ", name)
-	fmt.Println("Watchlist: ", watchlist)
-	fmt.Println("Timeframes: ", timeframes)
-	fmt.Println("\n------------------\n")
+// 	fmt.Println("Exchange: ", name)
+// 	fmt.Println("Watchlist: ", watchlist)
+// 	fmt.Println("Timeframes: ", timeframes)
+// 	fmt.Println("\n------------------\n")
 
-	//var gaps = []string{}
-	for asset, _ := range watchlist {
-		fmt.Println("ASSET", watchlist[asset].Product)
-		for tf, _ := range timeframes {
-			product := watchlist[asset].Product
-			fmt.Printf("%s_%s_%s\n", name, watchlist[asset].Product, timeframes[tf].TF)
-			candles, err := db.Get_All_Candles(watchlist[asset].Product, timeframes[tf].TF, name)
-			if err != nil {
-				fmt.Printf("Error scanning candles: %v", err)
-			}
+// 	//var gaps = []string{}
+// 	for asset, _ := range watchlist {
+// 		fmt.Println("ASSET", watchlist[asset].Product)
+// 		for tf, _ := range timeframes {
+// 			product := watchlist[asset].Product
+// 			fmt.Printf("%s_%s_%s\n", name, watchlist[asset].Product, timeframes[tf].TF)
+// 			candles, err := db.Get_All_Candles(watchlist[asset].Product, timeframes[tf].TF, name)
+// 			if err != nil {
+// 				fmt.Printf("Error scanning candles: %v", err)
+// 			}
 
-			count := 0
-			for i := 1; i < len(candles)-1; i++ {
-				timeframe := timeframes[tf]
-				c_1 := candles[i].Timestamp
-				c_1_time := time.Unix(c_1, 0)
-				c_0 := candles[i-1].Timestamp
-				c_0_time := time.Unix(c_0, 0)
-				delta := c_1 - c_0
-				//fmt.Println("---------------------------------\n", c_0, c_0_time, "\n", c_1, c_1_time)
-				if delta > timeframe.Minutes*60 {
-					count++
-					num_candles := delta / (timeframe.Minutes * 60)
-					fmt.Println("\n------------------------------\nGAP Found: ")
-					fmt.Println(delta, timeframe.Minutes*60)
-					fmt.Println(product, timeframe.TF)
-					fmt.Printf("%s\n%s\n---------------------\n", c_0_time, c_1_time)
-					fmt.Println("Gap:", count)
-					fmt.Println(delta/60, "minutes")
-					fmt.Println(num_candles, "Candles")
+// 			count := 0
+// 			for i := 1; i < len(candles)-1; i++ {
+// 				timeframe := timeframes[tf]
+// 				c_1 := candles[i].Timestamp
+// 				c_1_time := time.Unix(c_1, 0)
+// 				c_0 := candles[i-1].Timestamp
+// 				c_0_time := time.Unix(c_0, 0)
+// 				delta := c_1 - c_0
+// 				//fmt.Println("---------------------------------\n", c_0, c_0_time, "\n", c_1, c_1_time)
+// 				if delta > timeframe.Minutes*60 {
+// 					count++
+// 					num_candles := delta / (timeframe.Minutes * 60)
+// 					fmt.Println("\n------------------------------\nGAP Found: ")
+// 					fmt.Println(delta, timeframe.Minutes*60)
+// 					fmt.Println(product, timeframe.TF)
+// 					fmt.Printf("%s\n%s\n---------------------\n", c_0_time, c_1_time)
+// 					fmt.Println("Gap:", count)
+// 					fmt.Println(delta/60, "minutes")
+// 					fmt.Println(num_candles, "Candles")
 
-					all_candles, err := Get_Coinbase_Candles(product, timeframe, c_0_time, c_1_time)
-					if err != nil {
-						fmt.Println("Error getting candles: ", err, product, timeframe.TF)
-					}
-					err = db.Write_Candles(all_candles, product, exchange.Name, timeframe.TF)
-					if err != nil {
-						fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
-					}
-				}
-			}
-		}
-	}
-	/*
-		for asset, _ := range exchange.Watchlist {
-			for tf, _ := range exchange.Timeframes {
-				fmt.Println(exchange.Name, exchange.Watchlist[asset], exchange.Timeframes[tf])
-				candles, err := db.Get_All_Candles(exchange.Name, exchange.Wathclist[asset], exchange.Timeframes[tf]) if err != nil {
-					fmt.Printf("Error scanning candles: %v", err)
-				}
+// 					all_candles, err := Get_Coinbase_Candles(product, timeframe, c_0_time, c_1_time)
+// 					if err != nil {
+// 						fmt.Println("Error getting candles: ", err, product, timeframe.TF)
+// 					}
+// 					err = db.Write_Candles(all_candles, product, exchange.Name, timeframe.TF)
+// 					if err != nil {
+// 						fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// 	/*
+// 		for asset, _ := range exchange.Watchlist {
+// 			for tf, _ := range exchange.Timeframes {
+// 				fmt.Println(exchange.Name, exchange.Watchlist[asset], exchange.Timeframes[tf])
+// 				candles, err := db.Get_All_Candles(exchange.Name, exchange.Wathclist[asset], exchange.Timeframes[tf]) if err != nil {
+// 					fmt.Printf("Error scanning candles: %v", err)
+// 				}
 
-				temp := candles[0]
-				for i:=0; i < len(candles) - 1; i++ {
-					temp = candles[i]
-					temp2 := candles[i+1]
+// 				temp := candles[0]
+// 				for i:=0; i < len(candles) - 1; i++ {
+// 					temp = candles[i]
+// 					temp2 := candles[i+1]
 
-					time1 := temp.Time
-					time2 := temp2.Time
+// 					time1 := temp.Time
+// 					time2 := temp2.Time
 
-					fmt.Println("Time Delta", time2, time1)
-					fmt.Println(exchange.Timeframes.Minutes)
-				}
-			}
-		}
-	*/
-}
+// 					fmt.Println("Time Delta", time2, time1)
+// 					fmt.Println(exchange.Timeframes.Minutes)
+// 				}
+// 			}
+// 		}
+// 	*/
+// }
 
 //func Gap_Check(candles []model.Candle ) (gap

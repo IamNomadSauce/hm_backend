@@ -185,7 +185,7 @@ func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end ti
 	}
 
 	var candleData struct {
-		Candles []model.Candle `json:"candles"`
+		Candles []Candle `json:"candles"`
 	}
 
 	err = json.Unmarshal(body, &candleData)
@@ -285,14 +285,12 @@ func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error DO: ", err)
 		return nil, fmt.Errorf("Fetch coinbase portfolio Error DO: %w", err)
 	}
 	defer resp.Body.Close()
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Readall Err ", err)
 		return nil, fmt.Errorf("Fetch coinbase portfolio Readall Err: %w", err)
 	}
 

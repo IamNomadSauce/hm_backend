@@ -24,22 +24,21 @@ type Timeframe struct {
 }
 
 type Exchange struct {
-	ID         int
-	Name       string
-	Timeframes []Timeframe
-	Orders     []Order
-	Fills      []Fill
-	Watchlist  []Product
-	API        ExchangeAPI
+	ID          int
+	Name        string
+	Timeframes  []Timeframe
+	Orders      []Order
+	Fills       []Fill
+	Watchlist   []Product
+	CandleLimit int64
+	API         ExchangeAPI
 }
 
 type ExchangeAPI interface {
 	FetchOrders(*Exchange) ([]Order, error)
-	FetchWatchlist() ([]Product, error)
 	FetchFills() ([]Fill, error)
 	FetchPortfolio() ([]Asset, error)
-	FetchTimeframes() ([]Timeframe, error)
-	FetchCandles(product, timeframe Timeframe, start, end time.Time) ([]Candle, error)
+	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
 }
 
 type Product struct {

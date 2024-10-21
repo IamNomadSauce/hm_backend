@@ -63,46 +63,46 @@ func main() {
 	select {}
 }
 
-func fetchDataForExchanges(exchanges []Exchange) {
-	for _, exchange := range exchanges {
+// func fetchDataForExchanges(exchanges []Exchange) {
+// 	for _, exchange := range exchanges {
 
-		orders, err := exchange.GetOrders()
-		if err != nil {
-			log.Printf("Error fetching orders: %v", err)
-		}
-		fmt.Println("Orders:", orders)
+// 		orders, err := exchange.GetOrders()
+// 		if err != nil {
+// 			log.Printf("Error fetching orders: %v", err)
+// 		}
+// 		fmt.Println("Orders:", orders)
 
-		fills, err := exchange.GetFills()
-		if err != nil {
-			log.Printf("Error fetching orders: %v", err)
-		}
-		fmt.Println("Fills:", fills)
+// 		fills, err := exchange.GetFills()
+// 		if err != nil {
+// 			log.Printf("Error fetching orders: %v", err)
+// 		}
+// 		fmt.Println("Fills:", fills)
 
-		timeframes, err := exchange.GetTimeframes()
-		if err != nil {
-			log.Printf("Error fetching orders: %v", err)
-		}
-		fmt.Println("Timeframes:", timeframes)
+// 		timeframes, err := exchange.GetTimeframes()
+// 		if err != nil {
+// 			log.Printf("Error fetching orders: %v", err)
+// 		}
+// 		fmt.Println("Timeframes:", timeframes)
 
-		watchlist, err := exchange.GetWatchlist()
-		if err != nil {
-			log.Printf("Error fetching watchlist: %v", err)
-		}
-		fmt.Println("Watchlist:", watchlist)
+// 		watchlist, err := exchange.GetWatchlist()
+// 		if err != nil {
+// 			log.Printf("Error fetching watchlist: %v", err)
+// 		}
+// 		fmt.Println("Watchlist:", watchlist)
 
-		portfolio, err := exchange.GetPortfolio()
-		if err != nil {
-			log.Printf("Error fetching portfolio: %v", err)
-		}
-		fmt.Println("Portfolio:", portfolio)
+// 		portfolio, err := exchange.GetPortfolio()
+// 		if err != nil {
+// 			log.Printf("Error fetching portfolio: %v", err)
+// 		}
+// 		fmt.Println("Portfolio:", portfolio)
 
-		candles, err := exchange.GetCandles()
-		if err != nil {
-			log.Printf("Error fetching candles: %v", err)
-		}
-		fmt.Println("Candles:", candles)
-	}
-}
+// 		candles, err := exchange.GetCandles()
+// 		if err != nil {
+// 			log.Printf("Error fetching candles: %v", err)
+// 		}
+// 		fmt.Println("Candles:", candles)
+// 	}
+// }
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
 	log.Print("Connected to Main")
