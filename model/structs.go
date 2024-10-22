@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -94,14 +95,16 @@ type Fill struct {
 }
 
 func NewExchange(exchangeName string) (Exchange, error) {
+	exchange := &Exchange{Name: exchangeName}
 	switch exchangeName {
 	case "coinbase":
-		return &CoinbaseExchange{}, nil
+		exchange.API = &CoinbaseAPI{}
 	case "alpaca":
-		return &AlpacaExchange{}, nil
+		exchange.API = &AlpacaAPI{}
 	default:
-		return nil, fmt.Error("Unsupported Exchange: %s", exchangeName)
+		return Exchange{}, fmt.Errorf("Unsupported Exchange: %w", exchangeName)
 	}
+	return *exchange, nil
 }
 
 func (c *Candle) UnmarshalJSON(data []byte) error {

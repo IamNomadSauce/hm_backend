@@ -2,12 +2,14 @@ package db
 
 import (
 	"backend/model"
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 	_ "time"
 
 	"github.com/joho/godotenv"
@@ -23,37 +25,50 @@ var dbname string
 // var DB *sql.DB
 
 func DBConnect() (*sql.DB, error) {
-
 	log.Println("\n------------------------------\n DBConnect \n------------------------------\n")
 	err := godotenv.Load()
 	if err != nil {
-		log.Printf("Error loading .env file %v\n", err)
-
+		log.Printf("Error loading .env file: %v\n", err)
+		// Continue execution, as environment variables might be set elsewhere
 	}
+
 	host = os.Getenv("PG_HOST")
 	portStr := os.Getenv("PG_PORT")
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		log.Printf("Invalid port number: %v\n", err)
-		return nil, err
-	}
 	user = os.Getenv("PG_USER")
 	password = os.Getenv("PG_PASS")
 	dbname = os.Getenv("PG_DBNAME")
 
-	//log.Printf("Host: %s\nPort: %d\nUser: %s\nPW: %s\nDB: %s\n", host, port, user, password, dbname)
-
-	// Connect to the default 'postgres' database to check for the existence of the target database
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-
-	DB, err := sql.Open("postgres", psqlInfo)
+	port, err := strconv.Atoi(portStr)
 	if err != nil {
-		log.Println("Error opening Postgres", err)
-		return nil, err
+		return nil, fmt.Errorf("Invalid port number: %v", err)
+	}
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	log.Printf("Attempting to connect with: host=%s port=%d user=%s dbname=%s\n", host, port, user, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		return nil, fmt.Errorf("Error opening Postgres connection: %v", err)
+	}
+
+	// Set connection pool parameters
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	// Ping the database to verify the connection
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = db.PingContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Error pinging database: %v", err)
 	}
 
 	log.Println("Successfully connected to database")
-	return DB, nil
+	return db, nil
 }
 
 func CreateTables(db *sql.DB) error {
@@ -172,6 +187,7 @@ func Write_Order(orders []model.Order, db *sql.DB) { // Current Orders for all a
 			fmt.Sprintf("Error inserting into Order table: \n%v", err)
 
 		}
+
 	}
 
 	log.Println(len(orders), "orders added to db")

@@ -4,12 +4,21 @@ import (
 	"backend/api"
 	"backend/db"
 	_ "backend/model"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
+
+type Application struct {
+	DB *sql.DB
+	mu sync.Mutex
+}
+
+var app *Application
 
 func main() {
 	fmt.Println("Main ")
@@ -19,26 +28,30 @@ func main() {
 	if err != nil {
 		log.Fatal("Error on main db connection:", err)
 	}
-	defer database.Close()
 
-	err = db.CreateTables()
-	if err != nil {
-		log.Fatal("Error creating tables:", err)
+	app = &Application{
+		DB: database,
 	}
+	// defer app.DB.Close()
 
-	err = db.ListTables()
+	// err = db.CreateTables(app.DB)
+	// if err != nil {
+	// 	log.Fatal("Error creating tables:", err)
+	// }
+
+	err = db.ListTables(app.DB)
 	if err != nil {
 		log.Fatal("Error listing tables:", err)
 	}
 
 	go func() {
 		for {
-			db_exchanges, err := db.Get_Exchanges(database)
+			db_exchanges, err := db.Get_Exchanges(app.DB)
 			if err != nil {
 				log.Fatal("Error getting exchanges:", err)
 			}
 			for _, exchange := range db_exchanges {
-				err := api.Fetch_And_Store_Candles(exchange, database, false)
+				err := api.Fetch_And_Store_Candles(exchange, app.DB, false)
 				if err != nil {
 					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
 				}
@@ -53,6 +66,7 @@ func main() {
 		http.HandleFunc("/exchanges", handleExchangesRequest)
 		http.HandleFunc("/candles", handleCandlesRequest)
 
+		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
 		err := http.ListenAndServe(":31337", nil)
 		if err != nil {
@@ -63,47 +77,6 @@ func main() {
 	select {}
 }
 
-// func fetchDataForExchanges(exchanges []Exchange) {
-// 	for _, exchange := range exchanges {
-
-// 		orders, err := exchange.GetOrders()
-// 		if err != nil {
-// 			log.Printf("Error fetching orders: %v", err)
-// 		}
-// 		fmt.Println("Orders:", orders)
-
-// 		fills, err := exchange.GetFills()
-// 		if err != nil {
-// 			log.Printf("Error fetching orders: %v", err)
-// 		}
-// 		fmt.Println("Fills:", fills)
-
-// 		timeframes, err := exchange.GetTimeframes()
-// 		if err != nil {
-// 			log.Printf("Error fetching orders: %v", err)
-// 		}
-// 		fmt.Println("Timeframes:", timeframes)
-
-// 		watchlist, err := exchange.GetWatchlist()
-// 		if err != nil {
-// 			log.Printf("Error fetching watchlist: %v", err)
-// 		}
-// 		fmt.Println("Watchlist:", watchlist)
-
-// 		portfolio, err := exchange.GetPortfolio()
-// 		if err != nil {
-// 			log.Printf("Error fetching portfolio: %v", err)
-// 		}
-// 		fmt.Println("Portfolio:", portfolio)
-
-// 		candles, err := exchange.GetCandles()
-// 		if err != nil {
-// 			log.Printf("Error fetching candles: %v", err)
-// 		}
-// 		fmt.Println("Candles:", candles)
-// 	}
-// }
-
 func handleMain(w http.ResponseWriter, r *http.Request) {
 	log.Print("Connected to Main")
 
@@ -113,7 +86,7 @@ func handleMain(w http.ResponseWriter, r *http.Request) {
 func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 	log.Print("\n-----------------------------------\n Handle Exchanges Request \n-----------------------------------\n")
 
-	exchanges, err := api.Get_Exchanges()
+	exchanges, err := api.Get_Exchanges(app.DB)
 	if err != nil {
 		log.Printf("Error getting exchanges from API: %v", err)
 	}
@@ -142,7 +115,7 @@ func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Request:main: %s_%s_%s", product, timeframe, exchange)
 
-	candles, err := api.Get_Candles(product, timeframe, exchange)
+	candles, err := api.Get_Candles(product, timeframe, exchange, app.DB)
 	if err != nil {
 		log.Printf("Error getting candles handleCandlesRequest %v", err)
 		return
