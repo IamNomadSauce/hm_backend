@@ -97,7 +97,9 @@ func (api *CoinbaseAPI) FetchOrders(exchange *Exchange) ([]Order, error) {
 // Exchange operation
 func (api *CoinbaseAPI) FetchCandles(productID string, timeframe Timeframe, start, end time.Time) ([]Candle, error) {
 	var candles []Candle
-	fmt.Println("\n-------------------------\nGet_Coinbase_Candles \n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
+	fmt.Println("\n-------------------------\nCoinbaseAPI.FetchCandles\n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
+
+	fmt.Println(api.CandleLimit)
 
 	// Maximum number of candles per request
 	const maxCandles = 350
@@ -136,7 +138,7 @@ func (api *CoinbaseAPI) FetchCandles(productID string, timeframe Timeframe, star
 }
 
 func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end time.Time) ([]Candle, error) {
-	fmt.Println("\n-------------------------\nGet_Coinbase_Candles \n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
+	fmt.Println("\n-------------------------\nfetch_Coinbase_Candles \n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
 	apiKey := os.Getenv("CBAPIKEY")
 	apiSecret := os.Getenv("CBAPISECRET")
 

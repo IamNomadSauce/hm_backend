@@ -329,10 +329,12 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		switch exchange.Name {
 		case "Coinbase":
 			exchange.API = &model.CoinbaseAPI{
-				APIKey:    os.Getenv("COINBASE_API_KEY"),
-				APISecret: os.Getenv("COINBASE_API_SECRET"),
-				BaseURL:   "https://api.coinbase.com",
+				APIKey:      os.Getenv("COINBASE_API_KEY"),
+				APISecret:   os.Getenv("COINBASE_API_SECRET"),
+				BaseURL:     "https://api.coinbase.com",
+				CandleLimit: 350,
 			}
+			exchange.CandleLimit = 350
 		case "Alpaca":
 		}
 		// log.Print("\nEXCHANGE\n", exchange)

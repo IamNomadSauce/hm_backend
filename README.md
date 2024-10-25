@@ -10,8 +10,15 @@ hm_backend
   |-- alpaca.go
 -- main.go
 
+mainloop 
+    |> api.fetch_and_store_candles 
+        |> exchange.API.FetchCandles 
+        |> db.Write_Candles
+Server
+
 TODO:
 - Backend
+    - [ ] 
     - [x] DB Create Tables if not exist
     - [x] Write Fills
     - [x] Write Current Orders
