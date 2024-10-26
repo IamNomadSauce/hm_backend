@@ -21,7 +21,7 @@ type Application struct {
 var app *Application
 
 func main() {
-	fmt.Println("Main ")
+	fmt.Println("Main 10.25.2024")
 
 	// Connect to DB
 	database, err := db.DBConnect()
@@ -48,12 +48,24 @@ func main() {
 		for {
 			db_exchanges, err := db.Get_Exchanges(app.DB)
 			if err != nil {
-				log.Fatal("Error getting exchanges:", err)
+				log.Printf("Error getting exchanges: %v", err)
+				time.Sleep(1 * time.Minute)
+				continue
 			}
 			for _, exchange := range db_exchanges {
+				if exchange.API == nil {
+					log.Printf("API for exchange %s is not initialized", exchange.Name)
+					continue
+				}
 				err := api.Fetch_And_Store_Candles(exchange, app.DB, false)
 				if err != nil {
 					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
+				}
+				fills, err := exchange.API.FetchFills()
+				if err != nil {
+					log.Printf("Error fetching fills for %s: %v", exchange.Name, err)
+				} else {
+					log.Printf("%s Fills: %d", exchange.Name, len(fills))
 				}
 			}
 			time.Sleep(1 * time.Minute)

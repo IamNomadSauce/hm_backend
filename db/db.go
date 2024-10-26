@@ -294,7 +294,7 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 }
 
 func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
-	log.Printf("\n-------------------------------------\n Get All Exchanges \n-------------------------------------\n")
+	log.Printf("\n-------------------------------------\n Get All Exchanges 10.25.24 \n-------------------------------------\n")
 
 	var exchanges []model.Exchange
 

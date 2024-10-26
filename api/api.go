@@ -519,7 +519,6 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 	for _, product := range watchlist {
 		for _, timeframe := range timeframes {
 			end := time.Now()
-			// TODO | Start == End, must fix.
 			start := end.Add(-time.Duration(exchange.CandleLimit*timeframe.Minutes) * time.Minute)
 			fmt.Println("\n---------------------\n", exchange.CandleLimit, "\n", timeframe.Minutes, "\n", start, "\n", end, "\n---------------------\n")
 			candles, err := exchange.API.FetchCandles(product.Name, timeframe, start, end)
@@ -533,9 +532,16 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 		}
 		return nil
 	}
+	return nil
+}
+
+// ------------------------------------------------------------------------
+func Fetch_And_Store_Portfolio(exchange model.Exchange, database *sql.DB) error {
 
 	return nil
 }
+
+// ------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------
 //
