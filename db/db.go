@@ -415,7 +415,7 @@ func Get_Watchlist(id int, db *sql.DB) ([]model.Product, error) {
 		watchlist = append(watchlist, ticker)
 
 	}
-	log.Println(watchlist)
+	log.Println("Watchlist Retrieved: ", watchlist)
 	return watchlist, nil
 }
 

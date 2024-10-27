@@ -519,18 +519,30 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 	for _, product := range watchlist {
 		for _, timeframe := range timeframes {
 			end := time.Now()
-			start := end.Add(-time.Duration(exchange.CandleLimit*timeframe.Minutes) * time.Minute)
+			var start time.Time
+
+			if full {
+				start = end.Add(-24 * 30 * time.Hour)
+			} else {
+				start = end.Add(-time.Duration(exchange.CandleLimit*timeframe.Minutes) * time.Minute)
+			}
+
 			fmt.Println("\n---------------------\n", exchange.CandleLimit, "\n", timeframe.Minutes, "\n", start, "\n", end, "\n---------------------\n")
 			candles, err := exchange.API.FetchCandles(product.Name, timeframe, start, end)
 			if err != nil {
-				return fmt.Errorf("Error fetching candles for %s %s: %w", product.Name, timeframe.TF, err)
+				log.Printf("Error fetching candles %s %s: %v", product.Name, timeframe.TF, err)
+				continue
 			}
-			err = db.Write_Candles(candles, product.Name, exchange.Name, timeframe.TF, database)
-			if err != nil {
-				fmt.Println("Error Writing candles: ", product, timeframe.TF, err)
+
+			if len(candles) > 0 {
+				err = db.Write_Candles(candles, product.Name, exchange.Name, timeframe.TF, database)
+				if err != nil {
+					log.Printf("Error writing candles for %s %s: %v", product.Name, timeframe.TF, err)
+					continue
+				}
+				fmt.Printf("Wrote %d candles for %s %s\n", len(candles), product.Name, timeframe.TF)
 			}
 		}
-		return nil
 	}
 	return nil
 }
