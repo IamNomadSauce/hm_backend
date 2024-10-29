@@ -25,14 +25,15 @@ type Timeframe struct {
 }
 
 type Exchange struct {
-	ID          int
-	Name        string
-	Timeframes  []Timeframe
-	Orders      []Order
-	Fills       []Fill
-	Watchlist   []Product
-	CandleLimit int64
-	API         ExchangeAPI
+	ID                int
+	Name              string
+	Timeframes        []Timeframe
+	Orders            []Order
+	Fills             []Fill
+	Watchlist         []Product
+	CandleLimit       int64
+	API               ExchangeAPI
+	AvailableProducts []Product
 }
 
 type ExchangeAPI interface {
@@ -40,6 +41,7 @@ type ExchangeAPI interface {
 	FetchFills() ([]Fill, error)
 	FetchPortfolio() ([]Asset, error)
 	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
+	FetchAvailableProducts() ([]Product, error)
 }
 
 type Product struct {
