@@ -35,6 +35,7 @@ type CoinbaseAPI struct {
 
 // Exchange operation
 func (api *CoinbaseAPI) FetchOrders(exchange *Exchange) ([]Order, error) {
+	fmt.Println("FetchOrders: API", api.APIKey)
 	var orders []Order
 	err := godotenv.Load()
 	if err != nil {
@@ -165,6 +166,7 @@ func (api *CoinbaseAPI) FetchAvailableProducts() ([]Product, error) {
 func (api *CoinbaseAPI) FetchCandles(productID string, timeframe Timeframe, start, end time.Time) ([]Candle, error) {
 	var candles []Candle
 	fmt.Println("\n-------------------------\nCoinbaseAPI.FetchCandles\n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
+	fmt.Println("APIKEY", api.BaseURL)
 
 	fmt.Println(api.CandleLimit)
 

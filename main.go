@@ -67,6 +67,7 @@ func main() {
 				} else {
 					log.Printf("%s Fills: %d", exchange.Name, len(fills))
 				}
+
 			}
 			time.Sleep(1 * time.Minute)
 		}

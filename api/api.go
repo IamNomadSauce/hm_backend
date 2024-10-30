@@ -14,10 +14,39 @@ func ApiConnect() {
 	fmt.Println("API Connected")
 }
 
+// TODO
+// Get all (populated) exchanges for sending to frontend client
 func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 	fmt.Println("\n-----------------------------\n API:Get_Exchanges\n-----------------------------\n")
 
-	return db.Get_Exchanges(database)
+	// return db.Get_Exchanges(database)
+	exchanges, err := db.Get_Exchanges(database)
+	if err != nil {
+		log.Printf("api.go:Get_Exchanges error getting exchanges: %w", err)
+	}
+
+	for _, exchange := range exchanges {
+		exchange.Timeframes, err = db.Get_Timeframes(exchange.ID, database)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting timeframes: %w", err)
+		}
+
+		exchange.Orders, err = db.Get_Orders(exchange.ID, database)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting Orders: %w", err)
+		}
+
+		exchange.Fills, err = db.Get_Fills(exchange.ID, database)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting Fills: %w", err)
+		}
+		exchange.Watchlist, err = db.Get_Watchlist(exchange.ID, database)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting Watchlist: %w", err)
+		}
+
+	}
+	return exchanges, nil
 
 	// Get Just the exchanges from the exchanges table
 

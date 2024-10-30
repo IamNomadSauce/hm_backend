@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 )
@@ -96,18 +95,23 @@ type Fill struct {
 	MarketCategory string `db:"marketcategory"`
 }
 
-func NewExchange(exchangeName string) (Exchange, error) {
-	exchange := &Exchange{Name: exchangeName}
-	switch exchangeName {
-	case "coinbase":
-		exchange.API = &CoinbaseAPI{}
-	case "alpaca":
-		exchange.API = &AlpacaAPI{}
-	default:
-		return Exchange{}, fmt.Errorf("Unsupported Exchange: %w", exchangeName)
-	}
-	return *exchange, nil
-}
+// func NewExchange(xch string, id int, database *sql.DB) (Exchange, error) {
+// 	exchange := &Exchange{Name: xch}
+// 	switch xch {
+// 	case "coinbase":
+// 		fills, err := db.Get_Fills(id, database)
+// 		if err != nil {
+// 			fmt.Println("Error getting fills from coinbase", err)
+// 		}
+// 		exchange.Fills = fills
+// 		exchange.API = &CoinbaseAPI{}
+// 	case "alpaca":
+// 		exchange.API = &AlpacaAPI{}
+// 	default:
+// 		return Exchange{}, fmt.Errorf("Unsupported Exchange: %w", exchange)
+// 	}
+// 	return *exchange, nil
+// }
 
 func (c *Candle) UnmarshalJSON(data []byte) error {
 	var temp struct {
