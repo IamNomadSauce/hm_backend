@@ -61,12 +61,12 @@ func main() {
 				if err != nil {
 					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
 				}
-				fills, err := exchange.API.FetchFills()
-				if err != nil {
-					log.Printf("Error fetching fills for %s: %v", exchange.Name, err)
-				} else {
-					log.Printf("%s Fills: %d", exchange.Name, len(fills))
-				}
+				// fills, err := exchange.API.FetchFills()
+				// if err != nil {
+				// 	log.Printf("Error fetching fills for %s: %v", exchange.Name, err)
+				// } else {
+				// 	log.Printf("%s Fills: %d", exchange.Name, len(fills))
+				// }
 
 			}
 			time.Sleep(1 * time.Minute)

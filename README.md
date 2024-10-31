@@ -17,6 +17,12 @@ mainloop
 Server
 
 TODO:
+- [ ] Add Table for available products
+- [ ] Fetch available products from db and send to client.
+- [ ] Display available products in client dropdown
+- [ ] Create "add" button to add product to watchlist
+- [ ] If adding a new asset, make sure to have retrieve 30 days of candles.
+-------------------------------------------------------------------------
 - Backend
     - [ ] 
     - [x] DB Create Tables if not exist
