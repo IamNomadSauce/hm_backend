@@ -31,68 +31,69 @@ type AlpacaAPI struct {
 }
 
 func (api *AlpacaAPI) FetchAvailableProducts() ([]Product, error) {
-	if api == nil {
-		return nil, fmt.Errorf("CoinbaseAPI is not initialized")
-	}
-
-	path := "/api/v3/brokerage/products"
-	method := "GET"
-
-	// Construct the full URL
-	fullURL := fmt.Sprintf("%s%s", api.BaseURL, path)
-
-	// Create timestamp for authentication
-	timestamp := time.Now().Unix()
-	signature := GetCBSign(api.APISecret, timestamp, method, path, "")
-
-	// Create new request
-	req, err := http.NewRequest(method, fullURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	// Add headers
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
-
-	// Make the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("error response from Coinbase: %d - %s", resp.StatusCode, string(body))
-	}
-
-	// Read and parse the response
-	var response struct {
-		Products []struct {
-			ProductID string `json:"product_id"`
-			BaseName  string `json:"base_name"`
-			QuoteName string `json:"quote_name"`
-			Status    string `json:"status"`
-		} `json:"products"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("error decoding response: %w", err)
-	}
-
-	// Convert to our Product type
 	var products []Product
-	for _, p := range response.Products {
-		if p.Status == "online" { // Only include active products
-			products = append(products, Product{
-				Name: p.ProductID,
-			})
-		}
-	}
+	// if api == nil {
+	// 	return nil, fmt.Errorf("CoinbaseAPI is not initialized")
+	// }
+
+	// path := "/api/v3/brokerage/products"
+	// method := "GET"
+
+	// // Construct the full URL
+	// fullURL := fmt.Sprintf("%s%s", api.BaseURL, path)
+
+	// // Create timestamp for authentication
+	// timestamp := time.Now().Unix()
+	// signature := GetCBSign(api.APISecret, timestamp, method, path, "")
+
+	// // Create new request
+	// req, err := http.NewRequest(method, fullURL, nil)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error creating request: %w", err)
+	// }
+
+	// // Add headers
+	// req.Header.Add("CB-ACCESS-SIGN", signature)
+	// req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+	// req.Header.Add("CB-ACCESS-KEY", api.APIKey)
+	// req.Header.Add("CB-VERSION", "2015-07-22")
+
+	// // Make the request
+	// client := &http.Client{}
+	// resp, err := client.Do(req)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error making request: %w", err)
+	// }
+	// defer resp.Body.Close()
+
+	// if resp.StatusCode != http.StatusOK {
+	// 	body, _ := ioutil.ReadAll(resp.Body)
+	// 	return nil, fmt.Errorf("error response from Coinbase: %d - %s", resp.StatusCode, string(body))
+	// }
+
+	// // Read and parse the response
+	// var response struct {
+	// 	Products []struct {
+	// 		ProductID string `json:"product_id"`
+	// 		BaseName  string `json:"base_name"`
+	// 		QuoteName string `json:"quote_name"`
+	// 		Status    string `json:"status"`
+	// 	} `json:"products"`
+	// }
+
+	// if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	// 	return nil, fmt.Errorf("error decoding response: %w", err)
+	// }
+
+	// // Convert to our Product type
+	// var products []Product
+	// for _, p := range response.Products {
+	// 	if p.Status == "online" { // Only include active products
+	// 		products = append(products, Product{
+	// 			ProductID: p.ProductID,
+	// 		})
+	// 	}
+	// }
 
 	return products, nil
 }
@@ -372,7 +373,7 @@ func (api *AlpacaAPI) FetchPortfolio() ([]Asset, error) {
 		balance, _ := strconv.ParseFloat(acct.AvailableBalance.Value, 64)
 		hold_balance, _ := strconv.ParseFloat(acct.Hold.Value, 64)
 		if balance > 0 {
-			price, _ := GetPrice(acct.Symbol.Name)
+			price, _ := GetPrice(acct.Symbol.ProductID)
 			value := price * balance
 			hold_value := price * hold_balance
 			total += value

@@ -57,9 +57,18 @@ func main() {
 					log.Printf("API for exchange %s is not initialized", exchange.Name)
 					continue
 				}
-				err := api.Fetch_And_Store_Candles(exchange, app.DB, false)
+				// err := api.Fetch_And_Store_Candles(exchange, app.DB, false)
+				// if err != nil {
+				// 	log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
+				// }
+
+				available_products, err := exchange.API.FetchAvailableProducts()
 				if err != nil {
-					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
+					fmt.Errorf("Error fetching available_products: %w", err)
+				}
+
+				for _, product := range available_products {
+					fmt.Println("Product: ", product)
 				}
 				// fills, err := exchange.API.FetchFills()
 				// if err != nil {
@@ -73,19 +82,19 @@ func main() {
 		}
 	}()
 
-	go func() {
-		log.Println("Starting HTTP server goroutine")
-		http.HandleFunc("/", handleMain)
-		http.HandleFunc("/exchanges", handleExchangesRequest)
-		http.HandleFunc("/candles", handleCandlesRequest)
+	// go func() {
+	// 	log.Println("Starting HTTP server goroutine")
+	// 	http.HandleFunc("/", handleMain)
+	// 	http.HandleFunc("/exchanges", handleExchangesRequest)
+	// 	http.HandleFunc("/candles", handleCandlesRequest)
 
-		// TODO Make App config struct and add DB
-		log.Println("Server starting on :31337")
-		err := http.ListenAndServe(":31337", nil)
-		if err != nil {
-			log.Printf("HTTP server error: %v", err)
-		}
-	}()
+	// 	// TODO Make App config struct and add DB
+	// 	log.Println("Server starting on :31337")
+	// 	err := http.ListenAndServe(":31337", nil)
+	// 	if err != nil {
+	// 		log.Printf("HTTP server error: %v", err)
+	// 	}
+	// }()
 
 	select {}
 }

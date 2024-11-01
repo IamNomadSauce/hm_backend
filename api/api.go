@@ -89,19 +89,19 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 			}
 
 			fmt.Println("\n---------------------\n", exchange.CandleLimit, "\n", timeframe.Minutes, "\n", start, "\n", end, "\n---------------------\n")
-			candles, err := exchange.API.FetchCandles(product.Name, timeframe, start, end)
+			candles, err := exchange.API.FetchCandles(product.ProductID, timeframe, start, end)
 			if err != nil {
-				log.Printf("Error fetching candles %s %s: %v", product.Name, timeframe.TF, err)
+				log.Printf("Error fetching candles %s %s: %v", product.ProductID, timeframe.TF, err)
 				continue
 			}
 
 			if len(candles) > 0 {
-				err = db.Write_Candles(candles, product.Name, exchange.Name, timeframe.TF, database)
+				err = db.Write_Candles(candles, product.ProductID, exchange.Name, timeframe.TF, database)
 				if err != nil {
-					log.Printf("Error writing candles for %s %s: %v", product.Name, timeframe.TF, err)
+					log.Printf("Error writing candles for %s %s: %v", product.ProductID, timeframe.TF, err)
 					continue
 				}
-				fmt.Printf("Wrote %d candles for %s %s\n", len(candles), product.Name, timeframe.TF)
+				fmt.Printf("Wrote %d candles for %s %s\n", len(candles), product.ProductID, timeframe.TF)
 			}
 		}
 	}

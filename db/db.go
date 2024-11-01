@@ -145,7 +145,62 @@ func CreateTables(db *sql.DB) error {
 		log.Println("Failed to create watchlist table: ", err)
 	}
 
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS available_products (
+			id SERIAL PRIMARY KEY,
+			xch_id INTEGER REFERENCES exchanges(id),
+			product_id VARCHAR(50) NOT NULL,
+			base_name VARCHAR(50) NOT NULL,
+			quote_name VARCHAR(50) NOT NULL,
+			status VARCHAR(50) NOT NULL
+		);
+	`)
+	if err != nil {
+		log.Printf("Failed to create available_products: %w", err)
+	}
 	return nil
+}
+
+func Get_Exchange_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
+	query := `
+		SELECT 
+			id, 
+			xch_id, 
+			product_id,
+			base_name,
+			quote_name,
+			status
+		FROM available_products 
+		WHERE xch_id = $1
+	`
+	rows, err := db.Query(query, exchange)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting all available products for xch: %s,\n%w", exchange, err)
+	}
+
+	defer rows.Close()
+
+	var products []model.Product
+
+	for rows.Next() {
+		var product model.Product
+		err := rows.Scan(
+			&product.ID,
+			&product.XchID,
+			&product.ProductID,
+			&product.BaseName,
+			&product.QuoteName,
+			&product.Status,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("Error scanning rows for available_product %s\n%w", exchange, err)
+		}
+		products = append(products, product)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("Error iterating rows for available_product: %s\n%w", exchange, err)
+	}
+	return products, nil
 }
 
 func ListTables(db *sql.DB) error {
@@ -329,8 +384,8 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		switch exchange.Name {
 		case "Coinbase":
 			exchange.API = &model.CoinbaseAPI{
-				APIKey:      os.Getenv("COINBASE_API_KEY"),
-				APISecret:   os.Getenv("COINBASE_API_SECRET"),
+				APIKey:      os.Getenv("CBAPIKEY"),
+				APISecret:   os.Getenv("CBAPISECRET"),
 				BaseURL:     "https://api.coinbase.com",
 				CandleLimit: 350,
 			}
@@ -409,7 +464,7 @@ func Get_Watchlist(id int, db *sql.DB) ([]model.Product, error) {
 	for watchlistRows.Next() {
 		var ticker model.Product
 
-		if err := watchlistRows.Scan(&ticker.ID, &ticker.Name, &ticker.XchID); err != nil {
+		if err := watchlistRows.Scan(&ticker.ID, &ticker.ProductID, &ticker.XchID); err != nil {
 			return watchlist, fmt.Errorf("Error scanning watchlist: %w", err)
 		}
 		watchlist = append(watchlist, ticker)

@@ -44,9 +44,12 @@ type ExchangeAPI interface {
 }
 
 type Product struct {
-	ID    int
-	Name  string
-	XchID int
+	ID        int    `json:"id"`
+	XchID     int    `json:"xch_id"`
+	ProductID string `json:"product_id"`
+	BaseName  string `json:"base_name"`
+	QuoteName string `json:"quote_name"`
+	Status    string `json:"status"`
 }
 
 type Asset struct {
