@@ -66,10 +66,12 @@ func main() {
 				if err != nil {
 					fmt.Errorf("Error fetching available_products: %w", err)
 				}
+				exchange.AvailableProducts = available_products
 
-				for _, product := range available_products {
-					fmt.Println("Product: ", product)
-				}
+				// for _, product := range available_products {
+				// 	fmt.Println("Product: ", product)
+				// }
+				// fmt.Println("Available Products: ", len(available_products))
 				// fills, err := exchange.API.FetchFills()
 				// if err != nil {
 				// 	log.Printf("Error fetching fills for %s: %v", exchange.Name, err)

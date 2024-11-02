@@ -44,12 +44,16 @@ type ExchangeAPI interface {
 }
 
 type Product struct {
-	ID        int    `json:"id"`
-	XchID     int    `json:"xch_id"`
-	ProductID string `json:"product_id"`
-	BaseName  string `json:"base_name"`
-	QuoteName string `json:"quote_name"`
-	Status    string `json:"status"`
+	ID                int    `json:"id"`
+	XchID             int    `json:"xch_id"`
+	ProductID         string `json:"product_id"`
+	BaseName          string `json:"base_name"`
+	QuoteName         string `json:"quote_name"`
+	Status            string `json:"status"`
+	Price             string `json:"price"`
+	Volume_24h        string `json:"volume_24h"`
+	Base_Currency_ID  string `json:"base_currency_id"`
+	Quote_Currency_ID string `json:"quote_currency_id"`
 }
 
 type Asset struct {

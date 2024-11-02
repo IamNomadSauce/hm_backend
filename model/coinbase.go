@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -155,15 +156,31 @@ func (api *CoinbaseAPI) FetchAvailableProducts() ([]Product, error) {
 	for _, p := range response.Products {
 		if p.Status == "online" { // Only include active products
 			products = append(products, Product{
-				ID:        p.ID,
-				XchID:     p.XchID,
-				ProductID: p.ProductID,
-				BaseName:  p.BaseName,
-				QuoteName: p.QuoteName,
-				Status:    p.Status,
+				ID:         p.ID,    // Auto generated db id
+				XchID:      p.XchID, // Specific exchange id.
+				ProductID:  p.ProductID,
+				BaseName:   p.BaseName,
+				QuoteName:  p.QuoteName,
+				Status:     p.Status,
+				Price:      p.Price,
+				Volume_24h: p.Volume_24h,
 			})
 		}
 	}
+	// Sort products by 24h volume in descending order
+	sort.Slice(products, func(i, j int) bool {
+		// Convert volume strings to float64 for comparison
+		volI, _ := strconv.ParseFloat(products[i].Volume_24h, 64)
+		volJ, _ := strconv.ParseFloat(products[j].Volume_24h, 64)
+		return volI > volJ
+	})
+
+	// Take only the top 100 products (or less if fewer products exist)
+	maxProducts := 100
+	if len(products) > maxProducts {
+		products = products[:maxProducts]
+	}
+	fmt.Println("Products: ", len(products))
 
 	return products, nil
 }
