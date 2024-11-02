@@ -62,12 +62,6 @@ func main() {
 				// 	log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
 				// }
 
-				available_products, err := exchange.API.FetchAvailableProducts()
-				if err != nil {
-					fmt.Errorf("Error fetching available_products: %w", err)
-				}
-				exchange.AvailableProducts = available_products
-
 				// for _, product := range available_products {
 				// 	fmt.Println("Product: ", product)
 				// }

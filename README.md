@@ -17,9 +17,14 @@ mainloop
 Server
 
 TODO:
+--------------------------------------
+- [ ] Alpaca API
+- [ ] Portfolio storage
+- [ ] Storing fills
+--------------------------------------
 - [x] Add Table for available products
-- [ ] Extend Product struct with more fields
-- [ ] Fetch available products from db and send to client.
+- [x] Extend Product struct with more fields
+- [x] Fetch available products from db and send to client.
 - [ ] Display available products in client dropdown
 - [ ] Create "add" button to add product to watchlist
 - [ ] If adding a new asset, make sure to have retrieve 30 days of candles.
