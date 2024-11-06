@@ -40,21 +40,17 @@ func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting Fills: %w", err)
 		}
-		exchange.Watchlist, err = db.Get_Watchlist(exchange.ID, database)
+		exchange.Watchlist, err = db.Get_Watchlist(exchange, database)
 		if err != nil {
 			return nil, fmt.Errorf("Error getting Watchlist: %w", err)
 		}
-		exchange.AvailableProducts, err = exchange.API.FetchAvailableProducts()
-		if err != nil {
-			return nil, fmt.Errorf("Error getting watchlist: %w", err)
-		}
+		// exchange.AvailableProducts, err = exchange.API.FetchAvailableProducts()
+		// if err != nil {
+		// 	return nil, fmt.Errorf("Error getting watchlist: %w", err)
+		// }
 
 	}
 	return exchanges, nil
-
-	// Get Just the exchanges from the exchanges table
-
-	//
 }
 
 // Get Candles from the Database

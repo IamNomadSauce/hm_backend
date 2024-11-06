@@ -110,11 +110,11 @@ func (api *CoinbaseAPI) FetchAvailableProducts() ([]Product, error) {
 
 	// Create timestamp for authentication
 	timestamp := time.Now().Unix()
-	secret := os.Getenv("CBAPISECRET")
+	// secret := os.Getenv("CBAPISECRET")
 	signature := GetCBSign(api.APISecret, timestamp, method, path, "")
 
-	fmt.Printf("SECRET: |%s|", api.APISecret)
-	fmt.Printf("SECRET: |%s|", secret)
+	// fmt.Printf("SECRET: |%s|", api.APISecret)
+	// fmt.Printf("SECRET: |%s|", secret)
 
 	// Create new request
 	req, err := http.NewRequest(method, fullURL, nil)

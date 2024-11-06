@@ -376,7 +376,7 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting fills: %w", err)
 		}
-		exchange.Watchlist, err = Get_Watchlist(exchange.ID, db)
+		exchange.Watchlist, err = Get_Watchlist(exchange, db)
 		if err != nil {
 			return nil, fmt.Errorf("Error getting watchlist: %w", err)
 		}
@@ -449,12 +449,12 @@ func Get_Fills(id int, db *sql.DB) ([]model.Fill, error) {
 
 }
 
-func Get_Watchlist(id int, db *sql.DB) ([]model.Product, error) {
-	log.Printf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", id)
+func Get_Watchlist(exchange model.Exchange, db *sql.DB) ([]model.Product, error) {
+	log.Printf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", exchange.Name)
 
 	var watchlist []model.Product
 
-	watchlistRows, err := db.Query("SELECT id, product, xch_id FROM watchlist WHERE xch_id = $1", id)
+	watchlistRows, err := db.Query("SELECT id, product, xch_id FROM watchlist WHERE xch_id = $1", exchange.ID)
 	if err != nil {
 		return watchlist, fmt.Errorf("Error retrieving watchlist: %w", err)
 	}

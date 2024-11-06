@@ -14,6 +14,10 @@ mainloop
     |> api.fetch_and_store_candles 
         |> exchange.API.FetchCandles 
         |> db.Write_Candles
+    |> api.Fetch_and_store_fills
+    |> api.FetchOrders
+    |> api.Fetch_and_store_portfolio
+        |> 
 Server
 
 TODO:

@@ -57,10 +57,10 @@ func main() {
 					log.Printf("API for exchange %s is not initialized", exchange.Name)
 					continue
 				}
-				// err := api.Fetch_And_Store_Candles(exchange, app.DB, false)
-				// if err != nil {
-				// 	log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
-				// }
+				err := api.Fetch_And_Store_Candles(exchange, app.DB, false)
+				if err != nil {
+					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
+				}
 
 				// for _, product := range available_products {
 				// 	fmt.Println("Product: ", product)
@@ -78,19 +78,19 @@ func main() {
 		}
 	}()
 
-	// go func() {
-	// 	log.Println("Starting HTTP server goroutine")
-	// 	http.HandleFunc("/", handleMain)
-	// 	http.HandleFunc("/exchanges", handleExchangesRequest)
-	// 	http.HandleFunc("/candles", handleCandlesRequest)
+	go func() {
+		log.Println("Starting HTTP server goroutine")
+		http.HandleFunc("/", handleMain)
+		http.HandleFunc("/exchanges", handleExchangesRequest)
+		http.HandleFunc("/candles", handleCandlesRequest)
 
-	// 	// TODO Make App config struct and add DB
-	// 	log.Println("Server starting on :31337")
-	// 	err := http.ListenAndServe(":31337", nil)
-	// 	if err != nil {
-	// 		log.Printf("HTTP server error: %v", err)
-	// 	}
-	// }()
+		// TODO Make App config struct and add DB
+		log.Println("Server starting on :31337")
+		err := http.ListenAndServe(":31337", nil)
+		if err != nil {
+			log.Printf("HTTP server error: %v", err)
+		}
+	}()
 
 	select {}
 }
@@ -117,6 +117,13 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 	jsonData, err := json.Marshal(exchanges)
 	if err != nil {
 		log.Printf("Error marshalling exchanges: %v", err)
+	}
+
+	for _, exchange := range exchanges {
+		fmt.Println("\n----------------------\nExchange: ", exchange.Name)
+		fmt.Println("Watchlist: ", exchange.Watchlist)
+		fmt.Println("Timeframes: ", exchange.Timeframes)
+		fmt.Println("\n--------------------------\n")
 	}
 
 	w.Header().Set("Content-Type", "application/json")
