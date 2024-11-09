@@ -44,10 +44,18 @@ func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting Watchlist: %w", err)
 		}
-		// exchange.AvailableProducts, err = exchange.API.FetchAvailableProducts()
-		// if err != nil {
-		// 	return nil, fmt.Errorf("Error getting watchlist: %w", err)
-		// }
+
+		exchange.AvailableProducts, err = db.Get_Available_Products(exchange.ID, database)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting Available_Products: %w", err)
+		}
+
+		log.Println("Exchange:\n", exchange.Name)
+		log.Println("Timeframes:\n", exchange.Timeframes)
+		log.Println("Orders:\n", exchange.Orders)
+		log.Println("Fills:\n", exchange.Fills)
+		log.Println("Watchlist:\n", exchange.Watchlist)
+		log.Println("Available_Products:\n", exchange.AvailableProducts)
 
 	}
 	return exchanges, nil

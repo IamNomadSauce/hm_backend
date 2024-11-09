@@ -32,12 +32,12 @@ func main() {
 	app = &Application{
 		DB: database,
 	}
-	// defer app.DB.Close()
+	defer app.DB.Close()
 
-	// err = db.CreateTables(app.DB)
-	// if err != nil {
-	// 	log.Fatal("Error creating tables:", err)
-	// }
+	err = db.CreateTables(app.DB)
+	if err != nil {
+		log.Fatal("Error creating tables:", err)
+	}
 
 	err = db.ListTables(app.DB)
 	if err != nil {
@@ -61,6 +61,8 @@ func main() {
 				if err != nil {
 					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
 				}
+
+				// err = api.Fetch_Available_Products(exchange, app.DB)
 
 				// for _, product := range available_products {
 				// 	fmt.Println("Product: ", product)

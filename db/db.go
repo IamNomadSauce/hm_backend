@@ -161,7 +161,7 @@ func CreateTables(db *sql.DB) error {
 	return nil
 }
 
-func Get_Exchange_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
+func Get_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
 	query := `
 		SELECT 
 			id, 
@@ -380,6 +380,7 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting watchlist: %w", err)
 		}
+		exchange.AvailableProducts = []model.Product{}
 
 		switch exchange.Name {
 		case "Coinbase":
