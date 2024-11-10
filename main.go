@@ -128,6 +128,7 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("\n----------------------\nExchange: ", exchange.Name)
 		fmt.Println("Watchlist: ", exchange.Watchlist)
 		fmt.Println("Timeframes: ", exchange.Timeframes)
+		fmt.Println("Available Products: ", len(exchange.AvailableProducts))
 		fmt.Println("\n--------------------------\n")
 	}
 

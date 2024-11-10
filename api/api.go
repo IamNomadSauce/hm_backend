@@ -55,7 +55,7 @@ func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 		log.Println("Orders:\n", exchange.Orders)
 		log.Println("Fills:\n", exchange.Fills)
 		log.Println("Watchlist:\n", exchange.Watchlist)
-		log.Println("Available_Products:\n", exchange.AvailableProducts)
+		log.Println("Available_Products:\n", len(exchange.AvailableProducts))
 
 	}
 	return exchanges, nil

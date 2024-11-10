@@ -174,10 +174,10 @@ func Get_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
 			product_id,
 			base_name,
 			quote_name,
-			status
-			price
-			volume_24
-			base_currency_id
+			status, 
+			price,
+			volume,
+			base_currency_id,
 			quote_currency_id
 		FROM available_products 
 		WHERE xch_id = $1

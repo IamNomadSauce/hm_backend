@@ -51,7 +51,7 @@ type Product struct {
 	QuoteName         string `json:"quote_name"`
 	Status            string `json:"status"`
 	Price             string `json:"price"`
-	Volume_24h        string `json:"volume_24h"`
+	Volume_24h        string `json:"volume_24"`
 	Base_Currency_ID  string `json:"base_currency_id"`
 	Quote_Currency_ID string `json:"quote_currency_id"`
 }
