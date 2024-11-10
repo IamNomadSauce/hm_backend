@@ -118,22 +118,23 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 		log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Timeframes)
 		log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Watchlist)
 	*/
+	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].AvailableProducts)
 
+	for _, exchange := range exchanges {
+		log.Println("\n----------------------\nExchange: ", exchange.Name)
+		log.Println("Watchlist: ", exchange.Watchlist)
+		log.Println("Timeframes: ", exchange.Timeframes)
+		log.Println("Available Products: ", len(exchange.AvailableProducts))
+		log.Println("\n--------------------------\n")
+	}
 	jsonData, err := json.Marshal(exchanges)
 	if err != nil {
 		log.Printf("Error marshalling exchanges: %v", err)
 	}
 
-	for _, exchange := range exchanges {
-		fmt.Println("\n----------------------\nExchange: ", exchange.Name)
-		fmt.Println("Watchlist: ", exchange.Watchlist)
-		fmt.Println("Timeframes: ", exchange.Timeframes)
-		fmt.Println("Available Products: ", len(exchange.AvailableProducts))
-		fmt.Println("\n--------------------------\n")
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 
+	log.Println("WRITING EXCAHGES")
 	w.Write(jsonData)
 }
 

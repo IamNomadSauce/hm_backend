@@ -25,39 +25,19 @@ func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 		log.Printf("api.go:Get_Exchanges error getting exchanges: %w", err)
 	}
 
-	for _, exchange := range exchanges {
-		exchange.Timeframes, err = db.Get_Timeframes(exchange.ID, database)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting timeframes: %w", err)
-		}
+	// for _, exchange := range exchanges {
 
-		exchange.Orders, err = db.Get_Orders(exchange.ID, database)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting Orders: %w", err)
-		}
+	// 	log.Println("Exchange:\n", exchange.Name)
+	// 	log.Println("Timeframes:\n", exchange.Timeframes)
+	// 	log.Println("Orders:\n", exchange.Orders)
+	// 	log.Println("Fills:\n", exchange.Fills)
+	// 	log.Println("Watchlist:\n", exchange.Watchlist)
+	// 	log.Println("Available_Products:\n", exchange.AvailableProducts)
+	// 	log.Println("\n---------------------------------------------------\n")
+	// 	log.Println("\n---------------------------------------------------\n")
+	// 	log.Println("\n---------------------------------------------------\n")
 
-		exchange.Fills, err = db.Get_Fills(exchange.ID, database)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting Fills: %w", err)
-		}
-		exchange.Watchlist, err = db.Get_Watchlist(exchange, database)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting Watchlist: %w", err)
-		}
-
-		exchange.AvailableProducts, err = db.Get_Available_Products(exchange.ID, database)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting Available_Products: %w", err)
-		}
-
-		log.Println("Exchange:\n", exchange.Name)
-		log.Println("Timeframes:\n", exchange.Timeframes)
-		log.Println("Orders:\n", exchange.Orders)
-		log.Println("Fills:\n", exchange.Fills)
-		log.Println("Watchlist:\n", exchange.Watchlist)
-		log.Println("Available_Products:\n", len(exchange.AvailableProducts))
-
-	}
+	// }
 	return exchanges, nil
 }
 

@@ -166,7 +166,7 @@ func CreateTables(db *sql.DB) error {
 	return nil
 }
 
-func Get_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
+func Get_Available_Products(exchange model.Exchange, db *sql.DB) ([]model.Product, error) {
 	query := `
 		SELECT 
 			id, 
@@ -182,7 +182,7 @@ func Get_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
 		FROM available_products 
 		WHERE xch_id = $1
 	`
-	rows, err := db.Query(query, exchange)
+	rows, err := db.Query(query, exchange.ID)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting all available products for xch: %s,\n%w", exchange, err)
 	}
@@ -344,8 +344,8 @@ func Write_Fill(fills []model.Fill, db *sql.DB) {
 // ---------------------------------------------------------------
 
 func Write_Candles(candles []model.Candle, product, exchange, tf string, db *sql.DB) error {
-	log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
-	log.Println(product, tf, exchange, len(candles))
+	// log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
+	// log.Println(product, tf, exchange, len(candles))
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -397,7 +397,7 @@ func Write_Candles(candles []model.Candle, product, exchange, tf string, db *sql
 		return fmt.Errorf("Failed to commit transaction: %w", err)
 	}
 
-	log.Printf("Total candles inserted or updated: %d\n", successCount)
+	// log.Printf("Total candles inserted or updated: %d\n", successCount)
 	return nil
 }
 
@@ -425,7 +425,7 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 }
 
 func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
-	log.Printf("\n-------------------------------------\n Get All Exchanges 10.25.24 \n-------------------------------------\n")
+	// log.Printf("\n-------------------------------------\n Get All Exchanges 10.25.24 \n-------------------------------------\n")
 
 	var exchanges []model.Exchange
 
@@ -456,7 +456,10 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting watchlist: %w", err)
 		}
-		exchange.AvailableProducts = []model.Product{}
+		exchange.AvailableProducts, err = Get_Available_Products(exchange, db)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting available_products: %w", err)
+		}
 
 		switch exchange.Name {
 		case "Coinbase":
@@ -527,7 +530,7 @@ func Get_Fills(id int, db *sql.DB) ([]model.Fill, error) {
 }
 
 func Get_Watchlist(exchange model.Exchange, db *sql.DB) ([]model.Product, error) {
-	log.Printf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", exchange.Name)
+	// log.Printf("\n-------------------------------------\n Get Watchlist  %v\n-------------------------------------\n", exchange.Name)
 
 	var watchlist []model.Product
 
@@ -547,7 +550,7 @@ func Get_Watchlist(exchange model.Exchange, db *sql.DB) ([]model.Product, error)
 		watchlist = append(watchlist, ticker)
 
 	}
-	log.Println("Watchlist Retrieved: ", watchlist)
+	// log.Println("Watchlist Retrieved: ", watchlist)
 	return watchlist, nil
 }
 
