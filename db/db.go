@@ -152,7 +152,12 @@ func CreateTables(db *sql.DB) error {
 			product_id VARCHAR(50) NOT NULL,
 			base_name VARCHAR(50) NOT NULL,
 			quote_name VARCHAR(50) NOT NULL,
-			status VARCHAR(50) NOT NULL
+			status VARCHAR(50) NOT NULL,
+			price NUMERIC NOT NULL,
+			volume NUMERIC NOT NULL,
+			base_currency_id VARCHAR(50) NOT NULL,
+			quote_currency_id VARCHAR(50) NOT NULL,
+			UNIQUE(xch_id, product_id)  -- Add this constraint
 		);
 	`)
 	if err != nil {
@@ -170,6 +175,10 @@ func Get_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
 			base_name,
 			quote_name,
 			status
+			price
+			volume_24
+			base_currency_id
+			quote_currency_id
 		FROM available_products 
 		WHERE xch_id = $1
 	`
@@ -191,6 +200,10 @@ func Get_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
 			&product.BaseName,
 			&product.QuoteName,
 			&product.Status,
+			&product.Price,
+			&product.Volume_24h,
+			&product.Base_Currency_ID,
+			&product.Quote_Currency_ID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("Error scanning rows for available_product %s\n%w", exchange, err)
@@ -201,6 +214,69 @@ func Get_Available_Products(exchange int, db *sql.DB) ([]model.Product, error) {
 		return nil, fmt.Errorf("Error iterating rows for available_product: %s\n%w", exchange, err)
 	}
 	return products, nil
+}
+
+func Write_AvailableProducts(exchange int, products []model.Product, db *sql.DB) error {
+	log.Println("Write_AvailableProducts", exchange, len(products))
+	// Begin transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback() // Rollback if not committed
+
+	// Prepare the statement
+	stmt, err := tx.Prepare(`
+        INSERT INTO available_products (
+            xch_id,
+            product_id,
+            base_name,
+            quote_name,
+            status,
+            price,
+            volume,
+            base_currency_id,
+            quote_currency_id
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (xch_id, product_id) DO UPDATE SET
+            base_name = EXCLUDED.base_name,
+            quote_name = EXCLUDED.quote_name,
+            status = EXCLUDED.status,
+            price = EXCLUDED.price,
+            volume = EXCLUDED.volume,
+            base_currency_id = EXCLUDED.base_currency_id,
+            quote_currency_id = EXCLUDED.quote_currency_id
+    `)
+	if err != nil {
+		return fmt.Errorf("failed to prepare statement: %w", err)
+	}
+	defer stmt.Close()
+
+	// Execute for each product
+	for _, product := range products {
+		_, err := stmt.Exec(
+			exchange,
+			product.ProductID,
+			product.BaseName,
+			product.QuoteName,
+			product.Status,
+			product.Price,
+			product.Volume_24h,
+			product.Base_Currency_ID,
+			product.Quote_Currency_ID,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to execute statement for product %s: %w", product.ProductID, err)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
 
 func ListTables(db *sql.DB) error {

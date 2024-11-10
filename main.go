@@ -54,7 +54,7 @@ func main() {
 			}
 			for _, exchange := range db_exchanges {
 				if exchange.API == nil {
-					log.Printf("API for exchange %s is not initialized", exchange.Name)
+					log.Printf("API for exchange %s is not initialized\n", exchange.Name)
 					continue
 				}
 				err := api.Fetch_And_Store_Candles(exchange, app.DB, false)
@@ -62,7 +62,10 @@ func main() {
 					log.Printf("Error fetching and storing candles for %s: %v\n", exchange.Name, err)
 				}
 
-				// err = api.Fetch_Available_Products(exchange, app.DB)
+				err = api.Do_AvailableProducts(exchange, app.DB)
+				if err != nil {
+					log.Printf("Error executing Do_AvailableProducts for %s\n%w\n", exchange, err)
+				}
 
 				// for _, product := range available_products {
 				// 	fmt.Println("Product: ", product)

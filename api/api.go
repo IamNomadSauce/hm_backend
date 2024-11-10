@@ -116,6 +116,20 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 	return nil
 }
 
+func Do_AvailableProducts(exchange model.Exchange, database *sql.DB) error {
+	available_products, err := Fetch_Available_Products(exchange)
+	if err != nil {
+		log.Printf("Error fetching available products for exchange: %s\n%w\n", exchange, err)
+		return err
+	}
+
+	// write products to table
+	if len(available_products) > 0 {
+		err = db.Write_AvailableProducts(exchange.ID, available_products, database)
+	}
+	return nil
+}
+
 func Fetch_Available_Products(exchange model.Exchange) ([]model.Product, error) {
 
 	available_products, err := exchange.API.FetchAvailableProducts()
