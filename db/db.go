@@ -136,10 +136,11 @@ func CreateTables(db *sql.DB) error {
 
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS watchlist (
-			id SERIAL PRIMARY KEY,
-			xch_id INTEGER REFERENCES exchanges(id),
-			product VARCHAR(50) NOT NULL
-		);
+        id SERIAL PRIMARY KEY,
+        xch_id INTEGER REFERENCES exchanges(id),
+        product VARCHAR(50) NOT NULL,
+        CONSTRAINT unique_xch_product UNIQUE (xch_id, product)
+    );
 	`)
 	if err != nil {
 		log.Println("Failed to create watchlist table: ", err)
@@ -157,7 +158,7 @@ func CreateTables(db *sql.DB) error {
 			volume NUMERIC NOT NULL,
 			base_currency_id VARCHAR(50) NOT NULL,
 			quote_currency_id VARCHAR(50) NOT NULL,
-			UNIQUE(xch_id, product_id)  -- Add this constraint
+			UNIQUE(xch_id, product_id)  
 		);
 	`)
 	if err != nil {
@@ -181,6 +182,7 @@ func Get_Available_Products(exchange model.Exchange, db *sql.DB) ([]model.Produc
 			quote_currency_id
 		FROM available_products 
 		WHERE xch_id = $1
+		ORDER BY volume DESC
 	`
 	rows, err := db.Query(query, exchange.ID)
 	if err != nil {
@@ -401,8 +403,27 @@ func Write_Candles(candles []model.Candle, product, exchange, tf string, db *sql
 	return nil
 }
 
-func Add_Watchlist(product, exchange string) error {
+func Write_Watchlist(db *sql.DB, exchangeID int, productID string) error {
+	// First verify the exchange exists
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM exchanges WHERE id = $1)", exchangeID).Scan(&exists)
+	if err != nil {
+		return fmt.Errorf("error checking exchange existence: %v", err)
+	}
+	if !exists {
+		return fmt.Errorf("exchange with ID %d does not exist", exchangeID)
+	}
 
+	// Then proceed with insert
+	_, err = db.Exec(`
+        INSERT INTO watchlist (xch_id, product)
+        VALUES ($1, $2)
+        ON CONFLICT (xch_id, product) DO NOTHING
+    `, exchangeID, productID)
+
+	if err != nil {
+		return fmt.Errorf("error writing to watchlist: %v", err)
+	}
 	return nil
 }
 

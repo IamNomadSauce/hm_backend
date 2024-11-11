@@ -88,6 +88,7 @@ func main() {
 		http.HandleFunc("/", handleMain)
 		http.HandleFunc("/exchanges", handleExchangesRequest)
 		http.HandleFunc("/candles", handleCandlesRequest)
+		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 
 		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
@@ -96,8 +97,45 @@ func main() {
 			log.Printf("HTTP server error: %v", err)
 		}
 	}()
-
 	select {}
+}
+
+func addToWatchlistHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("AddToWatchlistHandler")
+
+	if r.Method != http.MethodPut {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse request body
+	var request struct {
+		ExchangeID int    `json:"xch_id"`
+		ProductID  string `json:"product_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Request: exchange_id=%d, product_id=%s", request.ExchangeID, request.ProductID)
+
+	// Use the db package function
+	err := db.Write_Watchlist(app.DB, request.ExchangeID, request.ProductID)
+	if err != nil {
+		log.Printf("Error writing to watchlist: %v", err)
+		http.Error(w, "Failed to add to watchlist", http.StatusInternalServerError)
+		return
+	}
+
+	// Return success response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "success",
+		"message": "Product added to watchlist",
+	})
 }
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
@@ -118,15 +156,15 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 		log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Timeframes)
 		log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].Watchlist)
 	*/
-	log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].AvailableProducts)
+	// log.Print("\n-------------------------\nhandleExchangesRequest:Exchanges", exchanges[0].AvailableProducts)
 
-	for _, exchange := range exchanges {
-		log.Println("\n----------------------\nExchange: ", exchange.Name)
-		log.Println("Watchlist: ", exchange.Watchlist)
-		log.Println("Timeframes: ", exchange.Timeframes)
-		log.Println("Available Products: ", len(exchange.AvailableProducts))
-		log.Println("\n--------------------------\n")
-	}
+	// for _, exchange := range exchanges {
+	// 	log.Println("\n----------------------\nExchange: ", exchange.Name)
+	// 	log.Println("Watchlist: ", exchange.Watchlist)
+	// 	log.Println("Timeframes: ", exchange.Timeframes)
+	// 	log.Println("Available Products: ", len(exchange.AvailableProducts))
+	// 	log.Println("\n--------------------------\n")
+	// }
 	jsonData, err := json.Marshal(exchanges)
 	if err != nil {
 		log.Printf("Error marshalling exchanges: %v", err)
@@ -134,7 +172,7 @@ func handleExchangesRequest(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	log.Println("WRITING EXCAHGES")
+	// log.Println("WRITING EXCAHGES")
 	w.Write(jsonData)
 }
 
