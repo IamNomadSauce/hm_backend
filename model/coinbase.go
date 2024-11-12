@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -35,9 +36,8 @@ type CoinbaseAPI struct {
 }
 
 // Exchange operation
-func (api *CoinbaseAPI) FetchOrders(exchange *Exchange) ([]Order, error) {
+func (api *CoinbaseAPI) FetchOrders() ([]Order, error) {
 	fmt.Println("FetchOrders: API", api.APIKey)
-	var orders []Order
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
@@ -90,10 +90,13 @@ func (api *CoinbaseAPI) FetchOrders(exchange *Exchange) ([]Order, error) {
 	for _, order := range response.Orders {
 		if order.Status != "CANCELLED" {
 			filteredOrders = append(filteredOrders, order)
+			log.Printf("Order: %s", order)
 		}
 	}
 
-	return orders, nil
+	log.Printf("API:Orders: %d", len(filteredOrders))
+
+	return filteredOrders, nil
 }
 
 func (api *CoinbaseAPI) FetchAvailableProducts() ([]Product, error) {

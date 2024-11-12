@@ -36,7 +36,7 @@ type Exchange struct {
 }
 
 type ExchangeAPI interface {
-	FetchOrders(*Exchange) ([]Order, error)
+	FetchOrders() ([]Order, error)
 	FetchFills() ([]Fill, error)
 	FetchPortfolio() ([]Asset, error)
 	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
@@ -100,6 +100,11 @@ type Fill struct {
 	ProductID      string `db:"productid"`
 	XchID          int    `db:"xch_id"`
 	MarketCategory string `db:"marketcategory"`
+}
+
+type OrderFill struct {
+	Orders []Order
+	Fills  []Fill
 }
 
 // func NewExchange(xch string, id int, database *sql.DB) (Exchange, error) {

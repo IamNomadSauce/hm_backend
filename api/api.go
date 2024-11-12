@@ -29,7 +29,7 @@ func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 
 	// 	log.Println("Exchange:\n", exchange.Name)
 	// 	log.Println("Timeframes:\n", exchange.Timeframes)
-	// 	log.Println("Orders:\n", exchange.Orders)
+	// 	log.Println("rders:\n", exchange.Orders)
 	// 	log.Println("Fills:\n", exchange.Fills)
 	// 	log.Println("Watchlist:\n", exchange.Watchlist)
 	// 	log.Println("Available_Products:\n", exchange.AvailableProducts)
@@ -118,6 +118,36 @@ func Fetch_Available_Products(exchange model.Exchange) ([]model.Product, error) 
 		return nil, err
 	}
 	return available_products, nil
+}
+
+// ORDERS
+func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
+	orders, err := Fetch_Orders(exchange)
+	if err != nil {
+		log.Printf("Error getting orders from exhange: %s\n%w", exchange.Name, err)
+		return err
+	}
+
+	log.Printf("Orders: %d", len(orders))
+	if len(orders) > 0 {
+		err = db.Write_Orders(exchange.ID, orders, database)
+		if err != nil {
+			log.Printf("Error writing orders to db: ")
+		}
+	}
+	log.Println("Orders done: %s", exchange.Name)
+	return nil
+
+}
+
+func Fetch_Orders(exchange model.Exchange) ([]model.Order, error) {
+	orders, err := exchange.API.FetchOrders()
+	if err != nil {
+		log.Printf("Error getting orders from Exchange API: %s \n%w", exchange.Name, err)
+		return nil, err
+	}
+	log.Printf("Orders Fetched: %s", exchange.Name)
+	return orders, nil
 }
 
 // func All_Candles_Loop(productID string, timeframe model.Timeframe, startTime time.Time, endTime time.Time, allCandles []model.Candle) ([]model.Candle, error) {

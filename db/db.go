@@ -302,28 +302,28 @@ func ListTables(db *sql.DB) error {
 	return nil
 }
 
-func Write_Order(orders []model.Order, db *sql.DB) { // Current Orders for all accounts
+func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Current Orders for all accounts
 	log.Println("\n------------------------------\n Write Order \n------------------------------\n")
 
-	_, err := db.Exec("DELECT FROM Orders;")
+	_, err := db.Exec("DELETE FROM orders WHERE xch_id = $1;", xch_id)
 	if err != nil {
-		fmt.Sprintf("Failed to delect existing orders: \n%v", err)
+		fmt.Sprintf("Failed to delete existing orders: \n%v", err)
 	}
 
 	insertQuery := `
-	INSERT INTO orders (orderid, productid, tradetype, side, time, endpoint, marketcategory, price, size)
-	VALUES(?,?,?,?,?,?,?,?,?);
+	INSERT INTO orders (orderid, productid, tradetype, side, time, endpoint, marketcategory, price, size, xch_id)
+	VALUES(?,?,?,?,?,?,?,?,?,?);
 	`
 	for _, order := range orders {
-		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.XchID, order.MarketCategory, order.Price, order.Size)
+		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.XchID, order.MarketCategory, order.Price, order.Size, xch_id)
 		if err != nil {
 			fmt.Sprintf("Error inserting into Order table: \n%v", err)
-
+			return err
 		}
 
 	}
-
 	log.Println(len(orders), "orders added to db")
+	return nil
 }
 
 func Write_Fill(fills []model.Fill, db *sql.DB) {

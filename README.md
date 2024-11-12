@@ -22,16 +22,17 @@ Server
 
 TODO:
 --------------------------------------
-- [ ] Alpaca API
 - [ ] Portfolio storage
 - [ ] Storing fills
+- [ ] Storing orders
+- [ ] Alpaca API
 --------------------------------------
 - [x] Add Table for available products
 - [x] Extend Product struct with more fields
 - [x] Fetch available products from db and send to client.
-- [ ] Display available products in client dropdown
-- [ ] Create "add" button to add product to watchlist
-- [ ] If adding a new asset, make sure to have retrieve 30 days of candles.
+- [x] Display available products in client dropdown
+- [x] Create "add" button to add product to watchlist
+- [x] If adding a new asset, make sure to have retrieve 30 days of candles.
 -------------------------------------------------------------------------
 - Backend
     - [x] DB Create Tables if not exist
