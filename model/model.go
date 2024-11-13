@@ -36,7 +36,7 @@ type Exchange struct {
 }
 
 type ExchangeAPI interface {
-	FetchOrders() ([]Order, error)
+	FetchOrdersFills() ([]Order, error)
 	FetchFills() ([]Fill, error)
 	FetchPortfolio() ([]Asset, error)
 	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
@@ -85,10 +85,11 @@ type Order struct {
 	Price          string `db:"price"`          // instrument_currency
 	Size           string `db:"size"`           // How many of instrument
 	Status         string `db:"status"`
+	TotalFees      string `json:"total_fees"`
 }
 
 type Fill struct {
-	Timestamp      int    `db:"time"`
+	Timestamp      int64  `db:"time"`
 	EntryID        string `db:"entryid"`
 	TradeID        string `db:"tradeid"`
 	OrderID        string `db:"orderid"`

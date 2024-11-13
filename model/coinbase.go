@@ -36,7 +36,7 @@ type CoinbaseAPI struct {
 }
 
 // Exchange operation
-func (api *CoinbaseAPI) FetchOrders() ([]Order, error) {
+func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 	fmt.Println("FetchOrders: API", api.APIKey)
 	err := godotenv.Load()
 	if err != nil {

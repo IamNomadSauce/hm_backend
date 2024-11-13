@@ -122,7 +122,7 @@ func Fetch_Available_Products(exchange model.Exchange) ([]model.Product, error) 
 
 // ORDERS
 func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
-	orders, err := Fetch_Orders(exchange)
+	orders, err := Fetch_Orders_and_Fills(exchange)
 	if err != nil {
 		log.Printf("Error getting orders from exhange: %s\n%w", exchange.Name, err)
 		return err
@@ -130,9 +130,47 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 
 	log.Printf("Orders: %d", len(orders))
 	if len(orders) > 0 {
-		err = db.Write_Orders(exchange.ID, orders, database)
-		if err != nil {
-			log.Printf("Error writing orders to db: ")
+
+		var open_orders []model.Order
+		var fills []model.Fill
+
+		for _, order := range orders {
+			switch order.Status {
+			case "FILLED", "SETTLED":
+				fill := model.Fill{
+					Timestamp:      order.Timestamp,
+					EntryID:        fmt.Sprintf("%s-%s", order.OrderID, order.Timestamp),
+					TradeID:        order.OrderID,
+					OrderID:        order.OrderID,
+					TradeType:      order.TradeType,
+					Price:          order.Price,
+					Size:           order.Size,
+					Side:           order.Side,
+					Commission:     order.TotalFees,
+					ProductID:      order.ProductID,
+					XchID:          order.XchID,
+					MarketCategory: order.MarketCategory,
+				}
+				fills = append(fills, fill)
+			case "OPEN", "PENDING":
+				open_orders = append(open_orders, order)
+			}
+		}
+
+		if len(open_orders) > 0 {
+			err = db.Write_Orders(exchange.ID, orders, database)
+			if err != nil {
+				log.Printf("Error writing orders to db: ")
+			}
+		}
+
+		if len(fills) > 0 {
+			err = db.Write_Fills(exchange.ID, fills, database)
+			if err != nil {
+				log.Printf("Error writing fills to db: %w", err)
+				return err
+			}
+			log.Printf("Wrote %d fills to database", len(fills))
 		}
 	}
 	log.Println("Orders done: %s", exchange.Name)
@@ -140,8 +178,8 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 
 }
 
-func Fetch_Orders(exchange model.Exchange) ([]model.Order, error) {
-	orders, err := exchange.API.FetchOrders()
+func Fetch_Orders_and_Fills(exchange model.Exchange) ([]model.Order, error) {
+	orders, err := exchange.API.FetchOrdersFills()
 	if err != nil {
 		log.Printf("Error getting orders from Exchange API: %s \n%w", exchange.Name, err)
 		return nil, err

@@ -107,7 +107,8 @@ func CreateTables(db *sql.DB) error {
 			size NUMERIC,
 			xch_id INTEGER REFERENCES exchanges(id),
 			marketcategory varchar(25) NOT NULL, 
-			time BIGINT NOT NULL 
+			time BIGINT NOT NULL,
+			total_fees VARCHAR(25)
 		);
 		
 	`)
@@ -311,11 +312,11 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 	}
 
 	insertQuery := `
-	INSERT INTO orders (orderid, productid, tradetype, side, time, endpoint, marketcategory, price, size, xch_id)
+	INSERT INTO orders (orderid, productid, tradetype, side, time, endpoint, marketcategory, price, size, xch_id, total_fees)
 	VALUES(?,?,?,?,?,?,?,?,?,?);
 	`
 	for _, order := range orders {
-		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.XchID, order.MarketCategory, order.Price, order.Size, xch_id)
+		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.XchID, order.MarketCategory, order.Price, order.Size, xch_id, order.TotalFees)
 		if err != nil {
 			fmt.Sprintf("Error inserting into Order table: \n%v", err)
 			return err
@@ -326,7 +327,7 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 	return nil
 }
 
-func Write_Fill(fills []model.Fill, db *sql.DB) {
+func Write_Fills(xch_id int, fills []model.Fill, db *sql.DB) error {
 	log.Println("\n------------------------------\n Write Fills \n------------------------------\n")
 
 	insertQuery := `
@@ -337,10 +338,12 @@ func Write_Fill(fills []model.Fill, db *sql.DB) {
 		_, err := db.Exec(insertQuery, fill.EntryID, fill.TradeID, fill.OrderID, fill.Timestamp, fill.TradeType, fill.Price, fill.Size, fill.Side, fill.Commission, fill.ProductID, fill.XchID, fill.MarketCategory)
 		if err != nil {
 			fmt.Sprintf("Error inserting fill: \n%v", err)
+			return fmt.Errorf("Error inserting fill: %s\n%w", xch_id, err)
 		}
 	}
 
 	log.Println(len(fills), "fills added to db successfully")
+	return nil
 }
 
 // ---------------------------------------------------------------

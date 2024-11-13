@@ -99,7 +99,7 @@ func (api *AlpacaAPI) FetchAvailableProducts() ([]Product, error) {
 }
 
 // Exchange operation
-func (api *AlpacaAPI) FetchOrders() ([]Order, error) {
+func (api *AlpacaAPI) FetchOrdersFills() ([]Order, error) {
 	var orders []Order
 	err := godotenv.Load()
 	if err != nil {
