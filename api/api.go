@@ -124,58 +124,78 @@ func Fetch_Available_Products(exchange model.Exchange) ([]model.Product, error) 
 func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 	orders, err := Fetch_Orders_and_Fills(exchange)
 	if err != nil {
-		log.Printf("Error getting orders from exhange: %s\n%w", exchange.Name, err)
+		log.Printf("Error getting orders from exchange: %s: %v", exchange.Name, err)
 		return err
 	}
 
 	log.Printf("Orders: %d", len(orders))
 	if len(orders) > 0 {
-
 		var open_orders []model.Order
 		var fills []model.Fill
 
 		for _, order := range orders {
 			switch order.Status {
 			case "FILLED", "SETTLED":
-				fill := model.Fill{
-					Timestamp:      order.Timestamp,
-					EntryID:        fmt.Sprintf("%s-%s", order.OrderID, order.Timestamp),
-					TradeID:        order.OrderID,
-					OrderID:        order.OrderID,
-					TradeType:      order.TradeType,
-					Price:          order.Price,
-					Size:           order.Size,
-					Side:           order.Side,
-					Commission:     order.TotalFees,
-					ProductID:      order.ProductID,
-					XchID:          order.XchID,
-					MarketCategory: order.MarketCategory,
-				}
+				// Convert the order to a fill using the conversion function
+				fill := convertOrderToFill(order)
 				fills = append(fills, fill)
 			case "OPEN", "PENDING":
 				open_orders = append(open_orders, order)
 			}
 		}
 
+		log.Println("Open Orders:", len(open_orders))
+		log.Println("Filled Orders:", len(fills))
+
+		// Write open orders if there are any
 		if len(open_orders) > 0 {
-			err = db.Write_Orders(exchange.ID, orders, database)
+			err = db.Write_Orders(exchange.ID, open_orders, database)
 			if err != nil {
-				log.Printf("Error writing orders to db: ")
+				log.Printf("Error writing orders to db: %v", err)
+				return err
 			}
+			log.Printf("Wrote %d open orders to database", len(open_orders))
 		}
 
+		// Write fills if there are any
 		if len(fills) > 0 {
 			err = db.Write_Fills(exchange.ID, fills, database)
 			if err != nil {
-				log.Printf("Error writing fills to db: %w", err)
+				log.Printf("Error writing fills to db: %v", err)
 				return err
 			}
 			log.Printf("Wrote %d fills to database", len(fills))
 		}
 	}
-	log.Println("Orders done: %s", exchange.Name)
-	return nil
 
+	log.Printf("Orders processing completed for %s", exchange.Name)
+	return nil
+}
+
+// Helper function to convert Order to Fill
+func convertOrderToFill(order model.Order) model.Fill {
+	return model.Fill{
+		Timestamp:      order.Timestamp,
+		EntryID:        fmt.Sprintf("%s-%d", order.OrderID, order.Timestamp),
+		TradeID:        order.OrderID,
+		OrderID:        order.OrderID,
+		TradeType:      order.TradeType,
+		Price:          toNullString(order.Price),
+		Size:           toNullString(order.Size),
+		Side:           order.Side,
+		Commission:     toNullString(order.TotalFees),
+		ProductID:      order.ProductID,
+		XchID:          order.XchID,
+		MarketCategory: order.MarketCategory,
+	}
+}
+
+// Helper function to convert string to sql.NullString
+func toNullString(s string) sql.NullString {
+	return sql.NullString{
+		String: s,
+		Valid:  s != "",
+	}
 }
 
 func Fetch_Orders_and_Fills(exchange model.Exchange) ([]model.Order, error) {

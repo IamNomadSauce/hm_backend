@@ -99,14 +99,14 @@ func CreateTables(db *sql.DB) error {
 
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS orders (
-			orderid VARCHAR(255) UNIQUE NOT NULL, 
-			productid VARCHAR(255) NOT NULL, 
-			tradetype VARCHAR(255) NOT NULL, 
+			order_id VARCHAR(255) UNIQUE NOT NULL, 
+			product_id VARCHAR(255) NOT NULL, 
+			trade_type VARCHAR(255) NOT NULL, 
 			side VARCHAR(25) NOT NULL, 
 			price NUMERIC NOT NULL, 
 			size NUMERIC,
 			xch_id INTEGER REFERENCES exchanges(id),
-			marketcategory varchar(25) NOT NULL, 
+			market_category varchar(25) NOT NULL, 
 			time BIGINT NOT NULL,
 			total_fees VARCHAR(25)
 		);
@@ -117,18 +117,18 @@ func CreateTables(db *sql.DB) error {
 	}
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS fills (
-			entryID VARCHAR(255) UNIQUE NOT NULL, 
-			tradeID VARCHAR(255) NOT NULL, 
-			orderID VARCHAR(255) NOT NULL, 
-			tradeType VARCHAR(25) NOT NULL, 
-			price NUMERIC NOT NULL, 
-			size NUMERIC NOT NULL,
-			side VARCHAR(25) NOT NULL,
-			commission NUMERIC NOT NULL,
-			productID NUMERIC NOT NULL,
-			xch_id INTEGER REFERENCES exchanges(id),
-			marketcategory varchar(25) NOT NULL, 
-			time BIGINT NOT NULL 
+			entry_id VARCHAR(255) PRIMARY KEY,
+			trade_id VARCHAR(255),
+			order_id VARCHAR(255),
+			time BIGINT,
+			trade_type VARCHAR(50),
+			price NUMERIC(20,8) NULL,
+			size NUMERIC(20,8) NULL,
+			side VARCHAR(50),
+			commission NUMERIC(20,8) NULL,
+			product_id VARCHAR(255),
+			xch_id INTEGER,
+			market_category VARCHAR(50)
 		);
 	`)
 	if err != nil {
@@ -312,7 +312,7 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 	}
 
 	insertQuery := `
-	INSERT INTO orders (orderid, productid, tradetype, side, time, endpoint, marketcategory, price, size, xch_id, total_fees)
+	INSERT INTO orders (order_id, product_id, trade_type, side, time, endpoint, market_category, price, size, xch_id, total_fees)
 	VALUES(?,?,?,?,?,?,?,?,?,?);
 	`
 	for _, order := range orders {
@@ -328,22 +328,80 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 }
 
 func Write_Fills(xch_id int, fills []model.Fill, db *sql.DB) error {
-	log.Println("\n------------------------------\n Write Fills \n------------------------------\n")
-
 	insertQuery := `
-	REPLACE INTO fills (entryID, tradeID, orderID, time, tradetype, price, size, side, commission, productid, xch_id, marketcategory);
-	`
+        INSERT INTO fills (
+            entry_id, trade_id, order_id, time, trade_type,
+            price, size, side, commission, product_id,
+            xch_id, market_category
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ON CONFLICT (entry_id) DO UPDATE SET
+            trade_id = EXCLUDED.trade_id,
+            order_id = EXCLUDED.order_id,
+            time = EXCLUDED.time,
+            trade_type = EXCLUDED.trade_type,
+            price = EXCLUDED.price,
+            size = EXCLUDED.size,
+            side = EXCLUDED.side,
+            commission = EXCLUDED.commission,
+            product_id = EXCLUDED.product_id,
+            xch_id = EXCLUDED.xch_id,
+            market_category = EXCLUDED.market_category
+    `
+
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(insertQuery)
+	if err != nil {
+		return fmt.Errorf("error preparing statement: %w", err)
+	}
+	defer stmt.Close()
 
 	for _, fill := range fills {
-		_, err := db.Exec(insertQuery, fill.EntryID, fill.TradeID, fill.OrderID, fill.Timestamp, fill.TradeType, fill.Price, fill.Size, fill.Side, fill.Commission, fill.ProductID, fill.XchID, fill.MarketCategory)
+		_, err := stmt.Exec(
+			fill.EntryID,
+			fill.TradeID,
+			fill.OrderID,
+			fill.Timestamp,
+			fill.TradeType,
+			fill.Price,
+			fill.Size,
+			fill.Side,
+			fill.Commission,
+			fill.ProductID,
+			fill.XchID,
+			fill.MarketCategory,
+		)
 		if err != nil {
-			fmt.Sprintf("Error inserting fill: \n%v", err)
-			return fmt.Errorf("Error inserting fill: %s\n%w", xch_id, err)
+			return fmt.Errorf("error inserting fill: %w", err)
 		}
 	}
 
-	log.Println(len(fills), "fills added to db successfully")
+	return tx.Commit()
+}
+
+// Helper function to validate numeric fields
+func validateNumericField(fieldName, value string) error {
+	if value == "" {
+		return nil // Empty strings will be converted to NULL
+	}
+	_, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return fmt.Errorf("invalid %s value '%s': %v", fieldName, value, err)
+	}
 	return nil
+}
+
+// Helper function to convert empty strings to "0"
+func convertEmptyToZero(value string) string {
+	if value == "" {
+		return "0"
+	}
+	return value
 }
 
 // ---------------------------------------------------------------
@@ -492,6 +550,7 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 				APISecret:   os.Getenv("CBAPISECRET"),
 				BaseURL:     "https://api.coinbase.com",
 				CandleLimit: 350,
+				ExchangeID:  exchange.ID,
 			}
 			exchange.CandleLimit = 350
 		case "Alpaca":
@@ -509,7 +568,7 @@ func Get_Orders(id int, db *sql.DB) ([]model.Order, error) {
 	fmt.Sprintf("\n-------------------------------------\n Get Orders  %v\n-------------------------------------\n", id)
 
 	var orders []model.Order
-	orderRows, err := db.Query("SELECT orderid, productid, tradetype, side, price, size, xch_id, marketcategory, time FROM orders WHERE xch_id = $1", id)
+	orderRows, err := db.Query("SELECT order_id, product_id, trade_type, side, price, size, xch_id, market_category, time FROM orders WHERE xch_id = $1", id)
 	if err != nil {
 		fmt.Sprintf("Error retrieving orders for %d \n%v", id, err)
 	}
@@ -529,28 +588,46 @@ func Get_Orders(id int, db *sql.DB) ([]model.Order, error) {
 
 }
 
-func Get_Fills(id int, db *sql.DB) ([]model.Fill, error) {
-	fmt.Sprintf("\n-------------------------------------\n Get Fills  %v\n-------------------------------------\n", id)
+func Get_Fills(xch_id int, database *sql.DB) ([]model.Fill, error) {
+	query := `
+        SELECT 
+            entry_id, trade_id, order_id, time, trade_type,
+            price, size, side, commission, product_id,
+            xch_id, market_category
+        FROM fills 
+        WHERE xch_id = $1
+    `
+
+	rows, err := database.Query(query, xch_id)
+	if err != nil {
+		return nil, fmt.Errorf("Error querying fills: %w", err)
+	}
+	defer rows.Close()
 
 	var fills []model.Fill
-	fillRows, err := db.Query("SELECT entryid, tradeid, orderid, tradetype, price, size, side, commission, productid, xch_id, marketcategory, time FROM fills WHERE xch_id = $1", id)
-	if err != nil {
-		fmt.Sprintf("Error retrieving fills for %d \n%v", id, err)
-	}
-
-	defer fillRows.Close()
-
-	for fillRows.Next() {
+	for rows.Next() {
 		var fill model.Fill
-
-		if err := fillRows.Scan(&fill.EntryID, &fill.TradeID, &fill.OrderID, &fill.TradeType, &fill.Price, &fill.Size, &fill.Side, &fill.Commission, &fill.ProductID, &fill.XchID, &fill.MarketCategory, &fill.Timestamp); err != nil {
-			return fills, fmt.Errorf("Error scanning fill %w", err)
+		err := rows.Scan(
+			&fill.EntryID,
+			&fill.TradeID,
+			&fill.OrderID,
+			&fill.Timestamp,
+			&fill.TradeType,
+			&fill.Price,
+			&fill.Size,
+			&fill.Side,
+			&fill.Commission,
+			&fill.ProductID,
+			&fill.XchID,
+			&fill.MarketCategory,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("Error scanning fill: %w", err)
 		}
 		fills = append(fills, fill)
 	}
 
 	return fills, nil
-
 }
 
 func Get_Watchlist(exchange model.Exchange, db *sql.DB) ([]model.Product, error) {

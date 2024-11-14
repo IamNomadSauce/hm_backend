@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"encoding/json"
 	"strconv"
 	"time"
@@ -76,55 +77,38 @@ type Watchlist struct {
 
 type Order struct {
 	Timestamp      int64  `db:"time"`
-	OrderID        string `db:"orderid"`   // Exchange specific order identifier
-	ProductID      string `db:"productid"` // xbt_usd_15
-	TradeType      string `db:"tradetype"` // Long / Short
-	Side           string `db:"side"`      // buy / sell
+	OrderID        string `db:"order_id"`   // Exchange specific order identifier
+	ProductID      string `db:"product_id"` // xbt_usd_15
+	TradeType      string `db:"trade_type"` // Long / Short
+	Side           string `db:"side"`       // buy / sell
 	XchID          int    `db:"xch_id"`
-	MarketCategory string `db:"marketcategory"` // (crypto / equities)_(spot / futures)
-	Price          string `db:"price"`          // instrument_currency
-	Size           string `db:"size"`           // How many of instrument
+	MarketCategory string `db:"market_category"` // (crypto / equities)_(spot / futures)
+	Price          string `db:"price"`           // instrument_currency
+	Size           string `db:"size"`            // How many of instrument
+	FilledSize     string `db:"filled_size"`
 	Status         string `db:"status"`
 	TotalFees      string `json:"total_fees"`
 }
 
 type Fill struct {
-	Timestamp      int64  `db:"time"`
-	EntryID        string `db:"entryid"`
-	TradeID        string `db:"tradeid"`
-	OrderID        string `db:"orderid"`
-	TradeType      string `db:"tradetype"`
-	Price          string `db:"price"`
-	Size           string `db:"size"`
-	Side           string `db:"side"`
-	Commission     string `db:"commission"`
-	ProductID      string `db:"productid"`
-	XchID          int    `db:"xch_id"`
-	MarketCategory string `db:"marketcategory"`
+	EntryID        string         `db:"entry_id"` // Changed from Timestamp
+	TradeID        string         `db:"trade_id"`
+	OrderID        string         `db:"order_id"`
+	Timestamp      int64          `db:"time"` // Moved Timestamp
+	TradeType      string         `db:"trade_type"`
+	Price          sql.NullString `db:"price"`
+	Size           sql.NullString `db:"size"`
+	Side           string         `db:"side"`
+	Commission     sql.NullString `db:"commission"`
+	ProductID      string         `db:"product_id"`
+	XchID          int            `db:"xch_id"`
+	MarketCategory string         `db:"market_category"`
 }
 
 type OrderFill struct {
 	Orders []Order
 	Fills  []Fill
 }
-
-// func NewExchange(xch string, id int, database *sql.DB) (Exchange, error) {
-// 	exchange := &Exchange{Name: xch}
-// 	switch xch {
-// 	case "coinbase":
-// 		fills, err := db.Get_Fills(id, database)
-// 		if err != nil {
-// 			fmt.Println("Error getting fills from coinbase", err)
-// 		}
-// 		exchange.Fills = fills
-// 		exchange.API = &CoinbaseAPI{}
-// 	case "alpaca":
-// 		exchange.API = &AlpacaAPI{}
-// 	default:
-// 		return Exchange{}, fmt.Errorf("Unsupported Exchange: %w", exchange)
-// 	}
-// 	return *exchange, nil
-// }
 
 func (c *Candle) UnmarshalJSON(data []byte) error {
 	var temp struct {

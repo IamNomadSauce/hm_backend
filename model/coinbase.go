@@ -19,15 +19,15 @@ import (
 )
 
 type CoinbaseAPI struct {
-	APIKey       string
-	APISecret    string
-	BaseURL      string
-	RateLimit    int
-	CandleLimit  int
-	RateWindow   time.Duration
-	RequestCount int
-	LastRequest  time.Time
-
+	APIKey              string
+	APISecret           string
+	BaseURL             string
+	RateLimit           int
+	CandleLimit         int
+	RateWindow          time.Duration
+	RequestCount        int
+	LastRequest         time.Time
+	ExchangeID          int
 	SupportedOrderTypes []string
 	SupportedTimeframes []string
 	MinimumOrderSizes   map[string]float64
@@ -35,9 +35,24 @@ type CoinbaseAPI struct {
 	TakerFee            float64
 }
 
+type CoinbaseOrder struct {
+	OrderID       string `json:"order_id"`
+	ClientOrderID string `json:"client_order_id"`
+	ProductID     string `json:"product_id"`
+	Side          string `json:"side"`
+	Status        string `json:"status"`
+	TimeInForce   string `json:"time_in_force"`
+	CreatedTime   string `json:"created_time"`
+	CompletedTime string `json:"completed_time"`
+	OrderType     string `json:"order_type"`
+	Size          string `json:"size"`
+	FilledSize    string `json:"filled_size"`
+	Price         string `json:"price"`
+	TotalFees     string `json:"total_fees"`
+}
+
 // Exchange operation
 func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
-	fmt.Println("FetchOrders: API", api.APIKey)
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
@@ -77,8 +92,11 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 		return nil, fmt.Errorf("Readall Err: %w", err)
 	}
 
+	// Debug: Print raw response
+	fmt.Printf("Raw response: %s\n", string(responseBody))
+
 	var response struct {
-		Orders []Order `json:"orders"`
+		Orders []CoinbaseOrder `json:"orders"`
 	}
 
 	err = json.Unmarshal(responseBody, &response)
@@ -87,16 +105,40 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 	}
 
 	var filteredOrders []Order
-	for _, order := range response.Orders {
-		if order.Status != "CANCELLED" {
+	for _, cbOrder := range response.Orders {
+		if cbOrder.Status != "CANCELLED" {
+			// Convert CoinbaseOrder to your Order struct
+			order := Order{
+				OrderID:        cbOrder.OrderID,
+				ProductID:      cbOrder.ProductID,
+				Side:           cbOrder.Side,
+				Status:         cbOrder.Status,
+				Price:          cbOrder.Price,
+				Size:           cbOrder.Size,
+				FilledSize:     cbOrder.FilledSize,
+				TotalFees:      cbOrder.TotalFees,
+				Timestamp:      parseTimestamp(cbOrder.CreatedTime),
+				MarketCategory: "crypto_spot", // Or determine based on ProductID
+				XchID:          api.ExchangeID,
+			}
+
 			filteredOrders = append(filteredOrders, order)
-			log.Printf("Order: %s", order)
+			// log.Printf("Processed order: %+v", order)
 		}
 	}
 
 	log.Printf("API:Orders: %d", len(filteredOrders))
-
 	return filteredOrders, nil
+}
+
+// Helper function to parse Coinbase timestamp
+func parseTimestamp(timeStr string) int64 {
+	t, err := time.Parse(time.RFC3339, timeStr)
+	if err != nil {
+		log.Printf("Error parsing timestamp %s: %v", timeStr, err)
+		return 0
+	}
+	return t.Unix()
 }
 
 func (api *CoinbaseAPI) FetchAvailableProducts() ([]Product, error) {
