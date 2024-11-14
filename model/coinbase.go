@@ -110,17 +110,19 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 		if cbOrder.Status != "CANCELLED" {
 			// Convert CoinbaseOrder to your Order struct
 			price, _ := strconv.ParseFloat(cbOrder.Price, 64)
-			log.Println(cbOrder)
+			size, _ := strconv.ParseFloat(cbOrder.Size, 64)
+			filled_size, _ := strconv.ParseFloat(cbOrder.FilledSize, 64)
+			total_fees, _ := strconv.ParseFloat(cbOrder.TotalFees, 64)
 			order := Order{
 				OrderID:        cbOrder.OrderID,
 				ProductID:      cbOrder.ProductID,
 				Side:           cbOrder.Side,
 				Status:         cbOrder.Status,
 				Price:          price,
-				Size:           toNullFloat64(cbOrder.Size), // Use toNullFloat64
-				FilledSize:     cbOrder.FilledSize,
-				TotalFees:      toNullFloat64(cbOrder.TotalFees), // Use toNullFloat64
-				Timestamp:      parseTimestamp(cbOrder.CreatedTime),
+				Size:           size,
+				FilledSize:     filled_size,
+				TotalFees:      total_fees,
+				Timestamp:      cbOrder.CreatedTime,
 				MarketCategory: "crypto_spot",
 				XchID:          api.ExchangeID,
 			}
