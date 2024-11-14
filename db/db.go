@@ -122,10 +122,10 @@ func CreateTables(db *sql.DB) error {
 			order_id VARCHAR(255),
 			time BIGINT,
 			trade_type VARCHAR(50),
-			price NUMERIC(20,8) NULL,
-			size NUMERIC(20,8) NULL,
+			price NUMERIC(20,8),
+			size NUMERIC(20,8),
 			side VARCHAR(50),
-			commission NUMERIC(20,8) NULL,
+			commission NUMERIC(20,8),
 			product_id VARCHAR(255),
 			xch_id INTEGER,
 			market_category VARCHAR(50)
@@ -327,7 +327,42 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 	return nil
 }
 
+// Helper function to convert string to sql.NullFloat64
+func toNullFloat64(s string) sql.NullFloat64 {
+	if s == "" {
+		return sql.NullFloat64{Valid: false}
+	}
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return sql.NullFloat64{Valid: false}
+	}
+	return sql.NullFloat64{Float64: f, Valid: true}
+}
+
+func convertOrderToFill(order model.Order) model.Fill {
+	return model.Fill{
+		Timestamp:      order.Timestamp,
+		EntryID:        fmt.Sprintf("%s-%d", order.OrderID, order.Timestamp),
+		TradeID:        order.OrderID,
+		OrderID:        order.OrderID,
+		TradeType:      order.TradeType,
+		Price:          order.Price,
+		Size:           order.Size,
+		Side:           order.Side,
+		Commission:     order.TotalFees,
+		ProductID:      order.ProductID,
+		XchID:          order.XchID,
+		MarketCategory: order.MarketCategory,
+	}
+}
+
 func Write_Fills(xch_id int, fills []model.Fill, db *sql.DB) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+	defer tx.Rollback()
+
 	insertQuery := `
         INSERT INTO fills (
             entry_id, trade_id, order_id, time, trade_type,
@@ -348,12 +383,6 @@ func Write_Fills(xch_id int, fills []model.Fill, db *sql.DB) error {
             xch_id = EXCLUDED.xch_id,
             market_category = EXCLUDED.market_category
     `
-
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("error starting transaction: %w", err)
-	}
-	defer tx.Rollback()
 
 	stmt, err := tx.Prepare(insertQuery)
 	if err != nil {

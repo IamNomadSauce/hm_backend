@@ -76,33 +76,33 @@ type Watchlist struct {
 }
 
 type Order struct {
-	Timestamp      int64  `db:"time"`
-	OrderID        string `db:"order_id"`   // Exchange specific order identifier
-	ProductID      string `db:"product_id"` // xbt_usd_15
-	TradeType      string `db:"trade_type"` // Long / Short
-	Side           string `db:"side"`       // buy / sell
-	XchID          int    `db:"xch_id"`
-	MarketCategory string `db:"market_category"` // (crypto / equities)_(spot / futures)
-	Price          string `db:"price"`           // instrument_currency
-	Size           string `db:"size"`            // How many of instrument
-	FilledSize     string `db:"filled_size"`
-	Status         string `db:"status"`
-	TotalFees      string `json:"total_fees"`
+	Timestamp      int64           `db:"time"`
+	OrderID        string          `db:"order_id"`   // Exchange specific order identifier
+	ProductID      string          `db:"product_id"` // xbt_usd_15
+	TradeType      string          `db:"trade_type"` // Long / Short
+	Side           string          `db:"side"`       // buy / sell
+	XchID          int             `db:"xch_id"`
+	MarketCategory string          `db:"market_category"` // (crypto / equities)_(spot / futures)
+	Price          float64         `db:"price"`           // instrument_currency
+	Size           sql.NullFloat64 `db:"size"`            // How many of instrument
+	FilledSize     string          `db:"filled_size"`
+	Status         string          `db:"status"`
+	TotalFees      sql.NullFloat64 `json:"total_fees"`
 }
 
 type Fill struct {
-	EntryID        string         `db:"entry_id"` // Changed from Timestamp
-	TradeID        string         `db:"trade_id"`
-	OrderID        string         `db:"order_id"`
-	Timestamp      int64          `db:"time"` // Moved Timestamp
-	TradeType      string         `db:"trade_type"`
-	Price          sql.NullString `db:"price"`
-	Size           sql.NullString `db:"size"`
-	Side           string         `db:"side"`
-	Commission     sql.NullString `db:"commission"`
-	ProductID      string         `db:"product_id"`
-	XchID          int            `db:"xch_id"`
-	MarketCategory string         `db:"market_category"`
+	EntryID        string          `db:"entry_id" json:"entryid"`
+	TradeID        string          `db:"trade_id" json:"tradeid"`
+	OrderID        string          `db:"order_id" json:"orderid"`
+	Timestamp      int64           `db:"time" json:"time"`
+	TradeType      string          `db:"trade_type" json:"tradetype"`
+	Price          float64         `db:"price" json:"price,omitempty"`
+	Size           sql.NullFloat64 `db:"size" json:"size,string,omitempty"`
+	Side           string          `db:"side" json:"side"`
+	Commission     sql.NullFloat64 `db:"commission" json:"commission,string,omitempty"`
+	ProductID      string          `db:"product_id" json:"productid"`
+	XchID          int             `db:"xch_id" json:"xch_id"`
+	MarketCategory string          `db:"market_category" json:"marketcategory"`
 }
 
 type OrderFill struct {

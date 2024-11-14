@@ -3,6 +3,7 @@ package model
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -45,10 +46,10 @@ type CoinbaseOrder struct {
 	CreatedTime   string `json:"created_time"`
 	CompletedTime string `json:"completed_time"`
 	OrderType     string `json:"order_type"`
-	Size          string `json:"size"`
+	Size          string `json:"size"` // Changed to string
 	FilledSize    string `json:"filled_size"`
-	Price         string `json:"price"`
-	TotalFees     string `json:"total_fees"`
+	Price         string `json:"price"`      // Changed to string
+	TotalFees     string `json:"total_fees"` // Changed to string
 }
 
 // Exchange operation
@@ -108,27 +109,38 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 	for _, cbOrder := range response.Orders {
 		if cbOrder.Status != "CANCELLED" {
 			// Convert CoinbaseOrder to your Order struct
+			price, _ := strconv.ParseFloat(cbOrder.Price, 64)
+			log.Println(cbOrder)
 			order := Order{
 				OrderID:        cbOrder.OrderID,
 				ProductID:      cbOrder.ProductID,
 				Side:           cbOrder.Side,
 				Status:         cbOrder.Status,
-				Price:          cbOrder.Price,
-				Size:           cbOrder.Size,
+				Price:          price,
+				Size:           toNullFloat64(cbOrder.Size), // Use toNullFloat64
 				FilledSize:     cbOrder.FilledSize,
-				TotalFees:      cbOrder.TotalFees,
+				TotalFees:      toNullFloat64(cbOrder.TotalFees), // Use toNullFloat64
 				Timestamp:      parseTimestamp(cbOrder.CreatedTime),
-				MarketCategory: "crypto_spot", // Or determine based on ProductID
+				MarketCategory: "crypto_spot",
 				XchID:          api.ExchangeID,
 			}
 
 			filteredOrders = append(filteredOrders, order)
-			// log.Printf("Processed order: %+v", order)
 		}
 	}
 
 	log.Printf("API:Orders: %d", len(filteredOrders))
 	return filteredOrders, nil
+}
+func toNullFloat64(s string) sql.NullFloat64 {
+	if s == "" {
+		return sql.NullFloat64{Valid: false}
+	}
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return sql.NullFloat64{Valid: false}
+	}
+	return sql.NullFloat64{Float64: f, Valid: true}
 }
 
 // Helper function to parse Coinbase timestamp
