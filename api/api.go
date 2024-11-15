@@ -149,6 +149,7 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 
 		// Write open orders if there are any
 		if len(open_orders) > 0 {
+			log.Println("Write Orders\n-----")
 			err = db.Write_Orders(exchange.ID, open_orders, database)
 			if err != nil {
 				log.Printf("Error writing orders to db: %v", err)

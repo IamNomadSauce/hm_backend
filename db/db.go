@@ -309,16 +309,19 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 	_, err := db.Exec("DELETE FROM orders WHERE xch_id = $1;", xch_id)
 	if err != nil {
 		fmt.Sprintf("Failed to delete existing orders: \n%v", err)
+		return err
 	}
 
+	log.Println("Orders Deleted")
+
 	insertQuery := `
-	INSERT INTO orders (order_id, product_id, trade_type, side, time, endpoint, market_category, price, size, xch_id, total_fees)
-	VALUES(?,?,?,?,?,?,?,?,?,?);
+	INSERT INTO orders (order_id, product_id, trade_type, side, price, size, xch_id, market_category, time, total_fees)
+	VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9, $10);
 	`
 	for _, order := range orders {
-		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Timestamp, order.XchID, order.MarketCategory, order.Price, order.Size, xch_id, order.TotalFees)
+		_, err := db.Exec(insertQuery, order.OrderID, order.ProductID, order.TradeType, order.Side, order.Price, order.Size, xch_id, order.MarketCategory, order.Timestamp, order.TotalFees)
 		if err != nil {
-			fmt.Sprintf("Error inserting into Order table: \n%v", err)
+			log.Printf("Error inserting into Order table: \n%v", err)
 			return err
 		}
 
