@@ -209,6 +209,19 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 	return nil
 }
 
+func Do_Portfolio(exchange model.Exchange, database *sql.DB) error {
+	portfolio, err := exchange.API.FetchPortfolio()
+	if err != nil {
+		log.Printf("Error getting Portfolio from Exchange API: %s\n%v", exchange.Name, err)
+		return err
+	}
+
+	for _, asset := range portfolio {
+		log.Println("Asset:", asset)
+	}
+	return nil
+}
+
 // Helper function to convert Order to Fill
 func convertOrderToFill(order model.Order) model.Fill {
 	return model.Fill{

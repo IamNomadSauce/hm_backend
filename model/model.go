@@ -61,6 +61,7 @@ type Asset struct {
 	AvailableBalance Balance
 	Hold             Balance
 	Value            float64
+	XchID            int
 }
 
 type Balance struct {

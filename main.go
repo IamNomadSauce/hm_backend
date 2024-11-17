@@ -69,7 +69,13 @@ func main() {
 
 				err = api.Do_Orders_and_Fills(exchange, app.DB)
 				if err != nil {
-					log.Printf("Error executing Do_Orders for %s\n%w\n", exchange.Name, err)
+					log.Printf("Error executing Do_Orders for %s\n%v\n", exchange.Name, err)
+				}
+
+				log.Println("Do_Portfolio")
+				err = api.Do_Portfolio(exchange, app.DB)
+				if err != nil {
+					log.Printf("Error executing Do_Portfolio for %s\n%v", exchange.Name, err)
 				}
 
 				// for _, product := range available_products {

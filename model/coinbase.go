@@ -513,9 +513,27 @@ func (api *CoinbaseAPI) FetchFills() ([]Fill, error) {
 	return fills, nil
 }
 
+type CoinbaseAccount struct {
+	UUID             string  `json:"uuid"`
+	Name             string  `json:"name"`
+	Currency         string  `json:"currency"`
+	AvailableBalance Balance `json:"available_balance"`
+	Default          bool    `json:"default"`
+	Active           bool    `json:"active"`
+	CreatedAt        string  `json:"created_at"`
+	UpdatedAt        string  `json:"updated_at"`
+	DeletedAt        string  `json:"deleted_at"`
+	Type             string  `json:"type"`
+	Ready            bool    `json:"ready"`
+	Hold             Balance `json:"hold"`
+	PortfolioID      string  `json:"retail_portfolio_id"`
+	Size             float64 `json:"size"` // Changed from string to float64
+}
+
 // Exchange operation
 func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
-	var accounts []Asset
+	log.Println("FetchPortfolio")
+	// var accounts []Asset
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
@@ -555,47 +573,68 @@ func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 	}
 
 	var response struct {
-		Accounts []Asset `json:"accounts"`
+		Accounts []CoinbaseAccount `json:"accounts"`
+		HasNext  bool              `json:"has_next"`
+		Cursor   string            `json:"cursor"`
+		Size     float64           `json:"size"` // Changed from string to float64
 	}
+
+	// Print raw response for debugging
+	fmt.Printf("Raw response: %s\n", string(responseBody))
 
 	err = json.Unmarshal(responseBody, &response)
 	if err != nil {
 		return nil, fmt.Errorf("Error unmarshaling JSON: %w", err)
 	}
 
-	total := 0.0
-	for _, acct := range response.Accounts {
-		balance, _ := strconv.ParseFloat(acct.AvailableBalance.Value, 64)
-		hold_balance, _ := strconv.ParseFloat(acct.Hold.Value, 64)
-		if balance > 0 {
-			price, _ := GetPrice(acct.Symbol.ProductID)
-			value := price * balance
-			hold_value := price * hold_balance
-			total += value
-			total += hold_value
-			//fmt.Println(acct.Currency, price, balance, value)
+	var assets []Asset
+	for _, account := range response.Accounts {
+		availableBalance, _ := strconv.ParseFloat(account.AvailableBalance.Value, 64)
+		holdBalance, _ := strconv.ParseFloat(account.Hold.Value, 64)
 
-			accounts = append(accounts, acct)
+		if availableBalance > 0 || holdBalance > 0 {
+			var totalValue float64
+
+			// Handle USD and stablecoins
+			if account.Currency == "USD" || account.Currency == "USDT" || account.Currency == "USDC" {
+				totalValue = availableBalance + holdBalance
+			} else {
+				// Get price for other cryptocurrencies
+				price, err := GetPrice(account.Currency + "-USD")
+				if err != nil {
+					log.Printf("Error getting price for %s: %v", account.Currency, err)
+					continue
+				}
+				totalValue = (availableBalance + holdBalance) * price
+			}
+
+			asset := Asset{
+				Symbol: Product{
+					ProductID: account.Currency + "-USD",
+				},
+				AvailableBalance: account.AvailableBalance,
+				Hold:             account.Hold,
+				Value:            totalValue,
+				XchID:            api.ExchangeID,
+			}
+
+			assets = append(assets, asset)
+			log.Printf("Added asset %s: Available=%v Hold=%v Value=%v",
+				account.Currency, availableBalance, holdBalance, totalValue)
 		}
-
 	}
-	fmt.Println(total)
 
-	fmt.Println(len(accounts))
-
-	return accounts, nil
+	return assets, nil
 }
-
-func GetCBSign(apiSecret string, timestamp int64, method, path, body string) string {
-	message := fmt.Sprintf("%d%s%s%s", timestamp, method, path, body)
-	hasher := hmac.New(sha256.New, []byte(apiSecret))
-	hasher.Write([]byte(message))
-	signature := hex.EncodeToString(hasher.Sum(nil))
-	return signature
-}
-
 func GetPrice(currency string) (float64, error) {
-	if currency == "USD" || currency == "USDT" || currency == "USDC" {
+	// Handle stable coins and USD
+	stableCoins := map[string]bool{
+		"USD-USD":  true,
+		"USDT-USD": true,
+		"USDC-USD": true,
+	}
+
+	if stableCoins[currency] {
 		return 1.0, nil
 	}
 
@@ -604,7 +643,7 @@ func GetPrice(currency string) (float64, error) {
 
 	timestamp := time.Now().Unix()
 	baseURL := "https://api.coinbase.com"
-	path := fmt.Sprintf("/api/v3/brokerage/products/%s-USD", currency)
+	path := fmt.Sprintf("/api/v3/brokerage/products/%s", currency)
 	method := "GET"
 	body := ""
 
@@ -627,19 +666,40 @@ func GetPrice(currency string) (float64, error) {
 	}
 	defer resp.Body.Close()
 
-	var tickerResponse struct {
-		Price string `json:"price"`
+	// Read response body for debugging
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, fmt.Errorf("Error reading response body: %v", err)
+	}
+	log.Printf("Price response for %s: %s", currency, string(body))
+
+	var productResponse struct {
+		Price          string `json:"price"`
+		ProductID      string `json:"product_id"`
+		BaseIncrement  string `json:"base_increment"`
+		QuoteIncrement string `json:"quote_increment"`
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(&tickerResponse)
+	err = json.Unmarshal(body, &productResponse)
 	if err != nil {
 		return 0, fmt.Errorf("Error decoding JSON: %v", err)
 	}
 
-	price, err := strconv.ParseFloat(tickerResponse.Price, 64)
+	if productResponse.Price == "" {
+		return 0, fmt.Errorf("No price available for %s", currency)
+	}
+
+	price, err := strconv.ParseFloat(productResponse.Price, 64)
 	if err != nil {
 		return 0, fmt.Errorf("Error parsing price: %v", err)
 	}
 
 	return price, nil
+}
+func GetCBSign(apiSecret string, timestamp int64, method, path, body string) string {
+	message := fmt.Sprintf("%d%s%s%s", timestamp, method, path, body)
+	hasher := hmac.New(sha256.New, []byte(apiSecret))
+	hasher.Write([]byte(message))
+	signature := hex.EncodeToString(hasher.Sum(nil))
+	return signature
 }

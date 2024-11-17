@@ -629,6 +629,7 @@ func Get_Fills(xch_id int, database *sql.DB) ([]model.Fill, error) {
             xch_id, market_category
         FROM fills 
         WHERE xch_id = $1
+		ORDER BY time DESC
     `
 
 	rows, err := database.Query(query, xch_id)
