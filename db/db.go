@@ -168,13 +168,15 @@ func CreateTables(db *sql.DB) error {
 
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS portfolio (
-			id SERIAL PRIMARY KEY,
-			xch_id INTEGER REFERENCES exchanges(id),
-			asset VARCHAR(50) NOT NULL,
-			available_balance NUMERIC NOT NULL,
-			hold_balance NUMERIC NOT NULL,
-			value NUMERIC NOT NULL
-		);
+    id SERIAL PRIMARY KEY,
+    asset VARCHAR(255),
+    available_balance_value VARCHAR(255),
+    available_balance_currency VARCHAR(255),
+    hold_balance_value VARCHAR(255),
+    hold_balance_currency VARCHAR(255),
+    value FLOAT8,
+    xch_id INTEGER
+);
 	`)
 	if err != nil {
 		log.Printf("Failet to create portfolios: %v", err)
@@ -615,64 +617,85 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 
 	return exchanges, nil
 }
-
 func Get_Portfolio(id int, db *sql.DB) ([]model.Asset, error) {
-
 	var portfolio []model.Asset
 
-	rows, err := db.Query("SELECT * FROM portfolio WHERE xch_id = $1;", id)
+	rows, err := db.Query(`
+        SELECT id, asset, 
+               available_balance_value, available_balance_currency,
+               hold_balance_value, hold_balance_currency,
+               value, xch_id 
+        FROM portfolio 
+        WHERE xch_id = $1;`, id)
 	if err != nil {
-		fmt.Errorf("Error retrieving assets from %s portfolio\n%w", id, err)
-		return nil, err
+		return nil, fmt.Errorf("Error retrieving assets from %d portfolio: %w", id, err)
 	}
-
 	defer rows.Close()
 
 	for rows.Next() {
 		var asset model.Asset
+		var availBalValue, availBalCurrency, holdBalValue, holdBalCurrency string
+
 		if err := rows.Scan(
+			&asset.ID,
 			&asset.Asset,
-			&asset.AvailableBalance,
-			&asset.Hold,
+			&availBalValue,
+			&availBalCurrency,
+			&holdBalValue,
+			&holdBalCurrency,
 			&asset.Value,
 			&asset.XchID,
 		); err != nil {
-
-			return nil, fmt.Errorf("Error scanning portfolio %w", err)
+			return nil, fmt.Errorf("Error scanning portfolio: %w", err)
 		}
-		portfolio = append(portfolio, asset)
 
+		// Create Balance structs
+		asset.AvailableBalance = model.Balance{
+			Value:    availBalValue,
+			Currency: availBalCurrency,
+		}
+		asset.Hold = model.Balance{
+			Value:    holdBalValue,
+			Currency: holdBalCurrency,
+		}
+
+		portfolio = append(portfolio, asset)
 	}
 
 	return portfolio, nil
-
 }
 
 func Write_Portfolio(xch_id int, portfolio []model.Asset, db *sql.DB) error {
-
 	_, err := db.Exec("DELETE FROM portfolio WHERE xch_id = $1;", xch_id)
 	if err != nil {
-		fmt.Sprintf("Failed to delete existing orders: \n%v", err)
-		return err
+		return fmt.Errorf("Failed to delete existing portfolio: %w", err)
 	}
 
-	log.Println("Portfolio Deleted")
-
 	insertQuery := `
-		INSERT INTO portfolio (asset, available_balance, hold_balance, value, xch_id)
-		VALUES($1, $2, $3, $4, $5);
-	`
+        INSERT INTO portfolio (
+            asset, 
+            available_balance_value, available_balance_currency,
+            hold_balance_value, hold_balance_currency,
+            value, xch_id
+        )
+        VALUES($1, $2, $3, $4, $5, $6, $7);
+    `
 
 	for _, asset := range portfolio {
-		_, err := db.Exec(insertQuery, asset.Asset, asset.AvailableBalance.Value, asset.Hold.Value, asset.Value, xch_id)
+		_, err = db.Exec(insertQuery,
+			asset.Asset,
+			asset.AvailableBalance.Value,
+			asset.AvailableBalance.Currency,
+			asset.Hold.Value,
+			asset.Hold.Currency,
+			asset.Value,
+			xch_id)
 		if err != nil {
-			log.Printf("Error inserting into portfolio table: \n%v", err)
-			return err
+			return fmt.Errorf("Error inserting into portfolio table: %w", err)
 		}
 	}
 
-	log.Println(len(portfolio), "assets added to portfolio")
-
+	log.Printf("%d assets added to portfolio", len(portfolio))
 	return nil
 }
 
