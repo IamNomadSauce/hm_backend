@@ -373,7 +373,7 @@ func (api *AlpacaAPI) FetchPortfolio() ([]Asset, error) {
 		balance, _ := strconv.ParseFloat(acct.AvailableBalance.Value, 64)
 		hold_balance, _ := strconv.ParseFloat(acct.Hold.Value, 64)
 		if balance > 0 {
-			price, _ := GetPrice(acct.Symbol.ProductID)
+			price, _ := GetPrice(acct.Asset)
 			value := price * balance
 			hold_value := price * hold_balance
 			total += value

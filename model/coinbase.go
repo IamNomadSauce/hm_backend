@@ -609,9 +609,7 @@ func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 			}
 
 			asset := Asset{
-				Symbol: Product{
-					ProductID: account.Currency + "-USD",
-				},
+				Asset:            account.Currency + "-USD",
 				AvailableBalance: account.AvailableBalance,
 				Hold:             account.Hold,
 				Value:            totalValue,

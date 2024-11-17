@@ -22,9 +22,11 @@ Server
 
 TODO:
 --------------------------------------
+- [x] Portfolio coinbase retrieval
 - [ ] Portfolio storage
-- [ ] Storing fills
-- [ ] Storing orders
+- [ ] Portfolio retrieval db
+- [x] Storing fills
+- [x] Storing orders
 - [ ] Alpaca API
 --------------------------------------
 - [x] Add Table for available products

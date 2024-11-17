@@ -220,6 +220,11 @@ func Do_Portfolio(exchange model.Exchange, database *sql.DB) error {
 	// for _, asset := range portfolio {
 	// 	log.Println("Asset:", asset)
 	// }
+	err = db.Write_Portfolio(exchange.ID, portfolio, database)
+	if err != nil {
+		log.Printf("Error writing Portfolio to exchanpe: %s\n%v", exchange.Name, err)
+		return err
+	}
 	return nil
 }
 

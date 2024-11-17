@@ -137,11 +137,11 @@ func CreateTables(db *sql.DB) error {
 
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS watchlist (
-        id SERIAL PRIMARY KEY,
-        xch_id INTEGER REFERENCES exchanges(id),
-        product VARCHAR(50) NOT NULL,
+			id SERIAL PRIMARY KEY,
+			xch_id INTEGER REFERENCES exchanges(id),
+			product VARCHAR(50) NOT NULL,
         CONSTRAINT unique_xch_product UNIQUE (xch_id, product)
-    );
+    	);
 	`)
 	if err != nil {
 		log.Println("Failed to create watchlist table: ", err)
@@ -164,6 +164,20 @@ func CreateTables(db *sql.DB) error {
 	`)
 	if err != nil {
 		log.Printf("Failed to create available_products: %w", err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS portfolio (
+			id SERIAL PRIMARY KEY,
+			xch_id INTEGER REFERENCES exchanges(id),
+			asset VARCHAR(50) NOT NULL,
+			available_balance NUMERIC NOT NULL,
+			hold_balance NUMERIC NOT NULL,
+			value NUMERIC NOT NULL
+		);
+	`)
+	if err != nil {
+		log.Printf("Failet to create portfolios: %v", err)
 	}
 	return nil
 }
@@ -548,6 +562,7 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error getting exchanges: %v", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var exchange model.Exchange
@@ -575,6 +590,10 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting available_products: %w", err)
 		}
+		exchange.Portfolio, err = Get_Portfolio(exchange.ID, db)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting portfolio: %w", err)
+		}
 
 		switch exchange.Name {
 		case "Coinbase":
@@ -595,6 +614,66 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 	}
 
 	return exchanges, nil
+}
+
+func Get_Portfolio(id int, db *sql.DB) ([]model.Asset, error) {
+
+	var portfolio []model.Asset
+
+	rows, err := db.Query("SELECT * FROM portfolio WHERE xch_id = $1;", id)
+	if err != nil {
+		fmt.Errorf("Error retrieving assets from %s portfolio\n%w", id, err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var asset model.Asset
+		if err := rows.Scan(
+			&asset.Asset,
+			&asset.AvailableBalance,
+			&asset.Hold,
+			&asset.Value,
+			&asset.XchID,
+		); err != nil {
+
+			return nil, fmt.Errorf("Error scanning portfolio %w", err)
+		}
+		portfolio = append(portfolio, asset)
+
+	}
+
+	return portfolio, nil
+
+}
+
+func Write_Portfolio(xch_id int, portfolio []model.Asset, db *sql.DB) error {
+
+	_, err := db.Exec("DELETE FROM portfolio WHERE xch_id = $1;", xch_id)
+	if err != nil {
+		fmt.Sprintf("Failed to delete existing orders: \n%v", err)
+		return err
+	}
+
+	log.Println("Portfolio Deleted")
+
+	insertQuery := `
+		INSERT INTO portfolio (asset, available_balance, hold_balance, value, xch_id)
+		VALUES($1, $2, $3, $4, $5);
+	`
+
+	for _, asset := range portfolio {
+		_, err := db.Exec(insertQuery, asset.Asset, asset.AvailableBalance.Value, asset.Hold.Value, asset.Value, xch_id)
+		if err != nil {
+			log.Printf("Error inserting into portfolio table: \n%v", err)
+			return err
+		}
+	}
+
+	log.Println(len(portfolio), "assets added to portfolio")
+
+	return nil
 }
 
 func Get_Orders(id int, db *sql.DB) ([]model.Order, error) {

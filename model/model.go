@@ -33,6 +33,7 @@ type Exchange struct {
 	CandleLimit       int64
 	API               ExchangeAPI
 	AvailableProducts []Product
+	Portfolio         []Asset
 }
 
 type ExchangeAPI interface {
@@ -57,11 +58,11 @@ type Product struct {
 }
 
 type Asset struct {
-	Symbol           Product
-	AvailableBalance Balance
-	Hold             Balance
-	Value            float64
-	XchID            int
+	Asset            string  `json:"asset"`
+	AvailableBalance Balance `json:"available_balance"`
+	Hold             Balance `json:"hold_balance`
+	Value            float64 `json:"value`
+	XchID            int     `json:"xch_id"`
 }
 
 type Balance struct {
