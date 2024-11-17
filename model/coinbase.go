@@ -627,14 +627,7 @@ func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 	return assets, nil
 }
 func GetPrice(currency string) (float64, error) {
-	// Handle stable coins and USD
-	stableCoins := map[string]bool{
-		"USD-USD":  true,
-		"USDT-USD": true,
-		"USDC-USD": true,
-	}
-
-	if stableCoins[currency] {
+	if currency == "USD" || currency == "USDT" || currency == "USDC" {
 		return 1.0, nil
 	}
 
@@ -666,12 +659,14 @@ func GetPrice(currency string) (float64, error) {
 	}
 	defer resp.Body.Close()
 
-	// Read response body for debugging
-	body, err = ioutil.ReadAll(resp.Body)
+	// Read response body as []byte
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return 0, fmt.Errorf("Error reading response body: %v", err)
 	}
-	log.Printf("Price response for %s: %s", currency, string(body))
+
+	// Log response for debugging
+	// log.Printf("Price response for %s: %s", currency, string(bodyBytes))
 
 	var productResponse struct {
 		Price          string `json:"price"`
@@ -680,7 +675,8 @@ func GetPrice(currency string) (float64, error) {
 		QuoteIncrement string `json:"quote_increment"`
 	}
 
-	err = json.Unmarshal(body, &productResponse)
+	// Use bodyBytes directly for unmarshaling
+	err = json.Unmarshal(bodyBytes, &productResponse)
 	if err != nil {
 		return 0, fmt.Errorf("Error decoding JSON: %v", err)
 	}
@@ -696,6 +692,7 @@ func GetPrice(currency string) (float64, error) {
 
 	return price, nil
 }
+
 func GetCBSign(apiSecret string, timestamp int64, method, path, body string) string {
 	message := fmt.Sprintf("%d%s%s%s", timestamp, method, path, body)
 	hasher := hmac.New(sha256.New, []byte(apiSecret))

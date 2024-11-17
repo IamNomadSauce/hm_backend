@@ -146,9 +146,9 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 		return err
 	}
 
+	var open_orders []model.Order
 	log.Printf("Orders: %d", len(orders))
 	if len(orders) > 0 {
-		var open_orders []model.Order
 		// var fills []model.Fill
 
 		for _, order := range orders {
@@ -193,7 +193,6 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 
 		log.Println("Open Orders:", len(open_orders))
 		if len(open_orders) > 0 {
-			db.Write_Orders(exchange.ID, open_orders, database)
 		}
 		// log.Println("Filled Orders:", len(fills))
 
@@ -206,6 +205,7 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 		// 	log.Printf("Wrote %d fills to database", len(fills))
 		// }
 	}
+	db.Write_Orders(exchange.ID, open_orders, database)
 	return nil
 }
 
@@ -216,9 +216,10 @@ func Do_Portfolio(exchange model.Exchange, database *sql.DB) error {
 		return err
 	}
 
-	for _, asset := range portfolio {
-		log.Println("Asset:", asset)
-	}
+	log.Println(len(portfolio))
+	// for _, asset := range portfolio {
+	// 	log.Println("Asset:", asset)
+	// }
 	return nil
 }
 
