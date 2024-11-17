@@ -52,6 +52,18 @@ type CoinbaseOrder struct {
 	TotalFees     string `json:"total_fees"` // Changed to string
 }
 
+type CoinbaseOrderResponse struct {
+	OrderID            string             `json:"order_id"`
+	ProductID          string             `json:"product_id"`
+	OrderConfiguration OrderConfiguration `json:"order_configuration"`
+	Side               string             `json:"side"`
+	Status             string             `json:"status"`
+	CreatedTime        string             `json:"created_time"`
+	FilledSize         string             `json:"filled_size"`
+	AverageFilledPrice string             `json:"average_filled_price"`
+	TotalFees          string             `json:"total_fees"`
+}
+
 // Exchange operation
 func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 	err := godotenv.Load()
@@ -94,10 +106,31 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 	}
 
 	// Debug: Print raw response
-	fmt.Printf("Raw response: %s\n", string(responseBody))
+	// fmt.Printf("Raw response: %s\n", string(responseBody))
 
 	var response struct {
-		Orders []CoinbaseOrder `json:"orders"`
+		Orders []struct {
+			OrderID            string `json:"order_id"`
+			ProductID          string `json:"product_id"`
+			Side               string `json:"side"`
+			Status             string `json:"status"`
+			CreatedTime        string `json:"created_time"`
+			FilledSize         string `json:"filled_size"`
+			AverageFilledPrice string `json:"average_filled_price"`
+			TotalFees          string `json:"total_fees"`
+			OrderConfiguration struct {
+				MarketMarketIoc *struct {
+					QuoteSize string `json:"quote_size"`
+					BaseSize  string `json:"base_size"`
+				} `json:"market_market_ioc"`
+				LimitLimitGtc *struct {
+					BaseSize   string `json:"base_size"`
+					LimitPrice string `json:"limit_price"`
+					PostOnly   bool   `json:"post_only"`
+				} `json:"limit_limit_gtc"`
+				// Add other order types as needed
+			} `json:"order_configuration"`
+		} `json:"orders"`
 	}
 
 	err = json.Unmarshal(responseBody, &response)
@@ -107,12 +140,22 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 
 	var filteredOrders []Order
 	for _, cbOrder := range response.Orders {
-		if cbOrder.Status != "CANCELLED" {
-			// Convert CoinbaseOrder to your Order struct
-			price, _ := strconv.ParseFloat(cbOrder.Price, 64)
-			size, _ := strconv.ParseFloat(cbOrder.Size, 64)
-			filled_size, _ := strconv.ParseFloat(cbOrder.FilledSize, 64)
-			total_fees, _ := strconv.ParseFloat(cbOrder.TotalFees, 64)
+		if cbOrder.Status != "CANCELLED" && cbOrder.Status != "FILLED" {
+			// Parse size and price based on order configuration
+			var size, price float64
+
+			if cbOrder.OrderConfiguration.MarketMarketIoc != nil {
+				size, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.MarketMarketIoc.BaseSize, 64)
+				// For market orders, use average filled price
+				price, _ = strconv.ParseFloat(cbOrder.AverageFilledPrice, 64)
+			} else if cbOrder.OrderConfiguration.LimitLimitGtc != nil {
+				size, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.LimitLimitGtc.BaseSize, 64)
+				price, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.LimitLimitGtc.LimitPrice, 64)
+			}
+
+			filledSize, _ := strconv.ParseFloat(cbOrder.FilledSize, 64)
+			totalFees, _ := strconv.ParseFloat(cbOrder.TotalFees, 64)
+
 			order := Order{
 				OrderID:        cbOrder.OrderID,
 				ProductID:      cbOrder.ProductID,
@@ -120,20 +163,48 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 				Status:         cbOrder.Status,
 				Price:          price,
 				Size:           size,
-				FilledSize:     filled_size,
-				TotalFees:      total_fees,
+				FilledSize:     filledSize,
+				TotalFees:      totalFees,
 				Timestamp:      cbOrder.CreatedTime,
 				MarketCategory: "crypto_spot",
 				XchID:          api.ExchangeID,
 			}
 
+			// log.Printf("Created order - Price: %v, Size: %v, Time: %v", order.Price, order.Size, order.Timestamp)
 			filteredOrders = append(filteredOrders, order)
 		}
 	}
 
-	log.Printf("API:Orders: %d", len(filteredOrders))
 	return filteredOrders, nil
 }
+
+func ParseCoinbaseOrder(response CoinbaseOrderResponse) (Order, error) {
+	price, _ := strconv.ParseFloat(response.AverageFilledPrice, 64)
+	filledSize, _ := strconv.ParseFloat(response.FilledSize, 64)
+	totalFees, _ := strconv.ParseFloat(response.TotalFees, 64)
+
+	// Get size and price based on order configuration type
+	var size float64
+	if response.OrderConfiguration.MarketMarketIoc != nil {
+		size, _ = strconv.ParseFloat(response.OrderConfiguration.MarketMarketIoc.BaseSize, 64)
+	} else if response.OrderConfiguration.LimitLimitGtc != nil {
+		size, _ = strconv.ParseFloat(response.OrderConfiguration.LimitLimitGtc.BaseSize, 64)
+	}
+
+	return Order{
+		OrderID:    response.OrderID,
+		ProductID:  response.ProductID,
+		Timestamp:  response.CreatedTime,
+		Side:       response.Side,
+		Status:     response.Status,
+		Price:      price,
+		Size:       size,
+		FilledSize: filledSize,
+		TotalFees:  totalFees,
+		// ... set other fields
+	}, nil
+}
+
 func toNullFloat64(s string) sql.NullFloat64 {
 	if s == "" {
 		return sql.NullFloat64{Valid: false}
@@ -392,8 +463,26 @@ func (api *CoinbaseAPI) FetchFills() ([]Fill, error) {
 		fmt.Println("Readall Err ", err)
 	}
 
+	type CBFill struct {
+		EntryID             string `json:"entry_id"`
+		TradeID             string `json:"trade_id"`
+		OrderID             string `json:"order_id"`
+		TradeTime           string `json:"trade_time"`
+		TradeType           string `json:"trade_type"`
+		Price               string `json:"price"`
+		Size                string `json:"size"`
+		Commission          string `json:"commission"`
+		ProductID           string `json:"product_id"`
+		Sequence_Timestamp  string `json:"sequence_timestamp"`
+		Liquidity_Indicator string `json:"liquidity_indicator"`
+		SizeInQuote         bool   `json:"size_in_quote"`
+		UserID              string `json:"user_id"`
+		Side                string `json:"side"`
+		RetailPortfolioID   string `json:"retail_portfolio_id"`
+	}
+
 	var response struct {
-		Fills []Fill `json:"fills"`
+		Fills []CBFill `json:"fills"`
 	}
 
 	err = json.Unmarshal(responseBody, &response)
@@ -401,7 +490,25 @@ func (api *CoinbaseAPI) FetchFills() ([]Fill, error) {
 		return nil, fmt.Errorf("Error unmarshalling JSON: %w", err)
 	}
 
-	fills = response.Fills
+	for _, fill := range response.Fills {
+		price, _ := strconv.ParseFloat(fill.Price, 64)
+		size, _ := strconv.ParseFloat(fill.Size, 64)
+		commission, _ := strconv.ParseFloat(fill.Commission, 64)
+		converted_fill := Fill{
+			EntryID:        fill.EntryID,
+			TradeID:        fill.TradeID,
+			OrderID:        fill.OrderID,
+			Timestamp:      fill.TradeTime,
+			Price:          price,
+			Size:           size,
+			Side:           fill.Side,
+			Commission:     commission,
+			ProductID:      fill.ProductID,
+			XchID:          api.ExchangeID,
+			MarketCategory: "Spot Crypto",
+		}
+		fills = append(fills, converted_fill)
+	}
 
 	return fills, nil
 }

@@ -412,6 +412,7 @@ func Write_Fills(xch_id int, fills []model.Fill, db *sql.DB) error {
 			return fmt.Errorf("error inserting fill: %w", err)
 		}
 	}
+	log.Println(len(fills), "fills added to db")
 
 	return tx.Commit()
 }

@@ -120,8 +120,26 @@ func Fetch_Available_Products(exchange model.Exchange) ([]model.Product, error) 
 	return available_products, nil
 }
 
-// ORDERS
 func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
+
+	fills, err := exchange.API.FetchFills()
+	if err != nil {
+		log.Printf("Error getting fills from Exchange API: %s\n%w", exchange.Name, err)
+		return err
+	}
+
+	// log.Println("Fills retrieved:", len(fills))
+	// // for _, fill := range fills {
+	// // 	log.Println(fill)
+	// }
+
+	if len(fills) > 0 {
+		err = db.Write_Fills(exchange.ID, fills, database)
+		if err != nil {
+			log.Println("Error inserting fills into db for: %s\n%v", exchange.Name, err)
+		}
+	}
+
 	orders, err := Fetch_Orders_and_Fills(exchange)
 	if err != nil {
 		log.Printf("Error getting orders from exchange: %s: %v", exchange.Name, err)
@@ -131,45 +149,63 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 	log.Printf("Orders: %d", len(orders))
 	if len(orders) > 0 {
 		var open_orders []model.Order
-		var fills []model.Fill
+		// var fills []model.Fill
 
 		for _, order := range orders {
 			switch order.Status {
 			case "FILLED", "SETTLED":
-				// Convert the order to a fill using the conversion function
-				fill := convertOrderToFill(order)
-				fills = append(fills, fill)
+				// Convert the order to a fill maintaining the existing types
+				// fill := model.Fill{
+				// 	EntryID:        fmt.Sprintf("%s-%s", order.OrderID, order.Timestamp),
+				// 	TradeID:        order.OrderID,
+				// 	OrderID:        order.OrderID,
+				// 	Timestamp:      order.Timestamp,
+				// 	TradeType:      order.TradeType,
+				// 	Price:          order.Price,
+				// 	Size:           order.Size,
+				// 	Side:           order.Side,
+				// 	Commission:     order.TotalFees,
+				// 	ProductID:      order.ProductID,
+				// 	XchID:          order.XchID,
+				// 	MarketCategory: order.MarketCategory,
+				// }
+				// fills = append(fills, fill)
+
+				// log.Printf("Created fill from order - Price: %v, Time: %v", fill.Price, fill.Timestamp)
+
 			case "OPEN", "PENDING":
+				// var orders []model.Order
+				// for _, order := range open_orders {
+				// 	price, _ := strconv.ParseFloat(order.Price, 64)
+				// 	size, _ := strconv.ParseFloat(order.Size, 64)
+				// 	ord := model.Order{
+				// 		OrderID: order.OrderID,
+				// 		ProductID: order.OrderID,
+				// 		TradeType: order.TradeType,
+				// 		Side: order.Side,
+				// 		Price: price,
+
+				// 	}
+				// }
 				open_orders = append(open_orders, order)
 			}
 		}
 
 		log.Println("Open Orders:", len(open_orders))
-		log.Println("Filled Orders:", len(fills))
-
-		// Write open orders if there are any
 		if len(open_orders) > 0 {
-			log.Println("Write Orders\n-----")
-			err = db.Write_Orders(exchange.ID, open_orders, database)
-			if err != nil {
-				log.Printf("Error writing orders to db: %v", err)
-				return err
-			}
-			log.Printf("Wrote %d open orders to database", len(open_orders))
+			db.Write_Orders(exchange.ID, open_orders, database)
 		}
+		// log.Println("Filled Orders:", len(fills))
 
-		// Write fills if there are any
-		if len(fills) > 0 {
-			err = db.Write_Fills(exchange.ID, fills, database)
-			if err != nil {
-				log.Printf("Error writing fills to db: %v", err)
-				return err
-			}
-			log.Printf("Wrote %d fills to database", len(fills))
-		}
+		// if len(fills) > 0 {
+		// 	err = db.Write_Fills(exchange.ID, fills, database)
+		// 	if err != nil {
+		// 		log.Printf("Error writing fills to db: %v", err)
+		// 		return err
+		// 	}
+		// 	log.Printf("Wrote %d fills to database", len(fills))
+		// }
 	}
-
-	log.Printf("Orders processing completed for %s", exchange.Name)
 	return nil
 }
 
@@ -207,6 +243,20 @@ func Fetch_Orders_and_Fills(exchange model.Exchange) ([]model.Order, error) {
 	}
 	log.Printf("Orders Fetched: %s", exchange.Name)
 	return orders, nil
+}
+
+func Fetch_Fills(exchange model.Exchange) ([]model.Fill, error) {
+	fills, err := exchange.API.FetchFills()
+	if err != nil {
+		log.Printf("Error getting fills from Exchange API: %s\n%w", exchange.Name, err)
+		return nil, err
+	}
+	log.Printf("Fills fetched: %s", exchange.Name)
+	for _, fill := range fills {
+		log.Println(fill)
+	}
+
+	return fills, nil
 }
 
 // func All_Candles_Loop(productID string, timeframe model.Timeframe, startTime time.Time, endTime time.Time, allCandles []model.Candle) ([]model.Candle, error) {

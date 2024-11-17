@@ -89,6 +89,64 @@ type Order struct {
 	TotalFees      float64 `json:"total_fees"`
 }
 
+type OrderConfiguration struct {
+	MarketMarketIoc *struct {
+		QuoteSize string `json:"quote_size"`
+		BaseSize  string `json:"base_size"`
+	} `json:"market_market_ioc"`
+
+	SorLimitIoc *struct {
+		BaseSize   string `json:"base_size"`
+		LimitPrice string `json:"limit_price"`
+	} `json:"sor_limit_ioc"`
+
+	LimitLimitGtc *struct {
+		BaseSize   string `json:"base_size"`
+		LimitPrice string `json:"limit_price"`
+		PostOnly   bool   `json:"post_only"`
+	} `json:"limit_limit_gtc"`
+
+	LimitLimitGtd *struct {
+		BaseSize   string `json:"base_size"`
+		LimitPrice string `json:"limit_price"`
+		EndTime    string `json:"end_time"`
+		PostOnly   bool   `json:"post_only"`
+	} `json:"limit_limit_gtd"`
+
+	LimitLimitFok *struct {
+		BaseSize   string `json:"base_size"`
+		LimitPrice string `json:"limit_price"`
+	} `json:"limit_limit_fok"`
+
+	StopLimitStopLimitGtc *struct {
+		BaseSize      string `json:"base_size"`
+		LimitPrice    string `json:"limit_price"`
+		StopPrice     string `json:"stop_price"`
+		StopDirection string `json:"stop_direction"`
+	} `json:"stop_limit_stop_limit_gtc"`
+
+	StopLimitStopLimitGtd *struct {
+		BaseSize      string `json:"base_size"`
+		LimitPrice    string `json:"limit_price"`
+		StopPrice     string `json:"stop_price"`
+		EndTime       string `json:"end_time"`
+		StopDirection string `json:"stop_direction"`
+	} `json:"stop_limit_stop_limit_gtd"`
+
+	TriggerBracketGtc *struct {
+		BaseSize         string `json:"base_size"`
+		LimitPrice       string `json:"limit_price"`
+		StopTriggerPrice string `json:"stop_trigger_price"`
+	} `json:"trigger_bracket_gtc"`
+
+	TriggerBracketGtd *struct {
+		BaseSize         string `json:"base_size"`
+		LimitPrice       string `json:"limit_price"`
+		StopTriggerPrice string `json:"stop_trigger_price"`
+		EndTime          string `json:"end_time"`
+	} `json:"trigger_bracket_gtd"`
+}
+
 type Fill struct {
 	EntryID        string  `db:"entry_id" json:"entryid"`
 	TradeID        string  `db:"trade_id" json:"tradeid"`
