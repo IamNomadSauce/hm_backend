@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"database/sql"
@@ -531,6 +532,7 @@ type CoinbaseAccount struct {
 }
 
 func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, entryPrice, stopPrice, targetPrice float64) error {
+	fmt.Println("Place Bracket Order")
 	entryOrderBody := struct {
 		ClientOrderID      string `json:"client_order_id"`
 		ProductID          string `json:"product_id"`
@@ -551,7 +553,7 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 	entryOrderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.8f", size)
 	entryOrderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.8f", size)
 
-	entryOrderID, err := api.placeOrder(entryOrderBody)
+	entryOrderID, err := api.PlaceOrder(entryOrderBody)
 	if err != nil {
 		return fmt.Errorf("failed to place entry order: %w", err)
 	}
@@ -565,6 +567,7 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 			}
 
 			if order.Status == "FILLED" {
+				fmt.Println("Order filled, creating bracket order")
 				exitSide := "SELL"
 				if side == "SELL" {
 					exitSide = "BUY"
@@ -576,12 +579,12 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 					Side               string `json:"side"`
 					OrderConfiguration struct {
 						TriggerBracketGTD struct {
-							BaseSize         string `json:"base_size`
+							BaseSize         string `json:"base_size"`
 							LimitPrice       string `json:"limit_price"`
 							StopTriggerPrice string `json:"stop_trigger_price"`
 							EndTime          string `json:"end_time"`
 						} `json:"trigger_bracket_gtd"`
-					} `json:"order_configuration`
+					} `json:"order_configuration"`
 				}{
 					ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
 					ProductID:     productID,
@@ -593,11 +596,13 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 				bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", stopPrice)
 				bracketBody.OrderConfiguration.TriggerBracketGTD.EndTime = time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
 
-				_, err = api.placeOrder(bracketBody)
+				_, err = api.PlaceOrder(bracketBody)
 				if err != nil {
 					log.Printf("Error placing bracket orders: %v", err)
 				}
 				return
+			} else {
+				fmt.Println("Waiting on order to be filled")
 			}
 			time.Sleep(5 * time.Second)
 		}
@@ -606,7 +611,90 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 	return nil
 }
 
-func (api *CoinbaseAPI) PlaceOrder()
+func (api *CoinbaseAPI) PlaceOrder(orderBody interface{}) (string, error) {
+	timestamp := time.Now().Unix()
+	path := "/api/v3/brokerage/orders" // Fixed typo in path
+	method := "POST"
+
+	bodyBytes, err := json.Marshal(orderBody)
+	if err != nil {
+		return "", fmt.Errorf("Error marshaling request body: %w", err)
+	}
+
+	signature := GetCBSign(api.APISecret, timestamp, method, path, string(bodyBytes))
+
+	req, err := http.NewRequest(method, api.BaseURL+path, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return "", fmt.Errorf("Error creating order request: %w", err)
+	}
+
+	req.Header.Add("CB-ACCESS-SIGN", signature)
+	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
+	req.Header.Add("CB-VERSION", "2015-07-22")
+	req.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("Error executing order request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var response struct {
+		OrderID string `json:"order_id"`
+		Success bool   `json:"success"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return "", fmt.Errorf("Error decoding response: %w", err)
+	}
+
+	if !response.Success {
+		return "", fmt.Errorf("Order placement unsuccessful")
+	}
+
+	return response.OrderID, nil
+}
+
+func (api *CoinbaseAPI) GetOrder(orderID string) (*CoinbaseOrder, error) {
+	timestamp := time.Now().Unix()
+	path := fmt.Sprintf("/api/v3/brokerage/orders/get_order?order_id=%s", orderID)
+	method := "GET"
+
+	signature := GetCBSign(api.APISecret, timestamp, method, path, "")
+
+	req, err := http.NewRequest(method, api.BaseURL+path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating get order request: %w", err)
+	}
+
+	req.Header.Add("CB-ACCESS-SIGN", signature)
+	req.Header.Add("CB-CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
+	req.Header.Add("CB-VERSION", "2015-07-22")
+	req.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Error executing get order request: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return nil, fmt.Errorf("Error getting orger: status %d - %s", resp.StatusCode, string(body))
+	}
+
+	var order CoinbaseOrder
+	if err := json.NewDecoder(resp.Body).Decode(&order); err != nil {
+		return nil, fmt.Errorf("Error decoding order response: %w", err)
+	}
+
+	return &order, nil
+}
 
 // Exchange operation
 func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
