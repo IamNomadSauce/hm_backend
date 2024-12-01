@@ -122,7 +122,7 @@ func placeBracketOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		ExchangeID  int     `json:"exchange_id`
+		ExchangeID  int     `json:"exchange_id"`
 		ProductID   string  `json:"product_id"`
 		Side        string  `json:"side"`
 		Size        float64 `json:"size"`
@@ -165,7 +165,7 @@ func placeBracketOrder(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		log.Printf("Error pllacing bracket order: %v", err)
+		log.Printf("Error placing bracket order: %v", err)
 		http.Error(w, fmt.Sprintf("Failed to place bracket order: %v", err), http.StatusInternalServerError)
 		return
 	}

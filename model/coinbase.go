@@ -532,7 +532,7 @@ type CoinbaseAccount struct {
 }
 
 func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, entryPrice, stopPrice, targetPrice float64) error {
-	fmt.Println("Place Bracket Order")
+	fmt.Println("Place Bracket Order", productID, side, size, entryPrice, stopPrice, targetPrice)
 	entryOrderBody := struct {
 		ClientOrderID      string `json:"client_order_id"`
 		ProductID          string `json:"product_id"`
@@ -612,6 +612,7 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 }
 
 func (api *CoinbaseAPI) PlaceOrder(orderBody interface{}) (string, error) {
+	fmt.Println("Place Coinbase Order", orderBody)
 	timestamp := time.Now().Unix()
 	path := "/api/v3/brokerage/orders" // Fixed typo in path
 	method := "POST"

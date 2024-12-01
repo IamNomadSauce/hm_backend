@@ -12,6 +12,8 @@ import (
 	"time"
 	_ "time"
 
+	"github.com/google/uuid"
+
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -168,19 +170,43 @@ func CreateTables(db *sql.DB) error {
 
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS portfolio (
-    id SERIAL PRIMARY KEY,
-    asset VARCHAR(255),
-    available_balance_value VARCHAR(255),
-    available_balance_currency VARCHAR(255),
-    hold_balance_value VARCHAR(255),
-    hold_balance_currency VARCHAR(255),
-    value FLOAT8,
-    xch_id INTEGER
-);
+			id SERIAL PRIMARY KEY,
+			asset VARCHAR(255),
+			available_balance_value VARCHAR(255),
+			available_balance_currency VARCHAR(255),
+			hold_balance_value VARCHAR(255),
+			hold_balance_currency VARCHAR(255),
+			value FLOAT8,
+			xch_id INTEGER
+		);
 	`)
 	if err != nil {
 		log.Printf("Failet to create portfolios: %v", err)
 	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS trades (
+			id SERIAL PRIMARY KEY,
+			group_id VARCHAR(255),
+			product_id VARCHAR(255),
+			side VARCHAR(10),
+			entry_price FLOAT,
+			stop_price FLOAT,
+			targe_price FLOAT,
+			size FLOAT,
+			entry_order_id VARCHAR(255),
+			stop_order_id VARCHAR(255),
+			target_order_id VARCHAR(255),
+			entry_status VARCHAR(20),
+			stop_status VARCHAR(20),
+			targe_status VARCHAR(20),
+			targe_number INT,
+			created_at TIMESTAMP,
+			updated_at TIMESTAMP,
+			xch_id INTEGER,
+		)
+	`)
+
 	return nil
 }
 
@@ -897,4 +923,95 @@ func Get_All_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error
 	}
 
 	return candles, nil
+}
+
+// Trades
+func WriteTrade(db *sql.DB, trades []model.Trade) error {
+	groupID := uuid.New().String()
+
+	for i, trade := range trades {
+		trade.GroupID = groupID
+		trade.TargetNumber = i + 1
+
+		query := `
+			INSERT INTO trades (
+				group_id, product_id, side, entry_price, stop_price, target_price, size, target_number, created_at, xch_id
+			) VALUES ($1, $2,$3,$4,$5,$6,$7,$8,$9,$10)
+			RETURNING id`
+
+		err := db.QueryRow(
+			query,
+			trade.GroupID,
+			trade.ProductID,
+			trade.Side,
+			trade.EntryPrice,
+			trade.TargetPrice,
+			trade.Size,
+			trade.TargetNumber,
+			time.Now(),
+			trade.XchID,
+		).Scan(&trade.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
+	query := `SELECT * FROM trades WHERE group_id = $1 ORDER BY target_number`
+	rows, err := db.Query(query, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var trades []model.Trade
+	for rows.Next() {
+		var t model.Trade
+		err := rows.Scan(
+			&t.ID,
+			&t.GroupID,
+			&t.ProductID,
+			&t.Side,
+			&t.EntryPrice,
+			&t.StopPrice,
+			&t.TargetPrice,
+			&t.EntryOrderID,
+			&t.StopOrderID,
+			&t.TargetOrderID,
+			&t.EntryStatus,
+			&t.StopStatus,
+			&t.TargetStatus,
+			&t.TargetNumber,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+			&t.XchID,
+		)
+		if err != nil {
+			return nil, err
+		}
+		trades = append(trades, t)
+	}
+	return trades, nil
+}
+
+func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, targetStatus string) error {
+	query := `
+		UPDATE trades
+		SET
+			entry_status = $1,
+			stop_status = $2,
+			target_status = $3,
+			updated_at = $4,
+		WHERE group_id = %5`
+	_, err := db.Exec(query,
+		entryStatus,
+		stopStatus,
+		targetStatus,
+		time.Now(),
+		groupID)
+
+	return err
 }

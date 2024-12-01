@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -33,6 +34,92 @@ type AlpacaAPI struct {
 func (api *AlpacaAPI) PlaceBracketOrder(ProductID string, side string, size float64, entryPrice, stopPrice, targetPrice float64) error {
 	return nil
 }
+
+func (api *AlpacaAPI) PlaceOrder(orderBody interface{}) (string, error) {
+	timestamp := time.Now().Unix()
+	path := "/api/v3/brokerage/orders" // Fixed typo in path
+	method := "POST"
+
+	bodyBytes, err := json.Marshal(orderBody)
+	if err != nil {
+		return "", fmt.Errorf("Error marshaling request body: %w", err)
+	}
+
+	signature := GetCBSign(api.APISecret, timestamp, method, path, string(bodyBytes))
+
+	req, err := http.NewRequest(method, api.BaseURL+path, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return "", fmt.Errorf("Error creating order request: %w", err)
+	}
+
+	req.Header.Add("CB-ACCESS-SIGN", signature)
+	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
+	req.Header.Add("CB-VERSION", "2015-07-22")
+	req.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("Error executing order request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var response struct {
+		OrderID string `json:"order_id"`
+		Success bool   `json:"success"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return "", fmt.Errorf("Error decoding response: %w", err)
+	}
+
+	if !response.Success {
+		return "", fmt.Errorf("Order placement unsuccessful")
+	}
+
+	return response.OrderID, nil
+}
+
+func (api *AlpacaAPI) GetOrder(orderID string) (*CoinbaseOrder, error) {
+	timestamp := time.Now().Unix()
+	path := fmt.Sprintf("/api/v3/brokerage/orders/get_order?order_id=%s", orderID)
+	method := "GET"
+
+	signature := GetCBSign(api.APISecret, timestamp, method, path, "")
+
+	req, err := http.NewRequest(method, api.BaseURL+path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating get order request: %w", err)
+	}
+
+	req.Header.Add("CB-ACCESS-SIGN", signature)
+	req.Header.Add("CB-CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
+	req.Header.Add("CB-VERSION", "2015-07-22")
+	req.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Error executing get order request: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return nil, fmt.Errorf("Error getting orger: status %d - %s", resp.StatusCode, string(body))
+	}
+
+	var order CoinbaseOrder
+	if err := json.NewDecoder(resp.Body).Decode(&order); err != nil {
+		return nil, fmt.Errorf("Error decoding order response: %w", err)
+	}
+
+	return &order, nil
+}
+
 func (api *AlpacaAPI) FetchAvailableProducts() ([]Product, error) {
 	var products []Product
 	// if api == nil {
