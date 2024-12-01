@@ -530,6 +530,84 @@ type CoinbaseAccount struct {
 	Size             float64 `json:"size"` // Changed from string to float64
 }
 
+func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, entryPrice, stopPrice, targetPrice float64) error {
+	entryOrderBody := struct {
+		ClientOrderID      string `json:"client_order_id"`
+		ProductID          string `json:"product_id"`
+		Side               string `json:"side"`
+		OrderConfiguration struct {
+			LimitLimitGtc struct {
+				BaseSize   string `json:"base_size"`
+				LimitPrice string `json:"limit_price"`
+				PostOnly   bool   `json:"post_only"`
+			} `json:"limit_limit_gtc"`
+		} `json:"order_configuration"`
+	}{
+		ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
+		ProductID:     productID,
+		Side:          side,
+	}
+
+	entryOrderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.8f", size)
+	entryOrderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.8f", size)
+
+	entryOrderID, err := api.placeOrder(entryOrderBody)
+	if err != nil {
+		return fmt.Errorf("failed to place entry order: %w", err)
+	}
+
+	go func() {
+		for {
+			order, err := api.GetOrder(entryOrderID)
+			if err != nil {
+				log.Printf("Error checking entry order status: %v", err)
+				continue
+			}
+
+			if order.Status == "FILLED" {
+				exitSide := "SELL"
+				if side == "SELL" {
+					exitSide = "BUY"
+				}
+
+				bracketBody := struct {
+					ClientOrderID      string `json:"cllient_order_id"`
+					ProductID          string `json:"product_id"`
+					Side               string `json:"side"`
+					OrderConfiguration struct {
+						TriggerBracketGTD struct {
+							BaseSize         string `json:"base_size`
+							LimitPrice       string `json:"limit_price"`
+							StopTriggerPrice string `json:"stop_trigger_price"`
+							EndTime          string `json:"end_time"`
+						} `json:"trigger_bracket_gtd"`
+					} `json:"order_configuration`
+				}{
+					ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
+					ProductID:     productID,
+					Side:          exitSide,
+				}
+
+				bracketBody.OrderConfiguration.TriggerBracketGTD.BaseSize = fmt.Sprintf("%.8f", size)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.LimitPrice = fmt.Sprintf("%.8f", targetPrice)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", stopPrice)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.EndTime = time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+
+				_, err = api.placeOrder(bracketBody)
+				if err != nil {
+					log.Printf("Error placing bracket orders: %v", err)
+				}
+				return
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
+
+	return nil
+}
+
+func (api *CoinbaseAPI) PlaceOrder()
+
 // Exchange operation
 func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 	log.Println("FetchPortfolio")

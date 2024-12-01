@@ -30,6 +30,9 @@ type AlpacaAPI struct {
 	TakerFee            float64
 }
 
+func (api *AlpacaAPI) PlaceBracketOrder(ProductID string, side string, size float64, entryPrice, stopPrice, targetPrice float64) error {
+	return nil
+}
 func (api *AlpacaAPI) FetchAvailableProducts() ([]Product, error) {
 	var products []Product
 	// if api == nil {

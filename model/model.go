@@ -42,6 +42,7 @@ type ExchangeAPI interface {
 	FetchPortfolio() ([]Asset, error)
 	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
 	FetchAvailableProducts() ([]Product, error)
+	PlaceBracketOrder(productID string, side string, size float64, entryPrice, stopPrice, targetPrice float64) error
 }
 
 type Product struct {
@@ -160,9 +161,9 @@ type Fill struct {
 	Size           float64 `db:"size" json:"size,string,omitempty"`
 	Side           string  `db:"side" json:"side"`
 	Commission     float64 `db:"commission" json:"commission,string,omitempty"`
-	ProductID      string  `db:"product_id" json:"productid"`
+	ProductID      string  `db:"product_id" json:"product_id"`
 	XchID          int     `db:"xch_id" json:"xch_id"`
-	MarketCategory string  `db:"market_category" json:"marketcategory"`
+	MarketCategory string  `db:"market_category" json:"market_category"`
 }
 
 type OrderFill struct {

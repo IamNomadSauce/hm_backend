@@ -3,6 +3,7 @@ package main
 import (
 	"backend/api"
 	"backend/db"
+	"backend/model"
 	_ "backend/model"
 	"database/sql"
 	"encoding/json"
@@ -100,6 +101,7 @@ func main() {
 		http.HandleFunc("/exchanges", handleExchangesRequest)
 		http.HandleFunc("/candles", handleCandlesRequest)
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
+		http.HandleFunc("/bracket-order", placeBracketOrder)
 
 		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
@@ -109,6 +111,70 @@ func main() {
 		}
 	}()
 	select {}
+}
+
+func placeBracketOrder(w http.ResponseWriter, r *http.Request) {
+	log.Println("Place Bracket Order")
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var request struct {
+		ExchangeID  int     `json:"exchange_id`
+		ProductID   string  `json:"product_id"`
+		Side        string  `json:"side"`
+		Size        float64 `json:"size"`
+		EntryPrice  float64 `json:"entry_price"`
+		StopPrice   float64 `json:"stop_price"`
+		TargetPrice float64 `json:"targe_price"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	exchanges, err := api.Get_Exchanges(app.DB)
+	if err != nil {
+		http.Error(w, "Failed to get exchanges", http.StatusInternalServerError)
+		return
+	}
+
+	var selectedExchange *model.Exchange
+	for _, exchange := range exchanges {
+		if exchange.ID == request.ExchangeID {
+			selectedExchange = &exchange
+			break
+		}
+	}
+
+	if selectedExchange == nil {
+		http.Error(w, "Exchange not found", http.StatusNotFound)
+		return
+	}
+
+	err = selectedExchange.API.PlaceBracketOrder(
+		request.ProductID,
+		request.Side,
+		request.Size,
+		request.EntryPrice,
+		request.StopPrice,
+		request.TargetPrice,
+	)
+
+	if err != nil {
+		log.Printf("Error pllacing bracket order: %v", err)
+		http.Error(w, fmt.Sprintf("Failed to place bracket order: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "applilcation/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "success",
+		"message": "Bracket order placed successfully",
+	})
 }
 
 func addToWatchlistHandler(w http.ResponseWriter, r *http.Request) {
