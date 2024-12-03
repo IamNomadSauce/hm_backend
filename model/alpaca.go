@@ -1,6 +1,7 @@
 package model
 
 import (
+	"backend/model"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -31,7 +32,7 @@ type AlpacaAPI struct {
 	TakerFee            float64
 }
 
-func (api *AlpacaAPI) PlaceBracketOrder(ProductID string, side string, size float64, entryPrice, stopPrice, targetPrice float64) error {
+func (api *AlpacaAPI) PlaceBracketOrder(trade_group model.TradeGroup) error {
 	return nil
 }
 

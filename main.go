@@ -101,7 +101,7 @@ func main() {
 		http.HandleFunc("/exchanges", handleExchangesRequest)
 		http.HandleFunc("/candles", handleCandlesRequest)
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
-		http.HandleFunc("/bracket-order", placeBracketOrder)
+		http.HandleFunc("/new_trade_group", tradeGroupHandler)
 
 		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
@@ -113,7 +113,7 @@ func main() {
 	select {}
 }
 
-func placeBracketOrder(w http.ResponseWriter, r *http.Request) {
+func tradeGroupHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Place Bracket Order")
 
 	if r.Method != http.MethodPost {
@@ -121,17 +121,20 @@ func placeBracketOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var trade_group model.TradeGroup
+
 	var request struct {
-		ExchangeID  int     `json:"exchange_id"`
-		ProductID   string  `json:"product_id"`
-		Side        string  `json:"side"`
-		Size        float64 `json:"size"`
-		EntryPrice  float64 `json:"entry_price"`
-		StopPrice   float64 `json:"stop_price"`
-		TargetPrice float64 `json:"targe_price"`
+		ProductID     string    `json:"product_id"`
+		Side          string    `json:"side"`
+		Size          float64   `json:"size"`
+		EntryPrice    float64   `json:"entry_price"`
+		StopPrice     float64   `json:"stop_price"`
+		ProfitTargets []float64 `json:"profit_targets"`
+		RiskReward    float64   `json:"risk_reward"`
+		ExchangeID    int       `json:"xch_id"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&trade_group); err != nil {
 		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
 		return
 	}
@@ -155,14 +158,7 @@ func placeBracketOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = selectedExchange.API.PlaceBracketOrder(
-		request.ProductID,
-		request.Side,
-		request.Size,
-		request.EntryPrice,
-		request.StopPrice,
-		request.TargetPrice,
-	)
+	err = selectedExchange.API.PlaceBracketOrder(trade_group)
 
 	if err != nil {
 		log.Printf("Error placing bracket order: %v", err)

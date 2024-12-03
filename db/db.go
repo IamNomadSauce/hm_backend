@@ -925,7 +925,10 @@ func Get_All_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error
 	return candles, nil
 }
 
+// --------------------------------------------------
 // Trades
+// --------------------------------------------------
+
 func WriteTrade(db *sql.DB, trades []model.Trade) error {
 	groupID := uuid.New().String()
 

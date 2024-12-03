@@ -1,6 +1,7 @@
 package model
 
 import (
+	"backend/model"
 	"encoding/json"
 	"strconv"
 	"time"
@@ -42,7 +43,7 @@ type ExchangeAPI interface {
 	FetchPortfolio() ([]Asset, error)
 	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
 	FetchAvailableProducts() ([]Product, error)
-	PlaceBracketOrder(productID string, side string, size float64, entryPrice, stopPrice, targetPrice float64) error
+	PlaceBracketOrder(trade_group model.TradeGroup) error
 	PlaceOrder(orderBody interface{}) (string, error)
 	// GetOrder(orderID string) (*)
 }
@@ -171,6 +172,18 @@ type Trade struct {
 	TargetNumber  int       `json:"target_number"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+	XchID         int       `json:"xch_id"`
+}
+
+type TradeGroup struct {
+	ProductID     string    `json:"product_id"`
+	GroupID       string    `json:"group_id"`
+	Side          string    `json:"side"`
+	Size          float64   `json:"size"`
+	EntryPrice    float64   `json:"entry_price"`
+	StopPrice     float64   `json:"stop_price"`
+	ProfitTargets []float64 `json:"profit_targets"`
+	RiskReward    float64   `json:"risk_reward"`
 	XchID         int       `json:"xch_id"`
 }
 

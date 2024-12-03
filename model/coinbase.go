@@ -1,6 +1,7 @@
 package model
 
 import (
+	"backend/model"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -531,8 +532,7 @@ type CoinbaseAccount struct {
 	Size             float64 `json:"size"` // Changed from string to float64
 }
 
-func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, entryPrice, stopPrice, targetPrice float64) error {
-	fmt.Println("Place Bracket Order", productID, side, size, entryPrice, stopPrice, targetPrice)
+func (api *CoinbaseAPI) PlaceBracketOrder(trade_group model.TradeGroup) error {
 	entryOrderBody := struct {
 		ClientOrderID      string `json:"client_order_id"`
 		ProductID          string `json:"product_id"`
@@ -546,12 +546,12 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 		} `json:"order_configuration"`
 	}{
 		ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
-		ProductID:     productID,
-		Side:          side,
+		ProductID:     trade_group.productID,
+		Side:          trade_group.side,
 	}
 
-	entryOrderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.8f", size)
-	entryOrderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.8f", size)
+	entryOrderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.8f", trade_group.size)
+	entryOrderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.8f", trade_group.size)
 
 	entryOrderID, err := api.PlaceOrder(entryOrderBody)
 	if err != nil {
@@ -569,7 +569,7 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 			if order.Status == "FILLED" {
 				fmt.Println("Order filled, creating bracket order")
 				exitSide := "SELL"
-				if side == "SELL" {
+				if trade_group.side == "SELL" {
 					exitSide = "BUY"
 				}
 
@@ -587,13 +587,13 @@ func (api *CoinbaseAPI) PlaceBracketOrder(productID string, side string, size, e
 					} `json:"order_configuration"`
 				}{
 					ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
-					ProductID:     productID,
+					ProductID:     trade_group.productID,
 					Side:          exitSide,
 				}
 
-				bracketBody.OrderConfiguration.TriggerBracketGTD.BaseSize = fmt.Sprintf("%.8f", size)
-				bracketBody.OrderConfiguration.TriggerBracketGTD.LimitPrice = fmt.Sprintf("%.8f", targetPrice)
-				bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", stopPrice)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.BaseSize = fmt.Sprintf("%.8f", trade_group.size)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.LimitPrice = fmt.Sprintf("%.8f", trade_group.targetPrice)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", trade_group.stopPrice)
 				bracketBody.OrderConfiguration.TriggerBracketGTD.EndTime = time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
 
 				_, err = api.PlaceOrder(bracketBody)
