@@ -173,6 +173,8 @@ func tradeGroupHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+//
+
 func addToWatchlistHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("AddToWatchlistHandler")
 
