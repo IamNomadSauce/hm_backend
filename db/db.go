@@ -567,15 +567,49 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	log.Printf("\n-------------------------------------\n Get Exchange  %v\n-------------------------------------\n", id)
 
 	var exchange model.Exchange
+	var err error
 
-	xch_row, err := db.Query("SELECT id, name FROM exchanges WHERE id = $1", id)
-	if err != nil {
-		log.Println("Error retrieving exchange from id")
-	}
-	defer xch_row.Close()
-
+	xch_row := db.QueryRow("SELECT id, name FROM exchanges WHERE id = $1", id)
 	if err := xch_row.Scan(&exchange.ID, &exchange.Name); err != nil {
-		return exchange, fmt.Errorf("Error scanning exchange: %w", err)
+		return exchange, fmt.Errorf("error scanning exchange: %w", err)
+	}
+
+	exchange.Timeframes, err = Get_Timeframes(exchange.ID, db)
+	if err != nil {
+		return exchange, fmt.Errorf("error getting timeframes: %w", err)
+	}
+	exchange.Orders, err = Get_Orders(exchange.ID, db)
+	if err != nil {
+		return exchange, fmt.Errorf("error getting orders: %w", err)
+	}
+	exchange.Fills, err = Get_Fills(exchange.ID, db)
+	if err != nil {
+		return exchange, fmt.Errorf("error getting fills: %w", err)
+	}
+	exchange.Watchlist, err = Get_Watchlist(exchange, db)
+	if err != nil {
+		return exchange, fmt.Errorf("error getting watchlist: %w", err)
+	}
+	exchange.AvailableProducts, err = Get_Available_Products(exchange, db)
+	if err != nil {
+		return exchange, fmt.Errorf("error getting available_products: %w", err)
+	}
+	exchange.Portfolio, err = Get_Portfolio(exchange.ID, db)
+	if err != nil {
+		return exchange, fmt.Errorf("error getting portfolio: %w", err)
+	}
+
+	switch exchange.Name {
+	case "Coinbase":
+		exchange.API = &model.CoinbaseAPI{
+			APIKey:      os.Getenv("CBAPIKEY"),
+			APISecret:   os.Getenv("CBAPISECRET"),
+			BaseURL:     "https://api.coinbase.com",
+			CandleLimit: 350,
+			ExchangeID:  exchange.ID,
+		}
+		exchange.CandleLimit = 350
+	case "Alpaca":
 	}
 
 	return exchange, nil
@@ -598,47 +632,13 @@ func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
 		if err := rows.Scan(&exchange.ID, &exchange.Name); err != nil {
 			return nil, fmt.Errorf("Error scanning exchange: %w", err)
 		}
-		exchange.Timeframes, err = Get_Timeframes(exchange.ID, db)
+
+		exchange, err := Get_Exchange(exchange.ID, db)
 		if err != nil {
-			return nil, fmt.Errorf("Error getting timeframes: %w", err)
-		}
-		exchange.Orders, err = Get_Orders(exchange.ID, db)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting orders: %w", err)
-		}
-		exchange.Fills, err = Get_Fills(exchange.ID, db)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting fills: %w", err)
-		}
-		exchange.Watchlist, err = Get_Watchlist(exchange, db)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting watchlist: %w", err)
-		}
-		exchange.AvailableProducts, err = Get_Available_Products(exchange, db)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting available_products: %w", err)
-		}
-		exchange.Portfolio, err = Get_Portfolio(exchange.ID, db)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting portfolio: %w", err)
+			return nil, fmt.Errorf("error getting exchange: %w", err)
 		}
 
-		switch exchange.Name {
-		case "Coinbase":
-			exchange.API = &model.CoinbaseAPI{
-				APIKey:      os.Getenv("CBAPIKEY"),
-				APISecret:   os.Getenv("CBAPISECRET"),
-				BaseURL:     "https://api.coinbase.com",
-				CandleLimit: 350,
-				ExchangeID:  exchange.ID,
-			}
-			exchange.CandleLimit = 350
-		case "Alpaca":
-		}
-		// log.Print("\nEXCHANGE\n", exchange)
-		// log.Print("\nWATCHLIST\n", exchange.Watchlist)
 		exchanges = append(exchanges, exchange)
-
 	}
 
 	return exchanges, nil
