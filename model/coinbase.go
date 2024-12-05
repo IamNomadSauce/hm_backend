@@ -1,7 +1,6 @@
 package model
 
 import (
-	"backend/model"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -532,7 +531,7 @@ type CoinbaseAccount struct {
 	Size             float64 `json:"size"` // Changed from string to float64
 }
 
-func (api *CoinbaseAPI) PlaceBracketOrder(trade_group model.TradeGroup) error {
+func (api *CoinbaseAPI) PlaceBracketOrder(trade_group TradeGroup) error {
 	entryOrderBody := struct {
 		ClientOrderID      string `json:"client_order_id"`
 		ProductID          string `json:"product_id"`
@@ -546,67 +545,69 @@ func (api *CoinbaseAPI) PlaceBracketOrder(trade_group model.TradeGroup) error {
 		} `json:"order_configuration"`
 	}{
 		ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
-		ProductID:     trade_group.productID,
-		Side:          trade_group.side,
+		ProductID:     trade_group.ProductID,
+		Side:          trade_group.Side,
 	}
 
-	entryOrderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.8f", trade_group.size)
-	entryOrderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.8f", trade_group.size)
+	entryOrderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.8f", trade_group.Size)
+	entryOrderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.8f", trade_group.Size)
 
 	entryOrderID, err := api.PlaceOrder(entryOrderBody)
 	if err != nil {
 		return fmt.Errorf("failed to place entry order: %w", err)
 	}
 
-	go func() {
-		for {
-			order, err := api.GetOrder(entryOrderID)
-			if err != nil {
-				log.Printf("Error checking entry order status: %v", err)
-				continue
-			}
+	fmt.Println("Entry Order ID", entryOrderID)
 
-			if order.Status == "FILLED" {
-				fmt.Println("Order filled, creating bracket order")
-				exitSide := "SELL"
-				if trade_group.side == "SELL" {
-					exitSide = "BUY"
-				}
+	// go func() {
+	// 	for {
+	// 		order, err := api.GetOrder(entryOrderID)
+	// 		if err != nil {
+	// 			log.Printf("Error checking entry order status: %v", err)
+	// 			continue
+	// 		}
 
-				bracketBody := struct {
-					ClientOrderID      string `json:"cllient_order_id"`
-					ProductID          string `json:"product_id"`
-					Side               string `json:"side"`
-					OrderConfiguration struct {
-						TriggerBracketGTD struct {
-							BaseSize         string `json:"base_size"`
-							LimitPrice       string `json:"limit_price"`
-							StopTriggerPrice string `json:"stop_trigger_price"`
-							EndTime          string `json:"end_time"`
-						} `json:"trigger_bracket_gtd"`
-					} `json:"order_configuration"`
-				}{
-					ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
-					ProductID:     trade_group.productID,
-					Side:          exitSide,
-				}
+	// 		if order.Status == "FILLED" {
+	// 			fmt.Println("Order filled, creating bracket order")
+	// 			exitSide := "SELL"
+	// 			if trade_group.Side == "SELL" {
+	// 				exitSide = "BUY"
+	// 			}
 
-				bracketBody.OrderConfiguration.TriggerBracketGTD.BaseSize = fmt.Sprintf("%.8f", trade_group.size)
-				bracketBody.OrderConfiguration.TriggerBracketGTD.LimitPrice = fmt.Sprintf("%.8f", trade_group.targetPrice)
-				bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", trade_group.stopPrice)
-				bracketBody.OrderConfiguration.TriggerBracketGTD.EndTime = time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+	// 			bracketBody := struct {
+	// 				ClientOrderID      string `json:"cllient_order_id"`
+	// 				ProductID          string `json:"product_id"`
+	// 				Side               string `json:"side"`
+	// 				OrderConfiguration struct {
+	// 					TriggerBracketGTD struct {
+	// 						BaseSize         string `json:"base_size"`
+	// 						LimitPrice       string `json:"limit_price"`
+	// 						StopTriggerPrice string `json:"stop_trigger_price"`
+	// 						EndTime          string `json:"end_time"`
+	// 					} `json:"trigger_bracket_gtd"`
+	// 				} `json:"order_configuration"`
+	// 			}{
+	// 				ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
+	// 				ProductID:     trade_group.ProductID,
+	// 				Side:          exitSide,
+	// 			}
 
-				_, err = api.PlaceOrder(bracketBody)
-				if err != nil {
-					log.Printf("Error placing bracket orders: %v", err)
-				}
-				return
-			} else {
-				fmt.Println("Waiting on order to be filled")
-			}
-			time.Sleep(5 * time.Second)
-		}
-	}()
+	// 			bracketBody.OrderConfiguration.TriggerBracketGTD.BaseSize = fmt.Sprintf("%.8f", trade_group.Size)
+	// 			bracketBody.OrderConfiguration.TriggerBracketGTD.LimitPrice = fmt.Sprintf("%.8f", trade_group.ProfitTarget)
+	// 			bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", trade_group.StopPrice)
+	// 			bracketBody.OrderConfiguration.TriggerBracketGTD.EndTime = time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+
+	// 			_, err = api.PlaceOrder(bracketBody)
+	// 			if err != nil {
+	// 				log.Printf("Error placing bracket orders: %v", err)
+	// 			}
+	// 			return
+	// 		} else {
+	// 			fmt.Println("Waiting on order to be filled")
+	// 		}
+	// 		time.Sleep(5 * time.Second)
+	// 	}
+	// }()
 
 	return nil
 }

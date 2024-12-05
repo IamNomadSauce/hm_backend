@@ -1,7 +1,6 @@
 package model
 
 import (
-	"backend/model"
 	"encoding/json"
 	"strconv"
 	"time"
@@ -43,7 +42,7 @@ type ExchangeAPI interface {
 	FetchPortfolio() ([]Asset, error)
 	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
 	FetchAvailableProducts() ([]Product, error)
-	PlaceBracketOrder(trade_group model.TradeGroup) error
+	PlaceBracketOrder(trade_group TradeGroup) error
 	PlaceOrder(orderBody interface{}) (string, error)
 	// GetOrder(orderID string) (*)
 }
