@@ -45,7 +45,7 @@ TODO:
         - [ ] Delete trade-block
         - [ ] Display trade-block and trades status
     - [ ] Backend
-        - [ ] Receive trade-block and parse into TradeGroup
+        - [ ] Receive trade-block and parse into TradeBlock
         - [ ] Split trade-block into a block of trades with base_size, based on len(profit_targets)
         - [ ] Write trades to db
         - [ ] Trade loop for each trade in trade-block not completed

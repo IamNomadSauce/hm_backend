@@ -101,7 +101,7 @@ func main() {
 		http.HandleFunc("/exchanges", handleExchangesRequest)
 		http.HandleFunc("/candles", handleCandlesRequest)
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
-		http.HandleFunc("/new_trade_group", tradeGroupHandler)
+		http.HandleFunc("/new_trade_group", TradeBlockHandler)
 
 		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
@@ -110,10 +110,19 @@ func main() {
 			log.Printf("HTTP server error: %v", err)
 		}
 	}()
+
+	// Trade Manager
+	// go func() {
+	// 	for {
+	// 		trades, err := db.GetAllTrades(app.DB)
+	// 		time.Sleep(5 * time.Second)
+	// 	}
+
+	// }()
 	select {}
 }
 
-func tradeGroupHandler(w http.ResponseWriter, r *http.Request) {
+func TradeBlockHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Place Bracket Order")
 
 	if r.Method != http.MethodPost {
@@ -121,7 +130,7 @@ func tradeGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var trade_group model.TradeGroup
+	var trade_group model.TradeBlock
 
 	// var request struct {
 	// 	ProductID     string    `json:"product_id"`
@@ -160,6 +169,7 @@ func tradeGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	var trades []model.Trade
 	base_size := trade_group.Size / float64(len(trade_group.ProfitTargets))
+	log.Println("Trade Block split into", len(trade_group.ProductID), "orders of base_size:", base_size)
 	for _, pt := range trade_group.ProfitTargets {
 
 		var trade model.Trade
@@ -180,32 +190,14 @@ func tradeGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// exchanges, err := api.Get_Exchanges(app.DB)
-	// if err != nil {
-	// 	http.Error(w, "Failed to get exchanges", http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// var selectedExchange *model.Exchange
-	// for _, exchange := range exchanges {
-	// 	if exchange.ID == request.ExchangeID {
-	// 		selectedExchange = &exchange
-	// 		break
-	// 	}
-	// }
-
-	// if selectedExchange == nil {
-	// 	http.Error(w, "Exchange not found", http.StatusNotFound)
-	// 	return
-	// }
-
-	// err = exchange.API.PlaceBracketOrder(trade_group)
-
-	// if err != nil {
-	// 	log.Printf("Error placing bracket order: %v", err)
-	// 	http.Error(w, fmt.Sprintf("Failed to place bracket order: %v", err), http.StatusInternalServerError)
-	// 	return
-	// }
+	for _, trade := range trades {
+		err = exchange.API.PlaceBracketOrder(trade)
+		if err != nil {
+			log.Printf("Error placing bracket order: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to place bracket order: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
 
 	w.Header().Set("Content-Type", "applilcation/json")
 	json.NewEncoder(w).Encode(map[string]string{

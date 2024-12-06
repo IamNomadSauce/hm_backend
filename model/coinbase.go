@@ -531,7 +531,8 @@ type CoinbaseAccount struct {
 	Size             float64 `json:"size"` // Changed from string to float64
 }
 
-func (api *CoinbaseAPI) PlaceBracketOrder(trade_group TradeGroup) error {
+func (api *CoinbaseAPI) PlaceBracketOrder(trade_group Trade) error {
+	log.Println("Place Bracked Order", trade_group)
 	entryOrderBody := struct {
 		ClientOrderID      string `json:"client_order_id"`
 		ProductID          string `json:"product_id"`
@@ -559,55 +560,55 @@ func (api *CoinbaseAPI) PlaceBracketOrder(trade_group TradeGroup) error {
 
 	fmt.Println("Entry Order ID", entryOrderID)
 
-	// go func() {
-	// 	for {
-	// 		order, err := api.GetOrder(entryOrderID)
-	// 		if err != nil {
-	// 			log.Printf("Error checking entry order status: %v", err)
-	// 			continue
-	// 		}
+	go func() {
+		for {
+			order, err := api.GetOrder(entryOrderID)
+			if err != nil {
+				log.Printf("Error checking entry order status: %v", err)
+				continue
+			}
 
-	// 		if order.Status == "FILLED" {
-	// 			fmt.Println("Order filled, creating bracket order")
-	// 			exitSide := "SELL"
-	// 			if trade_group.Side == "SELL" {
-	// 				exitSide = "BUY"
-	// 			}
+			if order.Status == "FILLED" {
+				fmt.Println("Order filled, creating bracket order")
+				exitSide := "SELL"
+				if trade_group.Side == "SELL" {
+					exitSide = "BUY"
+				}
 
-	// 			bracketBody := struct {
-	// 				ClientOrderID      string `json:"cllient_order_id"`
-	// 				ProductID          string `json:"product_id"`
-	// 				Side               string `json:"side"`
-	// 				OrderConfiguration struct {
-	// 					TriggerBracketGTD struct {
-	// 						BaseSize         string `json:"base_size"`
-	// 						LimitPrice       string `json:"limit_price"`
-	// 						StopTriggerPrice string `json:"stop_trigger_price"`
-	// 						EndTime          string `json:"end_time"`
-	// 					} `json:"trigger_bracket_gtd"`
-	// 				} `json:"order_configuration"`
-	// 			}{
-	// 				ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
-	// 				ProductID:     trade_group.ProductID,
-	// 				Side:          exitSide,
-	// 			}
+				bracketBody := struct {
+					ClientOrderID      string `json:"client_order_id"`
+					ProductID          string `json:"product_id"`
+					Side               string `json:"side"`
+					OrderConfiguration struct {
+						TriggerBracketGTD struct {
+							BaseSize         string `json:"base_size"`
+							LimitPrice       string `json:"limit_price"`
+							StopTriggerPrice string `json:"stop_trigger_price"`
+							EndTime          string `json:"end_time"`
+						} `json:"trigger_bracket_gtd"`
+					} `json:"order_configuration"`
+				}{
+					ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
+					ProductID:     trade_group.ProductID,
+					Side:          exitSide,
+				}
 
-	// 			bracketBody.OrderConfiguration.TriggerBracketGTD.BaseSize = fmt.Sprintf("%.8f", trade_group.Size)
-	// 			bracketBody.OrderConfiguration.TriggerBracketGTD.LimitPrice = fmt.Sprintf("%.8f", trade_group.ProfitTarget)
-	// 			bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", trade_group.StopPrice)
-	// 			bracketBody.OrderConfiguration.TriggerBracketGTD.EndTime = time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.BaseSize = fmt.Sprintf("%.8f", trade_group.Size)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.LimitPrice = fmt.Sprintf("%.8f", trade_group.PTPrice)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", trade_group.StopPrice)
+				bracketBody.OrderConfiguration.TriggerBracketGTD.EndTime = time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
 
-	// 			_, err = api.PlaceOrder(bracketBody)
-	// 			if err != nil {
-	// 				log.Printf("Error placing bracket orders: %v", err)
-	// 			}
-	// 			return
-	// 		} else {
-	// 			fmt.Println("Waiting on order to be filled")
-	// 		}
-	// 		time.Sleep(5 * time.Second)
-	// 	}
-	// }()
+				_, err = api.PlaceOrder(bracketBody)
+				if err != nil {
+					log.Printf("Error placing bracket orders: %v", err)
+				}
+				return
+			} else {
+				fmt.Println("Waiting on order to be filled")
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	return nil
 }

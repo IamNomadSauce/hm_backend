@@ -42,7 +42,7 @@ type ExchangeAPI interface {
 	FetchPortfolio() ([]Asset, error)
 	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
 	FetchAvailableProducts() ([]Product, error)
-	PlaceBracketOrder(trade_group TradeGroup) error
+	PlaceBracketOrder(trade_group Trade) error
 	PlaceOrder(orderBody interface{}) (string, error)
 	// GetOrder(orderID string) (*)
 }
@@ -174,7 +174,7 @@ type Trade struct {
 	XchID        int       `json:"xch_id"`
 }
 
-type TradeGroup struct {
+type TradeBlock struct {
 	ProductID     string    `json:"product_id"`
 	GroupID       string    `json:"group_id"`
 	Side          string    `json:"side"`

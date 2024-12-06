@@ -962,6 +962,84 @@ func WriteTrades(db *sql.DB, trades []model.Trade) error {
 	return nil
 }
 
+func GetAllTrades(db *sql.DB) ([]model.Trade, error) {
+	query := `SELECT * FROM trades`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var trades []model.Trade
+	for rows.Next() {
+		var t model.Trade
+		err := rows.Scan(
+			&t.ID,
+			&t.GroupID,
+			&t.ProductID,
+			&t.Side,
+			&t.EntryPrice,
+			&t.StopPrice,
+			&t.PTPrice,
+			&t.EntryOrderID,
+			&t.StopOrderID,
+			&t.PTOrderID,
+			&t.EntryStatus,
+			&t.StopStatus,
+			&t.PTStatus,
+			&t.PTAmount,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+			&t.XchID,
+		)
+		if err != nil {
+			return nil, err
+		}
+		trades = append(trades, t)
+	}
+	return trades, nil
+}
+
+func GetTradesByExchange(db *sql.DB, exchange_id int) ([]model.Trade, error) {
+	query := `SELECT * FROM trades WHERE xch_id = $1`
+	rows, err := db.Query(query, exchange_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var trades []model.Trade
+	for rows.Next() {
+		var t model.Trade
+		err := rows.Scan(
+			&t.ID,
+			&t.GroupID,
+			&t.ProductID,
+			&t.Side,
+			&t.EntryPrice,
+			&t.StopPrice,
+			&t.PTPrice,
+			&t.EntryOrderID,
+			&t.StopOrderID,
+			&t.PTOrderID,
+			&t.EntryStatus,
+			&t.StopStatus,
+			&t.PTStatus,
+			&t.PTAmount,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+			&t.XchID,
+		)
+		if err != nil {
+			return nil, err
+		}
+		trades = append(trades, t)
+	}
+	return trades, nil
+}
+
 func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
 	query := `SELECT * FROM trades WHERE group_id = $1 ORDER BY target_number`
 	rows, err := db.Query(query, groupID)

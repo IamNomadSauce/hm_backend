@@ -31,7 +31,7 @@ type AlpacaAPI struct {
 	TakerFee            float64
 }
 
-func (api *AlpacaAPI) PlaceBracketOrder(trade_group TradeGroup) error {
+func (api *AlpacaAPI) PlaceBracketOrder(trade_group TradeBlock) error {
 	return nil
 }
 
