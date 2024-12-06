@@ -65,7 +65,7 @@ func main() {
 
 				err = api.Do_AvailableProducts(exchange, app.DB)
 				if err != nil {
-					log.Printf("Error executing Do_AvailableProducts for %s\n%w\n", exchange, err)
+					log.Printf("error executing Do_AvailableProducts for %s\n%w\n", exchange, err)
 				}
 
 				err = api.Do_Orders_and_Fills(exchange, app.DB)
@@ -140,8 +140,45 @@ func tradeGroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Trade Group:", trade_group)
-	log.Printf("Request:\n%s\n%s\n%f\n%f\n%f", trade_group.ProductID, trade_group.Side, trade_group.Size, trade_group.EntryPrice, trade_group.RiskReward)
+	log.Printf("Trade-Group:\n%s %s\n|Entry: %f\n|Amount: %f\n|StopLoss: %f\n|Risk:Reward %f",
+		trade_group.ProductID,
+		trade_group.Side,
+		trade_group.EntryPrice,
+		trade_group.Size,
+		trade_group.StopPrice,
+		trade_group.RiskReward,
+	)
+
+	exchange, err := db.Get_Exchange(trade_group.XchID, app.DB)
+	if err != nil {
+		log.Printf("error getting exchange: %v", err)
+		http.Error(w, "Exchange not found", http.StatusNotFound)
+		return
+	}
+
+	log.Println("Exchange: ", exchange)
+
+	var trades []model.Trade
+	base_size := trade_group.Size / float64(len(trade_group.ProfitTargets))
+	for _, pt := range trade_group.ProfitTargets {
+
+		var trade model.Trade
+		trade.Side = trade_group.Side
+		trade.ProductID = trade_group.ProductID
+		trade.Size = base_size
+		trade.EntryPrice = trade_group.EntryPrice
+		trade.StopPrice = trade_group.StopPrice
+		trade.PTPrice = pt
+		trade.XchID = exchange.ID
+		trades = append(trades, trade)
+	}
+
+	err = db.WriteTrades(app.DB, trades)
+	if err != nil {
+		log.Printf("Error writing to trades: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 	// exchanges, err := api.Get_Exchanges(app.DB)
 	// if err != nil {
@@ -162,7 +199,7 @@ func tradeGroupHandler(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	// err = selectedExchange.API.PlaceBracketOrder(trade_group)
+	// err = exchange.API.PlaceBracketOrder(trade_group)
 
 	// if err != nil {
 	// 	log.Printf("Error placing bracket order: %v", err)

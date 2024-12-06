@@ -154,24 +154,24 @@ type OrderConfiguration struct {
 }
 
 type Trade struct {
-	ID            int       `json:"id"`
-	GroupID       string    `json:"group_id"`
-	ProductID     string    `json:"product_id"`
-	Side          string    `json:"side"`
-	EntryPrice    float64   `json:"entry_price"`
-	StopPrice     float64   `json:"stop_price"`
-	TargetPrice   float64   `json:"target_price"`
-	Size          float64   `json:"size"`
-	EntryOrderID  string    `json:"entry_order_id"`
-	StopOrderID   string    `json:"stop_order_id"`
-	TargetOrderID string    `json:"target_order_id"`
-	EntryStatus   string    `json:"entry_status"`
-	StopStatus    string    `json:"stop_status"`
-	TargetStatus  string    `json:"target_status"`
-	TargetNumber  int       `json:"target_number"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	XchID         int       `json:"xch_id"`
+	ID           int       `json:"id"`
+	GroupID      string    `json:"group_id"`
+	ProductID    string    `json:"product_id"`
+	Side         string    `json:"side"`
+	EntryPrice   float64   `json:"entry_price"`
+	StopPrice    float64   `json:"stop_price"`
+	Size         float64   `json:"size"`
+	EntryOrderID string    `json:"entry_order_id"`
+	StopOrderID  string    `json:"stop_order_id"`
+	EntryStatus  string    `json:"entry_status"`
+	StopStatus   string    `json:"stop_status"`
+	PTPrice      float64   `json:"target_price"`
+	PTStatus     string    `json:"target_status"`
+	PTOrderID    string    `json:"target_order_id"`
+	PTAmount     int       `json:"target_number"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	XchID        int       `json:"xch_id"`
 }
 
 type TradeGroup struct {

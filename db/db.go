@@ -929,12 +929,13 @@ func Get_All_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error
 // Trades
 // --------------------------------------------------
 
-func WriteTrade(db *sql.DB, trades []model.Trade) error {
+// all trades in a trade-block
+func WriteTrades(db *sql.DB, trades []model.Trade) error {
 	groupID := uuid.New().String()
 
 	for i, trade := range trades {
 		trade.GroupID = groupID
-		trade.TargetNumber = i + 1
+		trade.PTAmount = i + 1
 
 		query := `
 			INSERT INTO trades (
@@ -948,9 +949,9 @@ func WriteTrade(db *sql.DB, trades []model.Trade) error {
 			trade.ProductID,
 			trade.Side,
 			trade.EntryPrice,
-			trade.TargetPrice,
+			trade.PTPrice,
 			trade.Size,
-			trade.TargetNumber,
+			trade.PTAmount,
 			time.Now(),
 			trade.XchID,
 		).Scan(&trade.ID)
@@ -980,14 +981,14 @@ func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
 			&t.Side,
 			&t.EntryPrice,
 			&t.StopPrice,
-			&t.TargetPrice,
+			&t.PTPrice,
 			&t.EntryOrderID,
 			&t.StopOrderID,
-			&t.TargetOrderID,
+			&t.PTOrderID,
 			&t.EntryStatus,
 			&t.StopStatus,
-			&t.TargetStatus,
-			&t.TargetNumber,
+			&t.PTStatus,
+			&t.PTAmount,
 			&t.CreatedAt,
 			&t.UpdatedAt,
 			&t.XchID,

@@ -37,6 +37,24 @@ TODO:
 - [x] If adding a new asset, make sure to have retrieve 30 days of candles.
 -------------------------------------------------------------------------
 - Backend
+- [ ] TradeBlock
+    - [ ] Client  
+        - [x] Trade lines on chart
+        - [x] Send trade-block to backend
+        - [ ] Receive ok from back-end -> delete lines
+        - [ ] Delete trade-block
+        - [ ] Display trade-block and trades status
+    - [ ] Backend
+        - [ ] Receive trade-block and parse into TradeGroup
+        - [ ] Split trade-block into a block of trades with base_size, based on len(profit_targets)
+        - [ ] Write trades to db
+        - [ ] Trade loop for each trade in trade-block not completed
+            - [ ] Place entry order to exchange, assign group_id to order when created
+            - [ ] When entry filled -> place bracket order
+            - [ ] Update trade status when entry, stop, or profit target are filled.
+        - [ ] Add Trade-blocks to Exchange struct
+
+
     - [x] DB Create Tables if not exist
     - [x] Write Fills
     - [x] Write Current Orders
@@ -46,7 +64,7 @@ TODO:
         - [x] Retrieve and send candles to client
     - [ ] Candle Gap Integrity Check
         - [ ] Pass Timeframe data into loops
-        - [ ] Recursive Coinbase candle retrieval
+        - [x] Recursive Coinbase candle retrieval
 
 - [ ] Create and account Exchange data
     - [x] Portfolio balances of each coin.
@@ -85,8 +103,9 @@ TODO:
 - Chart:
     - [ ] Drawing tools
         - [x] Lines
+            [ ] Change button color based on active status
         - [x] Boxes
-        - [ ] Add tools to db
+        - [ ] Trendlines
     - [x] Exchange, tf, and asset bar
     - [x] Render candle data
     - [x] Pan & zoom
@@ -97,7 +116,7 @@ TODO:
         - [x] Candle Retrieval and storage from exchange
         - [x] Client candle retrieval
         - [x] Watchlist
-        - [ ] Account & portfolio balance tracking
+        - [x] Account & portfolio balance tracking
 
     - [ ] Alpaca
         - [ ] Candle Retrieval and storage from exchange
