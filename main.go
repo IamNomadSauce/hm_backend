@@ -78,18 +78,6 @@ func main() {
 				if err != nil {
 					log.Printf("Error executing Do_Portfolio for %s\n%v", exchange.Name, err)
 				}
-
-				// for _, product := range available_products {
-				// 	fmt.Println("Product: ", product)
-				// }
-				// fmt.Println("Available Products: ", len(available_products))
-				// fills, err := exchange.API.FetchFills()
-				// if err != nil {
-				// 	log.Printf("Error fetching fills for %s: %v", exchange.Name, err)
-				// } else {
-				// 	log.Printf("%s Fills: %d", exchange.Name, len(fills))
-				// }
-
 			}
 			time.Sleep(1 * time.Minute)
 		}
@@ -165,11 +153,11 @@ func TradeBlockHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Exchange: ", exchange)
+	// log.Println("Exchange: ", exchange)
 
 	var trades []model.Trade
 	base_size := trade_group.Size / float64(len(trade_group.ProfitTargets))
-	log.Println("Trade Block split into", len(trade_group.ProductID), "orders of base_size:", base_size)
+	log.Println("Trade Block split into", len(trade_group.ProfitTargets), "orders of base_size:", base_size)
 	for _, pt := range trade_group.ProfitTargets {
 
 		var trade model.Trade

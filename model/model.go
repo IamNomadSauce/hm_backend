@@ -165,10 +165,10 @@ type Trade struct {
 	StopOrderID  string    `json:"stop_order_id"`
 	EntryStatus  string    `json:"entry_status"`
 	StopStatus   string    `json:"stop_status"`
-	PTPrice      float64   `json:"target_price"`
-	PTStatus     string    `json:"target_status"`
-	PTOrderID    string    `json:"target_order_id"`
-	PTAmount     int       `json:"target_number"`
+	PTPrice      float64   `json:"pt_price"`
+	PTStatus     string    `json:"pt_status"`
+	PTOrderID    string    `json:"pt_order_id"`
+	PTAmount     int       `json:"pt_amount"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	XchID        int       `json:"xch_id"`

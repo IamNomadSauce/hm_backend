@@ -129,7 +129,6 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 					LimitPrice string `json:"limit_price"`
 					PostOnly   bool   `json:"post_only"`
 				} `json:"limit_limit_gtc"`
-				// Add other order types as needed
 			} `json:"order_configuration"`
 		} `json:"orders"`
 	}
@@ -144,6 +143,7 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 		if cbOrder.Status != "CANCELLED" && cbOrder.Status != "FILLED" {
 			// Parse size and price based on order configuration
 			var size, price float64
+			// log.Println(cbOrder)
 
 			if cbOrder.OrderConfiguration.MarketMarketIoc != nil {
 				size, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.MarketMarketIoc.BaseSize, 64)
@@ -171,7 +171,7 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 				XchID:          api.ExchangeID,
 			}
 
-			// log.Printf("Created order - Price: %v, Size: %v, Time: %v", order.Price, order.Size, order.Timestamp)
+			log.Printf("Created order - Price: %v, Size: %v, Time: %v", order.Price, order.Size, order.Timestamp)
 			filteredOrders = append(filteredOrders, order)
 		}
 	}

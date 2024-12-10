@@ -181,7 +181,7 @@ func CreateTables(db *sql.DB) error {
 		);
 	`)
 	if err != nil {
-		log.Printf("Failet to create portfolios: %v", err)
+		log.Printf("Failed to create portfolios: %v", err)
 	}
 
 	_, err = db.Exec(`
@@ -192,20 +192,24 @@ func CreateTables(db *sql.DB) error {
 			side VARCHAR(10),
 			entry_price FLOAT,
 			stop_price FLOAT,
-			targe_price FLOAT,
 			size FLOAT,
 			entry_order_id VARCHAR(255),
 			stop_order_id VARCHAR(255),
-			target_order_id VARCHAR(255),
 			entry_status VARCHAR(20),
 			stop_status VARCHAR(20),
-			targe_status VARCHAR(20),
-			targe_number INT,
+			pt_price FLOAT,
+			pt_status VARCHAR(20),
+			pt_order_id VARCHAR(255),
+			pt_amount INT,
 			created_at TIMESTAMP,
 			updated_at TIMESTAMP,
-			xch_id INTEGER,
-		)
+			xch_id INTEGER
+		);
+
 	`)
+	if err != nil {
+		log.Printf("Failed to create trades: %v", err)
+	}
 
 	return nil
 }
@@ -368,6 +372,7 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 		}
 
 	}
+	// log.Println(orders)
 	log.Println(len(orders), "orders added to db")
 	return nil
 }
@@ -938,10 +943,13 @@ func WriteTrades(db *sql.DB, trades []model.Trade) error {
 		trade.PTAmount = i + 1
 
 		query := `
-			INSERT INTO trades (
-				group_id, product_id, side, entry_price, stop_price, target_price, size, target_number, created_at, xch_id
-			) VALUES ($1, $2,$3,$4,$5,$6,$7,$8,$9,$10)
-			RETURNING id`
+            INSERT INTO trades (
+                group_id, product_id, side, entry_price, stop_price, size,
+                entry_order_id, stop_order_id, entry_status, stop_status,
+                pt_price, pt_status, pt_order_id, pt_amount,
+                created_at, updated_at, xch_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            RETURNING id`
 
 		err := db.QueryRow(
 			query,
@@ -949,12 +957,21 @@ func WriteTrades(db *sql.DB, trades []model.Trade) error {
 			trade.ProductID,
 			trade.Side,
 			trade.EntryPrice,
-			trade.PTPrice,
+			trade.StopPrice,
 			trade.Size,
+			trade.EntryOrderID,
+			trade.StopOrderID,
+			trade.EntryStatus,
+			trade.StopStatus,
+			trade.PTPrice,
+			trade.PTStatus,
+			trade.PTOrderID,
 			trade.PTAmount,
+			time.Now(),
 			time.Now(),
 			trade.XchID,
 		).Scan(&trade.ID)
+
 		if err != nil {
 			return err
 		}
