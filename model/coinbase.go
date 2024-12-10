@@ -532,7 +532,7 @@ type CoinbaseAccount struct {
 }
 
 func (api *CoinbaseAPI) PlaceBracketOrder(trade_group Trade) error {
-	log.Println("Place Bracked Order", trade_group)
+	log.Println("Coinbase API Place Bracket Order", trade_group)
 	entryOrderBody := struct {
 		ClientOrderID      string `json:"client_order_id"`
 		ProductID          string `json:"product_id"`

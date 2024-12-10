@@ -34,6 +34,7 @@ type Exchange struct {
 	API               ExchangeAPI
 	AvailableProducts []Product
 	Portfolio         []Asset
+	Trades            []Trade
 }
 
 type ExchangeAPI interface {

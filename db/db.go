@@ -603,6 +603,10 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	if err != nil {
 		return exchange, fmt.Errorf("error getting portfolio: %w", err)
 	}
+	exchange.Trades, err = GetTradesByExchange(db, exchange.ID)
+	if err != nil {
+		return exchange, fmt.Errorf("error getting trades: %v", err)
+	}
 
 	switch exchange.Name {
 	case "Coinbase":
@@ -985,7 +989,6 @@ func GetAllTrades(db *sql.DB) ([]model.Trade, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
 
 	var trades []model.Trade
@@ -998,13 +1001,14 @@ func GetAllTrades(db *sql.DB) ([]model.Trade, error) {
 			&t.Side,
 			&t.EntryPrice,
 			&t.StopPrice,
-			&t.PTPrice,
+			&t.Size,
 			&t.EntryOrderID,
 			&t.StopOrderID,
-			&t.PTOrderID,
 			&t.EntryStatus,
 			&t.StopStatus,
+			&t.PTPrice,
 			&t.PTStatus,
+			&t.PTOrderID,
 			&t.PTAmount,
 			&t.CreatedAt,
 			&t.UpdatedAt,
@@ -1024,7 +1028,6 @@ func GetTradesByExchange(db *sql.DB, exchange_id int) ([]model.Trade, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
 
 	var trades []model.Trade
@@ -1037,13 +1040,14 @@ func GetTradesByExchange(db *sql.DB, exchange_id int) ([]model.Trade, error) {
 			&t.Side,
 			&t.EntryPrice,
 			&t.StopPrice,
-			&t.PTPrice,
+			&t.Size,
 			&t.EntryOrderID,
 			&t.StopOrderID,
-			&t.PTOrderID,
 			&t.EntryStatus,
 			&t.StopStatus,
+			&t.PTPrice,
 			&t.PTStatus,
+			&t.PTOrderID,
 			&t.PTAmount,
 			&t.CreatedAt,
 			&t.UpdatedAt,
@@ -1058,12 +1062,11 @@ func GetTradesByExchange(db *sql.DB, exchange_id int) ([]model.Trade, error) {
 }
 
 func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
-	query := `SELECT * FROM trades WHERE group_id = $1 ORDER BY target_number`
+	query := `SELECT * FROM trades WHERE group_id = $1 ORDER BY pt_amount`
 	rows, err := db.Query(query, groupID)
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
 
 	var trades []model.Trade
@@ -1076,13 +1079,14 @@ func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
 			&t.Side,
 			&t.EntryPrice,
 			&t.StopPrice,
-			&t.PTPrice,
+			&t.Size,
 			&t.EntryOrderID,
 			&t.StopOrderID,
-			&t.PTOrderID,
 			&t.EntryStatus,
 			&t.StopStatus,
+			&t.PTPrice,
 			&t.PTStatus,
+			&t.PTOrderID,
 			&t.PTAmount,
 			&t.CreatedAt,
 			&t.UpdatedAt,
