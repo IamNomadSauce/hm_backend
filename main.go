@@ -100,13 +100,34 @@ func main() {
 	}()
 
 	// Trade Manager
-	// go func() {
-	// 	for {
-	// 		trades, err := db.GetAllTrades(app.DB)
-	// 		time.Sleep(5 * time.Second)
-	// 	}
+	go func() {
+		log.Println("startingTrade Manage goroutine")
+		for {
+			trades, err := db.GetAllTrades(app.DB)
+			if err != nil {
+				log.Printf("Error getting incomplete trades: %v", err)
+				time.Sleep(5 * time.Second)
+				continue
+			}
 
-	// }()
+			for _, trade := range trades {
+				log.Println("Trade: ", trade)
+			}
+		}
+
+		// for _, trade := range trades {
+
+		// exchanges, err := db.Get_exchanges(app.DB)
+		// if err != nil {
+		// 	log.Printf("Error getting exchanges for trade %d: %v", trade.ID, err)
+		// 	continue
+		// }
+
+		// var exchange *model.Exchange
+		// for _, e :=
+		// }
+	}()
+
 	select {}
 }
 
