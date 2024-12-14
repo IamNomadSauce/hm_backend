@@ -45,6 +45,25 @@ func main() {
 		log.Fatal("Error listing tables:", err)
 	}
 
+	// Initialize websockets
+	db_exchanges, err := db.Get_Exchanges(app.DB)
+	if err != nil {
+		log.Printf("Error getting initial exchanges: %v", err)
+	} else {
+		for _, exchange := range db_exchanges {
+			if exchange.API == nil {
+				log.Printf("API for exchange %s is not initialized\n", exchange.Name)
+				continue
+			}
+
+			if err := exchange.API.ConnectMarketDataWebSocket(); err != nil {
+				log.Printf("Error connecting WebSocket for %s: %v", exchange.Name, err)
+			}
+		}
+
+		log.Println("Websockets Initialized")
+	}
+
 	go func() {
 		for {
 			db_exchanges, err := db.Get_Exchanges(app.DB)
@@ -100,33 +119,33 @@ func main() {
 	}()
 
 	// Trade Manager
-	go func() {
-		log.Println("startingTrade Manage goroutine")
-		for {
-			trades, err := db.GetAllTrades(app.DB)
-			if err != nil {
-				log.Printf("Error getting incomplete trades: %v", err)
-				time.Sleep(5 * time.Second)
-				continue
-			}
+	// go func() {
+	// 	log.Println("startingTrade Manage goroutine")
+	// 	for {
+	// 		trades, err := db.GetAllTrades(app.DB)
+	// 		if err != nil {
+	// 			log.Printf("Error getting incomplete trades: %v", err)
+	// 			time.Sleep(5 * time.Second)
+	// 			continue
+	// 		}
 
-			for _, trade := range trades {
-				log.Println("Trade: ", trade)
-			}
-		}
+	// 		for _, trade := range trades {
+	// 			log.Println("Trade: ", trade)
+	// 		}
+	// 	}
 
-		// for _, trade := range trades {
+	// 	// for _, trade := range trades {
 
-		// exchanges, err := db.Get_exchanges(app.DB)
-		// if err != nil {
-		// 	log.Printf("Error getting exchanges for trade %d: %v", trade.ID, err)
-		// 	continue
-		// }
+	// 	// exchanges, err := db.Get_exchanges(app.DB)
+	// 	// if err != nil {
+	// 	// 	log.Printf("Error getting exchanges for trade %d: %v", trade.ID, err)
+	// 	// 	continue
+	// 	// }
 
-		// var exchange *model.Exchange
-		// for _, e :=
-		// }
-	}()
+	// 	// var exchange *model.Exchange
+	// 	// for _, e :=
+	// 	// }
+	// }()
 
 	select {}
 }

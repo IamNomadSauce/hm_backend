@@ -3,13 +3,18 @@ package model
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
+	"crypto/x509"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
+	"math/big"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,7 +22,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 type CoinbaseAPI struct {
@@ -35,6 +43,193 @@ type CoinbaseAPI struct {
 	MinimumOrderSizes   map[string]float64
 	MakerFee            float64
 	TakerFee            float64
+	WSConn              *websocket.Conn
+}
+
+func (api *CoinbaseAPI) ConnectWebSocket() error {
+	url := "wss://advanced-trade-ws-user.coinbase.com" // Changed to user endpoint
+	c, _, err := websocket.DefaultDialer.Dial(url, nil)
+	if err != nil {
+		return fmt.Errorf("Coinbase WebSocket dial error: %v", err)
+	}
+	api.WSConn = c
+
+	// Generate JWT for authentication
+	jwt, err := buildJWT(api.APIKey, api.APISecret)
+	if err != nil {
+		return fmt.Errorf("failed to generate JWT: %v", err)
+	}
+
+	subscribeMsg := struct {
+		Type     string   `json:"type"`
+		Channels []string `json:"channels"`
+		JWT      string   `json:"jwt"`
+	}{
+		Type:     "subscribe",
+		Channels: []string{"heartbeats", "user"},
+		JWT:      jwt,
+	}
+
+	if err := c.WriteJSON(subscribeMsg); err != nil {
+		return fmt.Errorf("WebSocket subscription error: %v", err)
+	}
+
+	go api.handleWebsocketMessages()
+	go api.monitorHeartbeat()
+
+	return nil
+}
+
+func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
+	url := "wss://advanced-trade-ws.coinbase.com"
+	c, _, err := websocket.DefaultDialer.Dial(url, nil)
+	if err != nil {
+		return fmt.Errorf("Market Data WebSocket dial error: %v", err)
+	}
+	api.WSConn = c
+
+	subscribeMsg := struct {
+		Type       string   `json:"type"`
+		ProductIDs []string `json:"product_ids"`
+		Channel    string   `json:"channel"`
+	}{
+		Type:       "subscribe",
+		ProductIDs: []string{"BTC-USD"},
+		Channel:    "ticker",
+	}
+
+	log.Printf("Debug - Sending subscription message: %+v", subscribeMsg)
+
+	if err := c.WriteJSON(subscribeMsg); err != nil {
+		return fmt.Errorf("WebSocket subscription error: %v", err)
+	}
+
+	go func() {
+		for {
+			_, message, err := c.ReadMessage()
+			if err != nil {
+				log.Printf("WebSocket read error: %v", err)
+				return
+			}
+
+			var msg map[string]interface{}
+			if err := json.Unmarshal(message, &msg); err != nil {
+				log.Printf("JSON unmarshal error: %v", err)
+				continue
+			}
+
+			log.Printf("Received market data: %+v", msg)
+		}
+	}()
+
+	return nil
+}
+
+func buildJWT(apiKey, apiSecret string) (string, error) {
+	block, _ := pem.Decode([]byte(apiSecret))
+	if block == nil {
+		return "", fmt.Errorf("jwt: Could not decode private key")
+	}
+
+	key, err := x509.ParseECPrivateKey(block.Bytes)
+	if err != nil {
+		return "", fmt.Errorf("jwt: %w", err)
+	}
+
+	sig, err := jose.NewSigner(
+		jose.SigningKey{Algorithm: jose.ES256, Key: key},
+		(&jose.SignerOptions{NonceSource: nonceSource{}}).WithType("JWT").WithHeader("kid", apiKey),
+	)
+	if err != nil {
+		return "", fmt.Errorf("jwt: %w", err)
+	}
+
+	cl := &APIKeyClaims{
+		Claims: &jwt.Claims{
+			Subject:   apiKey,
+			Issuer:    "cdp",
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Expiry:    jwt.NewNumericDate(time.Now().Add(2 * time.Minute)),
+		},
+	}
+
+	return jwt.Signed(sig).Claims(cl).CompactSerialize()
+}
+
+type APIKeyClaims struct {
+	*jwt.Claims
+}
+
+type nonceSource struct{}
+
+func (n nonceSource) Nonce() (string, error) {
+	r, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
+	if err != nil {
+		return "", err
+	}
+	return r.String(), nil
+}
+
+func (api *CoinbaseAPI) monitorHeartbeat() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if err := api.WSConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				log.Printf("Failed to send ping: %v", err)
+				api.reconnectWebSocket()
+				return
+			}
+		}
+	}
+}
+
+func (api *CoinbaseAPI) reconnectWebSocket() {
+	time.Sleep(5 * time.Second)
+	if err := api.ConnectWebSocket(); err != nil {
+		log.Printf("Failed to reconnect WebSocket: %v", err)
+	}
+}
+
+func (api *CoinbaseAPI) handleWebsocketMessages() {
+	for {
+		_, message, err := api.WSConn.ReadMessage()
+		if err != nil {
+			log.Printf("WebSocket read error: %v", err)
+			return
+		}
+
+		var msg map[string]interface{}
+		if err := json.Unmarshal(message, &msg); err != nil {
+			log.Printf("JSON unmarshall error: %v", err)
+			continue
+		}
+
+		log.Println("New Websocket Message", msg)
+
+		switch msg["type"] {
+		case "heartbeat":
+			log.Printf("Heartbeat received: %v", msg)
+		case "ticker":
+			api.handleTickerUpdate(msg)
+		case "update":
+			if msg["channel"] == "user" {
+				api.handleOrderUpdate(msg)
+			}
+		}
+
+	}
+}
+
+func (api *CoinbaseAPI) handleTickerUpdate(msg map[string]interface{}) {
+	log.Println("Handle Ticker Update", msg)
+}
+
+func (api *CoinbaseAPI) handleOrderUpdate(msg map[string]interface{}) {
+	log.Println("Handle Order Update", msg)
+	// Process order and update DB
 }
 
 type CoinbaseOrder struct {

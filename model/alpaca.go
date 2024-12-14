@@ -31,6 +31,13 @@ type AlpacaAPI struct {
 	TakerFee            float64
 }
 
+func (api *AlpacaAPI) ConnectWebSocket() error {
+	return nil
+}
+func (api *AlpacaAPI) ConnectMarketDataWebSocket() error {
+	return nil
+}
+
 func (api *AlpacaAPI) PlaceBracketOrder(trade_group TradeBlock) error {
 	return nil
 }
