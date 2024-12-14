@@ -88,43 +88,87 @@ func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
 	}
 	api.WSConn = c
 
-	subscribeMsg := struct {
+	// First subscribe to ticker channel (no auth needed)
+	tickerMsg := struct {
 		Type       string   `json:"type"`
 		ProductIDs []string `json:"product_ids"`
 		Channel    string   `json:"channel"`
 	}{
 		Type:       "subscribe",
-		ProductIDs: []string{"BTC-USD"},
+		ProductIDs: []string{"BTC-USD", "XLM-USD"},
 		Channel:    "ticker",
 	}
 
-	log.Printf("Debug - Sending subscription message: %+v", subscribeMsg)
+	if err := c.WriteJSON(tickerMsg); err != nil {
+		return fmt.Errorf("WebSocket ticker subscription error: %v", err)
+	}
+	log.Printf("Debug - Sending ticker subscription message: %+v", tickerMsg)
 
-	if err := c.WriteJSON(subscribeMsg); err != nil {
-		return fmt.Errorf("WebSocket subscription error: %v", err)
+	// Then subscribe to heartbeats channel (requires auth)
+	heartbeatMsg := struct {
+		Type       string   `json:"type"`
+		ProductIDs []string `json:"product_ids"`
+		Channel    string   `json:"channel"`
+		JWT        string   `json:"jwt"`
+	}{
+		Type:       "subscribe",
+		ProductIDs: []string{"BTC-USD", "XLM-USD"},
+		Channel:    "heartbeats",
+		JWT:        api.generateJWT(), // You'll need to implement this
 	}
 
-	go func() {
-		for {
-			_, message, err := c.ReadMessage()
-			if err != nil {
-				log.Printf("WebSocket read error: %v", err)
-				return
-			}
+	log.Printf("Debug - Sending heartbeat subscription message: %+v", heartbeatMsg)
+	if err := c.WriteJSON(heartbeatMsg); err != nil {
+		return fmt.Errorf("WebSocket heartbeat subscription error: %v", err)
+	}
 
-			var msg map[string]interface{}
-			if err := json.Unmarshal(message, &msg); err != nil {
-				log.Printf("JSON unmarshal error: %v", err)
-				continue
-			}
-
-			log.Printf("Received market data: %+v", msg)
-		}
-	}()
+	go api.handleWebsocketMessages()
+	go api.monitorHeartbeat()
 
 	return nil
 }
 
+func (api *CoinbaseAPI) generateJWT() string {
+	timestamp := time.Now().Unix()
+	message := fmt.Sprintf("%d%s%s", timestamp, "GET", "/ws/auth")
+	h := hmac.New(sha256.New, []byte(api.APISecret))
+	h.Write([]byte(message))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func (api *CoinbaseAPI) handleWebsocketMessages() {
+	for {
+		_, message, err := api.WSConn.ReadMessage()
+		if err != nil {
+			log.Printf("WebSocket read error: %v", err)
+			return
+		}
+
+		var msg map[string]interface{}
+		if err := json.Unmarshal(message, &msg); err != nil {
+			log.Printf("JSON unmarshal error: %v", err)
+			continue
+		}
+
+		// log.Printf("Debug - Received message: %+v", msg)
+
+		switch msg["channel"] {
+		case "error":
+			log.Printf("WebSocket error received: %v", msg["message"])
+			return
+		case "subscribe":
+			log.Printf("Subscription confirmed for channels: %v", msg["channels"])
+		case "heartbeat":
+			log.Printf("Heartbeat received for: %v", msg["product_ids"])
+		case "ticker":
+			if events, ok := msg["events"].([]interface{}); ok {
+				for _, event := range events {
+					api.handleTickerUpdate(event.(map[string]interface{}))
+				}
+			}
+		}
+	}
+}
 func buildJWT(apiKey, apiSecret string) (string, error) {
 	block, _ := pem.Decode([]byte(apiSecret))
 	if block == nil {
@@ -190,36 +234,6 @@ func (api *CoinbaseAPI) reconnectWebSocket() {
 	time.Sleep(5 * time.Second)
 	if err := api.ConnectWebSocket(); err != nil {
 		log.Printf("Failed to reconnect WebSocket: %v", err)
-	}
-}
-
-func (api *CoinbaseAPI) handleWebsocketMessages() {
-	for {
-		_, message, err := api.WSConn.ReadMessage()
-		if err != nil {
-			log.Printf("WebSocket read error: %v", err)
-			return
-		}
-
-		var msg map[string]interface{}
-		if err := json.Unmarshal(message, &msg); err != nil {
-			log.Printf("JSON unmarshall error: %v", err)
-			continue
-		}
-
-		log.Println("New Websocket Message", msg)
-
-		switch msg["type"] {
-		case "heartbeat":
-			log.Printf("Heartbeat received: %v", msg)
-		case "ticker":
-			api.handleTickerUpdate(msg)
-		case "update":
-			if msg["channel"] == "user" {
-				api.handleOrderUpdate(msg)
-			}
-		}
-
 	}
 }
 
