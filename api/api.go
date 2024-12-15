@@ -147,7 +147,7 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 	}
 
 	var open_orders []model.Order
-	log.Printf("Orders: %d", len(orders))
+	// log.Printf("Orders: %d", len(orders))
 	if len(orders) > 0 {
 		// var fills []model.Fill
 
@@ -191,7 +191,7 @@ func Do_Orders_and_Fills(exchange model.Exchange, database *sql.DB) error {
 			}
 		}
 
-		log.Println("Open Orders:", len(open_orders))
+		// log.Println("Open Orders:", len(open_orders))
 		if len(open_orders) > 0 {
 		}
 		// log.Println("Filled Orders:", len(fills))
@@ -216,7 +216,7 @@ func Do_Portfolio(exchange model.Exchange, database *sql.DB) error {
 		return err
 	}
 
-	log.Println(len(portfolio))
+	// log.Println(len(portfolio))
 	// for _, asset := range portfolio {
 	// 	log.Println("Asset:", asset)
 	// }
@@ -260,7 +260,7 @@ func Fetch_Orders_and_Fills(exchange model.Exchange) ([]model.Order, error) {
 		log.Printf("Error getting orders from Exchange API: %s \n%w", exchange.Name, err)
 		return nil, err
 	}
-	log.Printf("Orders Fetched: %s", exchange.Name)
+	// log.Printf("Orders Fetched: %s", exchange.Name)
 	return orders, nil
 }
 

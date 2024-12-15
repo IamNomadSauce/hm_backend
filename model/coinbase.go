@@ -194,6 +194,7 @@ func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 						// Handle positions snapshot
 						if positions, ok := eventMap["positions"].(map[string]interface{}); ok {
 							log.Printf("\n=== Initial Positions Snapshot ===")
+							log.Println(eventMap["positions"])
 
 							// Handle perpetual futures positions
 							if perpetual, ok := positions["perpetual_futures_positions"].([]interface{}); ok && len(perpetual) > 0 {
@@ -564,7 +565,7 @@ func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
 				XchID:          api.ExchangeID,
 			}
 
-			log.Printf("Created order - Price: %v, Size: %v, Time: %v", order.Price, order.Size, order.Timestamp)
+			// log.Printf("Created order - Price: %v, Size: %v, Time: %v", order.Price, order.Size, order.Timestamp)
 			filteredOrders = append(filteredOrders, order)
 		}
 	}
@@ -1094,7 +1095,7 @@ func (api *CoinbaseAPI) GetOrder(orderID string) (*CoinbaseOrder, error) {
 
 // Exchange operation
 func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
-	log.Println("FetchPortfolio")
+	// log.Println("FetchPortfolio")
 	// var accounts []Asset
 	err := godotenv.Load()
 	if err != nil {
@@ -1179,8 +1180,7 @@ func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 			}
 
 			assets = append(assets, asset)
-			log.Printf("Added asset %s: Available=%v Hold=%v Value=%v",
-				account.Currency, availableBalance, holdBalance, totalValue)
+			// log.Printf("Added asset %s: Available=%v Hold=%v Value=%v", account.Currency, availableBalance, holdBalance, totalValue)
 		}
 	}
 

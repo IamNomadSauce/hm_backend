@@ -79,7 +79,7 @@ func main() {
 			}
 			for _, exchange := range db_exchanges {
 				if exchange.API == nil {
-					log.Printf("API for exchange %s is not initialized\n", exchange.Name)
+					// log.Printf("API for exchange %s is not initialized\n", exchange.Name)
 					continue
 				}
 				err := api.Fetch_And_Store_Candles(exchange, app.DB, false)
@@ -97,7 +97,7 @@ func main() {
 					log.Printf("Error executing Do_Orders for %s\n%v\n", exchange.Name, err)
 				}
 
-				log.Println("Do_Portfolio")
+				// log.Println("Do_Portfolio")
 				err = api.Do_Portfolio(exchange, app.DB)
 				if err != nil {
 					log.Printf("Error executing Do_Portfolio for %s\n%v", exchange.Name, err)

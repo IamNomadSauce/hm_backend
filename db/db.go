@@ -48,7 +48,7 @@ func DBConnect() (*sql.DB, error) {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	log.Printf("Attempting to connect with: host=%s port=%d user=%s dbname=%s\n", host, port, user, dbname)
+	// log.Printf("Attempting to connect with: host=%s port=%d user=%s dbname=%s\n", host, port, user, dbname)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
@@ -74,7 +74,7 @@ func DBConnect() (*sql.DB, error) {
 }
 
 func CreateTables(db *sql.DB) error {
-	log.Println("\n------------------------------\n CreateTables \n------------------------------\n")
+	// log.Println("\n------------------------------\n CreateTables \n------------------------------\n")
 
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS exchanges (
@@ -266,7 +266,7 @@ func Get_Available_Products(exchange model.Exchange, db *sql.DB) ([]model.Produc
 }
 
 func Write_AvailableProducts(exchange int, products []model.Product, db *sql.DB) error {
-	log.Println("Write_AvailableProducts", exchange, len(products))
+	// log.Println("Write_AvailableProducts", exchange, len(products))
 	// Begin transaction
 	tx, err := db.Begin()
 	if err != nil {
@@ -329,7 +329,7 @@ func Write_AvailableProducts(exchange int, products []model.Product, db *sql.DB)
 }
 
 func ListTables(db *sql.DB) error {
-	log.Println("\n------------------------------\n ListTables \n------------------------------\n")
+	// log.Println("\n------------------------------\n ListTables \n------------------------------\n")
 	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
 	if err != nil {
 		log.Println("Error listing tables", err)
@@ -343,14 +343,14 @@ func ListTables(db *sql.DB) error {
 			log.Println("Error scanning table name", err)
 			return err
 		}
-		log.Println(" -", tableName)
+		// log.Println(" -", tableName)
 	}
 
 	return nil
 }
 
 func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Current Orders for all accounts
-	log.Println("\n------------------------------\n Write Order \n------------------------------\n")
+	// log.Println("\n------------------------------\n Write Order \n------------------------------\n")
 
 	_, err := db.Exec("DELETE FROM orders WHERE xch_id = $1;", xch_id)
 	if err != nil {
@@ -358,7 +358,7 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 		return err
 	}
 
-	log.Println("Orders Deleted")
+	// log.Println("Orders Deleted")
 
 	insertQuery := `
 	INSERT INTO orders (order_id, product_id, trade_type, side, price, size, xch_id, market_category, time, total_fees)
@@ -373,7 +373,7 @@ func Write_Orders(xch_id int, orders []model.Order, db *sql.DB) error { // Curre
 
 	}
 	// log.Println(orders)
-	log.Println(len(orders), "orders added to db")
+	// log.Println(len(orders), "orders added to db")
 	return nil
 }
 
@@ -459,7 +459,7 @@ func Write_Fills(xch_id int, fills []model.Fill, db *sql.DB) error {
 			return fmt.Errorf("error inserting fill: %w", err)
 		}
 	}
-	log.Println(len(fills), "fills added to db")
+	// log.Println(len(fills), "fills added to db")
 
 	return tx.Commit()
 }
@@ -569,7 +569,7 @@ func Write_Watchlist(db *sql.DB, exchangeID int, productID string) error {
 }
 
 func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
-	log.Printf("\n-------------------------------------\n Get Exchange  %v\n-------------------------------------\n", id)
+	// log.Printf("\n-------------------------------------\n Get Exchange  %v\n-------------------------------------\n", id)
 
 	var exchange model.Exchange
 	var err error
@@ -730,7 +730,7 @@ func Write_Portfolio(xch_id int, portfolio []model.Asset, db *sql.DB) error {
 		}
 	}
 
-	log.Printf("%d assets added to portfolio", len(portfolio))
+	// log.Printf("%d assets added to portfolio", len(portfolio))
 	return nil
 }
 
