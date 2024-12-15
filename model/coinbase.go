@@ -92,7 +92,7 @@ func (api *CoinbaseAPI) ConnectUserWebsocket() error {
 	api.UserWSConn = c
 
 	// Generate JWT token
-	jwtToken, err := generateUserJWT(api.APIKey, []byte(os.Getenv("CBAPIKEY"))) // Assuming CBPRIVATEKEY is in your .env
+	jwtToken, err := generateUserJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET"))) // Assuming CBPRIVATEKEY is in your .env
 	if err != nil {
 		return fmt.Errorf("JWT generation error: %v", err)
 	}
