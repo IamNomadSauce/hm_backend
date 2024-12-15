@@ -71,7 +71,7 @@ func (api *CoinbaseAPI) ConnectUserWebsocket() error {
 		JWT:     jwtToken,
 	}
 
-	log.Printf("Debug - Sending user subscription message: %+v", subscribeMsg)
+	// log.Printf("Debug - Sending user subscription message: %+v", subscribeMsg)
 
 	if err := c.WriteJSON(subscribeMsg); err != nil {
 		return fmt.Errorf("user WebSocket subscription error: %v", err)
@@ -134,6 +134,9 @@ func generateNonce() string {
 }
 
 func (api *CoinbaseAPI) handleUserWebsocketMessages() {
+	// Keep track of last known order status
+	orderStatuses := make(map[string]string)
+
 	for {
 		_, message, err := api.UserWSConn.ReadMessage()
 		if err != nil {
@@ -147,37 +150,56 @@ func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 			continue
 		}
 
-		log.Println(msg)
+		if events, ok := msg["events"].([]interface{}); ok {
+			for _, event := range events {
+				if eventMap, ok := event.(map[string]interface{}); ok {
+					eventType, exists := eventMap["type"]
+					if !exists {
+						continue
+					}
 
-		switch msg["type"] {
-		case "error":
-			log.Printf("CoinbaseUser WebSocket error: %v", msg["message"])
-			return
+					switch eventType {
+					case "snapshot":
+						if orders, ok := eventMap["orders"].([]interface{}); ok {
+							log.Printf("\n=== Initial Orders Snapshot ===")
+							for _, order := range orders {
+								if o, ok := order.(map[string]interface{}); ok {
+									orderID := o["order_id"].(string)
+									status := o["status"].(string)
+									orderStatuses[orderID] = status
+									log.Printf("Order: ID=%v, Side=%v, Product=%v, Status=%v, Price=%v, Size=%v",
+										orderID, o["order_side"], o["product_id"],
+										status, o["limit_price"], o["leaves_quantity"])
+								}
+							}
+						}
 
-		case "subscribe":
-			log.Printf("User channel subscription confirmed")
+					case "update":
+						if orders, ok := eventMap["orders"].([]interface{}); ok {
+							for _, order := range orders {
+								if o, ok := order.(map[string]interface{}); ok {
+									orderID := o["order_id"].(string)
+									newStatus := o["status"].(string)
 
-		case "update":
-			if events, ok := msg["events"].([]interface{}); ok {
-				for _, event := range events {
-					if e, ok := event.(map[string]interface{}); ok {
-						switch e["type"] {
-						case "order_update":
-							log.Printf("Order Update - ID: %v, Status: %v",
-								e["order_id"], e["status"])
-							api.handleOrderUpdate(e)
-
-						case "trade_update":
-							log.Printf("Trade Update - Order ID: %v, Size: %v, Price: %v",
-								e["order_id"], e["size"], e["price"])
-
-						case "balance_update":
-							log.Printf("Balance Update - Asset: %v, Available: %v, Hold: %v",
-								e["currency"], e["available"], e["hold"])
+									// Only log if status has changed
+									if lastStatus, exists := orderStatuses[orderID]; !exists || lastStatus != newStatus {
+										orderStatuses[orderID] = newStatus
+										log.Printf("\n=== Order Update ===")
+										log.Printf("ID: %v, Side: %v, Status: %v, Product: %v",
+											orderID, o["order_side"], newStatus, o["product_id"])
+									}
+								}
+							}
 						}
 					}
 				}
 			}
+		}
+
+		// Handle error messages
+		if msgType, ok := msg["type"].(string); ok && msgType == "error" {
+			log.Printf("User WebSocket error: %v", msg["message"])
+			return
 		}
 	}
 }
@@ -204,7 +226,7 @@ func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
 	if err := c.WriteJSON(tickerMsg); err != nil {
 		return fmt.Errorf("WebSocket ticker subscription error: %v", err)
 	}
-	log.Printf("Debug - Sending ticker subscription message: %+v", tickerMsg)
+	// log.Printf("Debug - Sending ticker subscription message: %+v", tickerMsg)
 
 	// Then subscribe to heartbeats channel (requires auth)
 	heartbeatMsg := struct {
@@ -219,7 +241,7 @@ func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
 		JWT:        api.generateJWT(), // You'll need to implement this
 	}
 
-	log.Printf("Debug - Sending heartbeat subscription message: %+v", heartbeatMsg)
+	// log.Printf("Debug - Sending heartbeat subscription message: %+v", heartbeatMsg)
 	if err := c.WriteJSON(heartbeatMsg); err != nil {
 		return fmt.Errorf("WebSocket heartbeat subscription error: %v", err)
 	}
@@ -1008,7 +1030,7 @@ func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 	}
 
 	// Print raw response for debugging
-	fmt.Printf("Raw response: %s\n", string(responseBody))
+	// fmt.Printf("Raw response: %s\n", string(responseBody))
 
 	err = json.Unmarshal(responseBody, &response)
 	if err != nil {
