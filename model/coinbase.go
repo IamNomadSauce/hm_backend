@@ -2,11 +2,13 @@ package model
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/x509"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
@@ -23,10 +25,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 type CoinbaseAPI struct {
@@ -90,7 +91,8 @@ func (api *CoinbaseAPI) ConnectUserWebsocket() error {
 	}
 	api.UserWSConn = c
 
-	jwt, err := buildJWT()
+	// Generate JWT token
+	jwtToken, err := generateUserJWT(api.APIKey, []byte(os.Getenv("CBAPIKEY"))) // Assuming CBPRIVATEKEY is in your .env
 	if err != nil {
 		return fmt.Errorf("JWT generation error: %v", err)
 	}
@@ -102,8 +104,7 @@ func (api *CoinbaseAPI) ConnectUserWebsocket() error {
 	}{
 		Type:    "subscribe",
 		Channel: "user",
-		// JWT:     api.generateJWT2(),
-		JWT: jwt,
+		JWT:     jwtToken,
 	}
 
 	log.Printf("Debug - Sending user subscription message: %+v", subscribeMsg)
@@ -113,9 +114,86 @@ func (api *CoinbaseAPI) ConnectUserWebsocket() error {
 	}
 
 	go api.handleUserWebsocketMessages()
-
 	return nil
 }
+
+func generateUserJWT(apiKeyName string, privateKeyBytes []byte) (string, error) {
+	block, _ := pem.Decode(privateKeyBytes)
+	if block == nil {
+		return "", fmt.Errorf("invalid PEM block")
+	}
+
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		key, err = x509.ParseECPrivateKey(block.Bytes) // Try EC key parsing if PKCS8 fails
+		if err != nil {
+			return "", fmt.Errorf("failed to parse private key: %v", err)
+		}
+	}
+
+	ecKey, ok := key.(*ecdsa.PrivateKey)
+	if !ok {
+		return "", fmt.Errorf("key is not an ECDSA private key")
+	}
+
+	now := time.Now().Unix()
+	claims := jwt.MapClaims{
+		"iss": "coinbase-cloud",
+		"sub": apiKeyName,
+		"nbf": now,
+		"exp": now + 120,
+		"uri": "wss://advanced-trade-ws-user.coinbase.com",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token.Header["kid"] = apiKeyName
+	token.Header["nonce"] = generateNonce()
+
+	return token.SignedString(ecKey)
+}
+
+func generateNonce() string {
+	nonce := make([]byte, 16)
+	if _, err := rand.Read(nonce); err != nil {
+		panic(err)
+	}
+	return base64.StdEncoding.EncodeToString(nonce)
+}
+
+// func (api *CoinbaseAPI) ConnectUserWebsocket() error {
+// 	url := "wss://advanced-trade-ws-user.coinbase.com"
+// 	c, _, err := websocket.DefaultDialer.Dial(url, nil)
+// 	if err != nil {
+// 		return fmt.Errorf("Coinbase User WebSocket dial error: %v", err)
+// 	}
+// 	api.UserWSConn = c
+
+// 	jwt, err := buildJWT()
+// 	if err != nil {
+// 		return fmt.Errorf("JWT generation error: %v", err)
+// 	}
+
+// 	subscribeMsg := struct {
+// 		Type    string `json:"type"`
+// 		Channel string `json:"channel"`
+// 		JWT     string `json:"jwt"`
+// 	}{
+// 		Type:    "subscribe",
+// 		Channel: "user",
+// 		// JWT:     api.generateJWT2(),
+// 		JWT: jwt,
+// 	}
+
+// 	log.Printf("Debug - Sending user subscription message: %+v", subscribeMsg)
+
+// 	if err := c.WriteJSON(subscribeMsg); err != nil {
+// 		return fmt.Errorf("User WebSocket subscription error: %v", err)
+// 	}
+
+// 	go api.handleUserWebsocketMessages()
+
+// 	return nil
+// }
 
 func (api *CoinbaseAPI) generateSignature(message string) string {
 	h := hmac.New(sha256.New, []byte(api.APISecret))
@@ -304,43 +382,43 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 // 	return jwt.Signed(sig).Claims(cl).CompactSerialize()
 // }
 
-func buildJWT() (string, error) {
-	block, _ := pem.Decode([]byte(os.Getenv("CBAPISECRET")))
-	if block == nil {
-		return "", fmt.Errorf("jwt: Could not decode private key")
-	}
+// func buildJWT() (string, error) {
+// 	block, _ := pem.Decode([]byte(os.Getenv("CBAPISECRET")))
+// 	if block == nil {
+// 		return "", fmt.Errorf("jwt: Could not decode private key")
+// 	}
 
-	key, err := x509.ParseECPrivateKey(block.Bytes)
-	if err != nil {
-		return "", fmt.Errorf("jwt: %w", err)
-	}
+// 	key, err := x509.ParseECPrivateKey(block.Bytes)
+// 	if err != nil {
+// 		return "", fmt.Errorf("jwt: %w", err)
+// 	}
 
-	sig, err := jose.NewSigner(
-		jose.SigningKey{Algorithm: jose.ES256, Key: key},
-		(&jose.SignerOptions{NonceSource: nonceSource{}}).WithType("JWT").WithHeader("kid", os.Getenv("CBAPIKEY")),
-	)
-	if err != nil {
-		return "", fmt.Errorf("jwt: %w", err)
-	}
+// 	sig, err := jose.NewSigner(
+// 		jose.SigningKey{Algorithm: jose.ES256, Key: key},
+// 		(&jose.SignerOptions{NonceSource: nonceSource{}}).WithType("JWT").WithHeader("kid", os.Getenv("CBAPIKEY")),
+// 	)
+// 	if err != nil {
+// 		return "", fmt.Errorf("jwt: %w", err)
+// 	}
 
-	cl := &APIKeyClaims{
-		Claims: &jwt.Claims{
-			Subject:   os.Getenv("CBAPIKEY"),
-			Issuer:    "cdp",
-			NotBefore: jwt.NewNumericDate(time.Now()),
-			Expiry:    jwt.NewNumericDate(time.Now().Add(2 * time.Minute)),
-		},
-	}
-	jwtString, err := jwt.Signed(sig).Claims(cl).CompactSerialize()
-	if err != nil {
-		return "", fmt.Errorf("jwt: %w", err)
-	}
-	return jwtString, nil
-}
+// 	cl := &APIKeyClaims{
+// 		Claims: &jwt.Claims{
+// 			Subject:   os.Getenv("CBAPIKEY"),
+// 			Issuer:    "cdp",
+// 			NotBefore: jwt.NewNumericDate(time.Now()),
+// 			Expiry:    jwt.NewNumericDate(time.Now().Add(2 * time.Minute)),
+// 		},
+// 	}
+// 	jwtString, err := jwt.Signed(sig).Claims(cl).CompactSerialize()
+// 	if err != nil {
+// 		return "", fmt.Errorf("jwt: %w", err)
+// 	}
+// 	return jwtString, nil
+// }
 
-type APIKeyClaims struct {
-	*jwt.Claims
-}
+// type APIKeyClaims struct {
+// 	*jwt.Claims
+// }
 
 type nonceSource struct{}
 

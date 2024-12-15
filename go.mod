@@ -10,6 +10,7 @@ require (
 require github.com/google/uuid v1.6.0
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gorilla/websocket v1.5.3
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
