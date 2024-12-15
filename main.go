@@ -56,7 +56,12 @@ func main() {
 				continue
 			}
 
-			if err := exchange.API.ConnectMarketDataWebSocket(); err != nil {
+			// Works
+			// if err := exchange.API.ConnectMarketDataWebSocket(); err != nil {
+			// 	log.Printf("Error connecting WebSocket for %s: %v", exchange.Name, err)
+			// }
+
+			if err := exchange.API.ConnectUserWebsocket(); err != nil {
 				log.Printf("Error connecting WebSocket for %s: %v", exchange.Name, err)
 			}
 		}

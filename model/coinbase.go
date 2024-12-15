@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 	"sort"
 	"strconv"
 	"time"
@@ -44,40 +45,131 @@ type CoinbaseAPI struct {
 	MakerFee            float64
 	TakerFee            float64
 	WSConn              *websocket.Conn
+	UserWSConn          *websocket.Conn
 }
 
-func (api *CoinbaseAPI) ConnectWebSocket() error {
-	url := "wss://advanced-trade-ws-user.coinbase.com" // Changed to user endpoint
+// func (api *CoinbaseAPI) ConnectWebSocket() error {
+// 	url := "wss://advanced-trade-ws-user.coinbase.com" // Changed to user endpoint
+// 	c, _, err := websocket.DefaultDialer.Dial(url, nil)
+// 	if err != nil {
+// 		return fmt.Errorf("Coinbase WebSocket dial error: %v", err)
+// 	}
+// 	api.WSConn = c
+
+// 	// Generate JWT for authentication
+// 	jwt, err := buildJWT(api.APIKey, api.APISecret)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to generate JWT: %v", err)
+// 	}
+
+// 	subscribeMsg := struct {
+// 		Type     string   `json:"type"`
+// 		Channels []string `json:"channels"`
+// 		JWT      string   `json:"jwt"`
+// 	}{
+// 		Type:     "subscribe",
+// 		Channels: []string{"heartbeats", "user"},
+// 		JWT:      jwt,
+// 	}
+
+// 	if err := c.WriteJSON(subscribeMsg); err != nil {
+// 		return fmt.Errorf("WebSocket subscription error: %v", err)
+// 	}
+
+// 	go api.handleWebsocketMessages()
+// 	go api.monitorHeartbeat()
+
+// 	return nil
+// }
+
+func (api *CoinbaseAPI) ConnectUserWebsocket() error {
+	url := "wss://advanced-trade-ws-user.coinbase.com"
 	c, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
-		return fmt.Errorf("Coinbase WebSocket dial error: %v", err)
+		return fmt.Errorf("Coinbase User WebSocket dial error: %v", err)
 	}
-	api.WSConn = c
+	api.UserWSConn = c
 
-	// Generate JWT for authentication
-	jwt, err := buildJWT(api.APIKey, api.APISecret)
+	jwt, err := buildJWT()
 	if err != nil {
-		return fmt.Errorf("failed to generate JWT: %v", err)
+		return fmt.Errorf("JWT generation error: %v", err)
 	}
 
 	subscribeMsg := struct {
-		Type     string   `json:"type"`
-		Channels []string `json:"channels"`
-		JWT      string   `json:"jwt"`
+		Type    string `json:"type"`
+		Channel string `json:"channel"`
+		JWT     string `json:"jwt"`
 	}{
-		Type:     "subscribe",
-		Channels: []string{"heartbeats", "user"},
-		JWT:      jwt,
+		Type:    "subscribe",
+		Channel: "user",
+		// JWT:     api.generateJWT2(),
+		JWT: jwt,
 	}
+
+	log.Printf("Debug - Sending user subscription message: %+v", subscribeMsg)
 
 	if err := c.WriteJSON(subscribeMsg); err != nil {
-		return fmt.Errorf("WebSocket subscription error: %v", err)
+		return fmt.Errorf("User WebSocket subscription error: %v", err)
 	}
 
-	go api.handleWebsocketMessages()
-	go api.monitorHeartbeat()
+	go api.handleUserWebsocketMessages()
 
 	return nil
+}
+
+func (api *CoinbaseAPI) generateSignature(message string) string {
+	h := hmac.New(sha256.New, []byte(api.APISecret))
+	h.Write([]byte(message))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func (api *CoinbaseAPI) handleUserWebsocketMessages() {
+	for {
+		_, message, err := api.UserWSConn.ReadMessage()
+		if err != nil {
+			log.Printf("User WebSocket read error: %v", err)
+			return
+		}
+
+		var msg map[string]interface{}
+		if err := json.Unmarshal(message, &msg); err != nil {
+			log.Printf("JSON unmarshal error: %v", err)
+			continue
+		}
+
+		log.Println(msg)
+
+		switch msg["type"] {
+		case "error":
+			log.Printf("CoinbaseUser WebSocket error: %v", msg["message"])
+			return
+
+		case "subscribe":
+			log.Printf("User channel subscription confirmed")
+
+		case "update":
+			if events, ok := msg["events"].([]interface{}); ok {
+				for _, event := range events {
+					if e, ok := event.(map[string]interface{}); ok {
+						switch e["type"] {
+						case "order_update":
+							log.Printf("Order Update - ID: %v, Status: %v",
+								e["order_id"], e["status"])
+							api.handleOrderUpdate(e)
+
+						case "trade_update":
+							log.Printf("Trade Update - Order ID: %v, Size: %v, Price: %v",
+								e["order_id"], e["size"], e["price"])
+
+						case "balance_update":
+							log.Printf("Balance Update - Asset: %v, Available: %v, Hold: %v",
+								e["currency"], e["available"], e["hold"])
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
@@ -123,13 +215,24 @@ func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
 	}
 
 	go api.handleWebsocketMessages()
-	go api.monitorHeartbeat()
+	// go api.monitorHeartbeat()
 
 	return nil
 }
 
+func (api *CoinbaseAPI) generateJWT2() string {
+	timestamp := strconv.FormatInt(time.Now().UTC().Unix(), 10)
+	message := fmt.Sprintf("%s%s%s", timestamp, "ticker", "BTC-USD")
+	h := hmac.New(sha256.New, []byte(api.APISecret))
+	h.Write([]byte(message))
+	signature := hex.EncodeToString(h.Sum(nil))
+	return signature
+}
+
 func (api *CoinbaseAPI) generateJWT() string {
+	// timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	timestamp := time.Now().Unix()
+	log.Println("Timestamp", timestamp, reflect.TypeOf(timestamp))
 	message := fmt.Sprintf("%d%s%s", timestamp, "GET", "/ws/auth")
 	h := hmac.New(sha256.New, []byte(api.APISecret))
 	h.Write([]byte(message))
@@ -169,8 +272,40 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		}
 	}
 }
-func buildJWT(apiKey, apiSecret string) (string, error) {
-	block, _ := pem.Decode([]byte(apiSecret))
+
+// func buildJWT(apiKey, apiSecret string) (string, error) {
+// 	block, _ := pem.Decode([]byte(apiSecret))
+// 	if block == nil {
+// 		return "", fmt.Errorf("jwt: Could not decode private key")
+// 	}
+
+// 	key, err := x509.ParseECPrivateKey(block.Bytes)
+// 	if err != nil {
+// 		return "", fmt.Errorf("jwt: %w", err)
+// 	}
+
+// 	sig, err := jose.NewSigner(
+// 		jose.SigningKey{Algorithm: jose.ES256, Key: key},
+// 		(&jose.SignerOptions{NonceSource: nonceSource{}}).WithType("JWT").WithHeader("kid", apiKey),
+// 	)
+// 	if err != nil {
+// 		return "", fmt.Errorf("jwt: %w", err)
+// 	}
+
+// 	cl := &APIKeyClaims{
+// 		Claims: &jwt.Claims{
+// 			Subject:   apiKey,
+// 			Issuer:    "cdp",
+// 			NotBefore: jwt.NewNumericDate(time.Now()),
+// 			Expiry:    jwt.NewNumericDate(time.Now().Add(2 * time.Minute)),
+// 		},
+// 	}
+
+// 	return jwt.Signed(sig).Claims(cl).CompactSerialize()
+// }
+
+func buildJWT() (string, error) {
+	block, _ := pem.Decode([]byte(os.Getenv("CBAPISECRET")))
 	if block == nil {
 		return "", fmt.Errorf("jwt: Could not decode private key")
 	}
@@ -182,7 +317,7 @@ func buildJWT(apiKey, apiSecret string) (string, error) {
 
 	sig, err := jose.NewSigner(
 		jose.SigningKey{Algorithm: jose.ES256, Key: key},
-		(&jose.SignerOptions{NonceSource: nonceSource{}}).WithType("JWT").WithHeader("kid", apiKey),
+		(&jose.SignerOptions{NonceSource: nonceSource{}}).WithType("JWT").WithHeader("kid", os.Getenv("CBAPIKEY")),
 	)
 	if err != nil {
 		return "", fmt.Errorf("jwt: %w", err)
@@ -190,14 +325,17 @@ func buildJWT(apiKey, apiSecret string) (string, error) {
 
 	cl := &APIKeyClaims{
 		Claims: &jwt.Claims{
-			Subject:   apiKey,
+			Subject:   os.Getenv("CBAPIKEY"),
 			Issuer:    "cdp",
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Expiry:    jwt.NewNumericDate(time.Now().Add(2 * time.Minute)),
 		},
 	}
-
-	return jwt.Signed(sig).Claims(cl).CompactSerialize()
+	jwtString, err := jwt.Signed(sig).Claims(cl).CompactSerialize()
+	if err != nil {
+		return "", fmt.Errorf("jwt: %w", err)
+	}
+	return jwtString, nil
 }
 
 type APIKeyClaims struct {
@@ -214,28 +352,28 @@ func (n nonceSource) Nonce() (string, error) {
 	return r.String(), nil
 }
 
-func (api *CoinbaseAPI) monitorHeartbeat() {
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
+// func (api *CoinbaseAPI) monitorHeartbeat() {
+// 	ticker := time.NewTicker(30 * time.Second)
+// 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			if err := api.WSConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				log.Printf("Failed to send ping: %v", err)
-				api.reconnectWebSocket()
-				return
-			}
-		}
-	}
-}
+// 	for {
+// 		select {
+// 		case <-ticker.C:
+// 			if err := api.WSConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+// 				log.Printf("Failed to send ping: %v", err)
+// 				api.reconnectWebSocket()
+// 				return
+// 			}
+// 		}
+// 	}
+// }
 
-func (api *CoinbaseAPI) reconnectWebSocket() {
-	time.Sleep(5 * time.Second)
-	if err := api.ConnectWebSocket(); err != nil {
-		log.Printf("Failed to reconnect WebSocket: %v", err)
-	}
-}
+// func (api *CoinbaseAPI) reconnectWebSocket() {
+// 	time.Sleep(5 * time.Second)
+// 	if err := api.ConnectWebSocket(); err != nil {
+// 		log.Printf("Failed to reconnect WebSocket: %v", err)
+// 	}
+// }
 
 func (api *CoinbaseAPI) handleTickerUpdate(msg map[string]interface{}) {
 	log.Println("Handle Ticker Update", msg)

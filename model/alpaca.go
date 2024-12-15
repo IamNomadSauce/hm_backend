@@ -37,6 +37,9 @@ func (api *AlpacaAPI) ConnectWebSocket() error {
 func (api *AlpacaAPI) ConnectMarketDataWebSocket() error {
 	return nil
 }
+func (api *AlpacaAPI) ConnectUserWebSocket() error {
+	return nil
+}
 
 func (api *AlpacaAPI) PlaceBracketOrder(trade_group TradeBlock) error {
 	return nil
