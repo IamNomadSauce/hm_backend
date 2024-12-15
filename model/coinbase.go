@@ -71,13 +71,30 @@ func (api *CoinbaseAPI) ConnectUserWebsocket() error {
 		JWT:     jwtToken,
 	}
 
-	// log.Printf("Debug - Sending user subscription message: %+v", subscribeMsg)
-
 	if err := c.WriteJSON(subscribeMsg); err != nil {
 		return fmt.Errorf("user WebSocket subscription error: %v", err)
 	}
 
+	// Subscribe to heartbeats channel
+	heartbeatMsg := struct {
+		Type    string `json:"type"`
+		Channel string `json:"channel"`
+		JWT     string `json:"jwt"`
+	}{
+		Type:    "subscribe",
+		Channel: "heartbeats",
+		JWT:     jwtToken,
+	}
+
+	if err := c.WriteJSON(heartbeatMsg); err != nil {
+		return fmt.Errorf("heartbeat subscription error: %v", err)
+	}
+
+	// log.Printf("Debug - Sending user subscription message: %+v", subscribeMsg)
+
 	go api.handleUserWebsocketMessages()
+	go api.monitorUserHeartbeat()
+
 	return nil
 }
 
@@ -134,7 +151,6 @@ func generateNonce() string {
 }
 
 func (api *CoinbaseAPI) handleUserWebsocketMessages() {
-	// Keep track of last known order status
 	orderStatuses := make(map[string]string)
 
 	for {
@@ -160,6 +176,7 @@ func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 
 					switch eventType {
 					case "snapshot":
+						// Handle orders snapshot
 						if orders, ok := eventMap["orders"].([]interface{}); ok {
 							log.Printf("\n=== Initial Orders Snapshot ===")
 							for _, order := range orders {
@@ -174,14 +191,53 @@ func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 							}
 						}
 
+						// Handle positions snapshot
+						if positions, ok := eventMap["positions"].(map[string]interface{}); ok {
+							log.Printf("\n=== Initial Positions Snapshot ===")
+
+							// Handle perpetual futures positions
+							if perpetual, ok := positions["perpetual_futures_positions"].([]interface{}); ok && len(perpetual) > 0 {
+								log.Printf("\nPerpetual Futures Positions:")
+								for _, pos := range perpetual {
+									if p, ok := pos.(map[string]interface{}); ok {
+										log.Printf("Product: %v, Side: %v, Size: %v, Entry Price: %v, Mark Price: %v, PnL: %v",
+											p["product_id"],
+											p["position_side"],
+											p["net_size"],
+											p["entry_vwap"],
+											p["mark_price"],
+											p["unrealized_pnl"])
+									}
+								}
+							}
+
+							// Handle expiring futures positions
+							if expiring, ok := positions["expiring_futures_positions"].([]interface{}); ok && len(expiring) > 0 {
+								log.Printf("\nExpiring Futures Positions:")
+								for _, pos := range expiring {
+									if p, ok := pos.(map[string]interface{}); ok {
+										log.Printf("Product: %v, Side: %v, Contracts: %v, Entry Price: %v, PnL: %v",
+											p["product_id"],
+											p["side"],
+											p["number_of_contracts"],
+											p["entry_price"],
+											p["unrealized_pnl"])
+									}
+								}
+							}
+
+							// If no positions found
+							if len(positions) == 0 {
+								log.Printf("No open positions found")
+							}
+						}
+
 					case "update":
 						if orders, ok := eventMap["orders"].([]interface{}); ok {
 							for _, order := range orders {
 								if o, ok := order.(map[string]interface{}); ok {
 									orderID := o["order_id"].(string)
 									newStatus := o["status"].(string)
-
-									// Only log if status has changed
 									if lastStatus, exists := orderStatuses[orderID]; !exists || lastStatus != newStatus {
 										orderStatuses[orderID] = newStatus
 										log.Printf("\n=== Order Update ===")
@@ -191,12 +247,30 @@ func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 								}
 							}
 						}
+						if positions, ok := eventMap["positions"].(map[string]interface{}); ok {
+							log.Printf("\n=== Position Update ===")
+							if perpetual, ok := positions["perpetual_futures_positions"].([]interface{}); ok {
+								for _, pos := range perpetual {
+									if p, ok := pos.(map[string]interface{}); ok {
+										log.Printf("Perpetual Future Update: Product=%v, Side=%v, Size=%v",
+											p["product_id"], p["position_side"], p["net_size"])
+									}
+								}
+							}
+							if expiring, ok := positions["expiring_futures_positions"].([]interface{}); ok {
+								for _, pos := range expiring {
+									if p, ok := pos.(map[string]interface{}); ok {
+										log.Printf("Expiring Future Update: Product=%v, Side=%v, Contracts=%v",
+											p["product_id"], p["side"], p["number_of_contracts"])
+									}
+								}
+							}
+						}
 					}
 				}
 			}
 		}
 
-		// Handle error messages
 		if msgType, ok := msg["type"].(string); ok && msgType == "error" {
 			log.Printf("User WebSocket error: %v", msg["message"])
 			return
@@ -283,6 +357,44 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 				}
 			}
 		}
+	}
+}
+
+func (api *CoinbaseAPI) monitorUserHeartbeat() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if err := api.UserWSConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				log.Printf("Failed to send user websocket ping: %v", err)
+				api.reconnectUserWebSocket()
+				return
+			}
+		}
+	}
+}
+
+func (api *CoinbaseAPI) reconnectUserWebSocket() {
+	log.Println("Attempting to reconnect user websocket...")
+	api.UserWSConn.Close()
+
+	backoff := time.Second
+	maxBackoff := time.Minute * 2
+
+	for {
+		if err := api.ConnectUserWebsocket(); err != nil {
+			log.Printf("Failed to reconnect user websocket: %v", err)
+			time.Sleep(backoff)
+			backoff *= 2
+			if backoff > maxBackoff {
+				backoff = maxBackoff
+			}
+			continue
+		}
+		log.Println("Successfully reconnected user websocket")
+		return
 	}
 }
 
