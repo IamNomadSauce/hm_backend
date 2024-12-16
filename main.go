@@ -124,33 +124,56 @@ func main() {
 	}()
 
 	// Trade Manager
-	// go func() {
-	// 	log.Println("startingTrade Manage goroutine")
-	// 	for {
-	// 		trades, err := db.GetAllTrades(app.DB)
-	// 		if err != nil {
-	// 			log.Printf("Error getting incomplete trades: %v", err)
-	// 			time.Sleep(5 * time.Second)
-	// 			continue
-	// 		}
+	go func() {
+		log.Println("startingTrade Manage goroutine")
+		for {
+			trades, err := db.GetAllTrades(app.DB)
+			if err != nil {
+				log.Printf("Error getting incomplete trades: %v", err)
+				// time.Sleep(5 * time.Second)
+				continue
+			}
 
-	// 		for _, trade := range trades {
-	// 			log.Println("Trade: ", trade)
-	// 		}
-	// 	}
+			tradeGroups := make(map[string][]model.Trade)
+			for _, trade := range trades {
+				tradeGroups[trade.GroupID] = append(tradeGroups[trade.GroupID], trade)
+			}
 
-	// 	// for _, trade := range trades {
+			for groupID, groupTrades := range tradeGroups {
+				log.Printf("Processing trade group: %s", groupID)
 
-	// 	// exchanges, err := db.Get_exchanges(app.DB)
-	// 	// if err != nil {
-	// 	// 	log.Printf("Error getting exchanges for trade %d: %v", trade.ID, err)
-	// 	// 	continue
-	// 	// }
+				for _, trade := range groupTrades {
+					exchange, err := db.Get_Exchange(trade.XchID, database)
+					if err != nil {
+						log.Println("Error getting exchange: ", err)
+					}
+					if trade.EntryOrderID == "" {
+						log.Printf("Placing entry order for trade in group %s", groupID)
+						orderID, err := exchange.API.PlaceOrder(trade)
+						if err != nil {
+							log.Printf("Error placing entry order: %v", err)
+							continue
+						}
 
-	// 	// var exchange *model.Exchange
-	// 	// for _, e :=
-	// 	// }
-	// }()
+						err = db.UpdateTradeEntry(database, trade.ID, orderID)
+						if err != nil {
+							log.Printf("Error updating trade entry order: %v", err)
+						}
+					} else if trade.EntryStatus == "FILLED" && trade.StopOrderID == "" && trade.PTOrderID == "" {
+						log.Printf("Placing bracket orders for filled entry in group %s", groupID)
+						err := exchange.API.PlaceBracketOrder
+						if err != nil {
+							log.Printf("Error placing bracket orders: %v", err)
+						}
+					}
+				}
+
+			}
+
+			time.Sleep(1 * time.Minute)
+		}
+
+	}()
 
 	select {}
 }
@@ -223,14 +246,14 @@ func TradeBlockHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, trade := range trades {
-		err = exchange.API.PlaceBracketOrder(trade)
-		if err != nil {
-			log.Printf("Error placing bracket order: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to place bracket order: %v", err), http.StatusInternalServerError)
-			return
-		}
-	}
+	// for _, trade := range trades {
+	// 	err = exchange.API.PlaceBracketOrder(trade)
+	// 	if err != nil {
+	// 		log.Printf("Error placing bracket order: %v", err)
+	// 		http.Error(w, fmt.Sprintf("Failed to place bracket order: %v", err), http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// }
 
 	w.Header().Set("Content-Type", "applilcation/json")
 	json.NewEncoder(w).Encode(map[string]string{

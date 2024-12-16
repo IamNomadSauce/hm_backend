@@ -1100,6 +1100,18 @@ func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
 	return trades, nil
 }
 
+func UpdateTradeEntry(db *sql.DB, tradeID int, orderID string) error {
+	query := `
+		UPDATE trades 
+		SET
+			entry_order_id = $1,
+			updated_at = $2
+		WHERE id = $3
+	`
+	_, err := db.Exec(query, orderID, time.Now(), tradeID)
+	return err
+}
+
 func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, targetStatus string) error {
 	query := `
 		UPDATE trades
