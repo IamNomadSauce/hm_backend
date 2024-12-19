@@ -44,11 +44,11 @@ type ExchangeAPI interface {
 	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
 	FetchAvailableProducts() ([]Product, error)
 	PlaceBracketOrder(trade_group Trade) error
-	PlaceOrder(orderBody interface{}) (string, error)
+	PlaceOrder(trade Trade) (string, error)
 	// ConnectWebSocket() error
 	ConnectUserWebsocket() error
 	ConnectMarketDataWebSocket() error
-	// GetOrder(orderID string) (*)
+	GetOrder(orderID string) (*Order, error)
 }
 
 type Product struct {

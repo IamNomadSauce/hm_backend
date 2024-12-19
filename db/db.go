@@ -1100,31 +1100,42 @@ func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
 	return trades, nil
 }
 
+// Add debug logging to UpdateTradeEntry
 func UpdateTradeEntry(db *sql.DB, tradeID int, orderID string) error {
+	log.Printf("Updating trade entry - Trade ID: %d, Order ID: %s", tradeID, orderID)
+
 	query := `
-		UPDATE trades 
-		SET
-			entry_order_id = $1,
-			updated_at = $2
-		WHERE id = $3
-	`
-	_, err := db.Exec(query, orderID, time.Now(), tradeID)
-	return err
+        UPDATE trades 
+        SET
+            entry_order_id = $1,
+            entry_status = 'PENDING', 
+            updated_at = $2
+        WHERE id = $3
+        RETURNING entry_order_id, entry_status`
+
+	var updatedOrderID, updatedStatus string
+	err := db.QueryRow(query, orderID, time.Now(), tradeID).Scan(&updatedOrderID, &updatedStatus)
+	if err != nil {
+		return fmt.Errorf("failed to update trade entry: %w", err)
+	}
+
+	log.Printf("Trade entry updated - Order ID: %s, Status: %s", updatedOrderID, updatedStatus)
+	return nil
 }
 
-func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, targetStatus string) error {
+func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptStatus string) error {
 	query := `
-		UPDATE trades
-		SET
-			entry_status = $1,
-			stop_status = $2,
-			target_status = $3,
-			updated_at = $4,
-		WHERE group_id = %5`
+        UPDATE trades
+        SET
+            entry_status = $1,
+            stop_status = $2,
+            pt_status = $3,
+            updated_at = $4
+        WHERE group_id = $5`
 	_, err := db.Exec(query,
 		entryStatus,
 		stopStatus,
-		targetStatus,
+		ptStatus,
 		time.Now(),
 		groupID)
 

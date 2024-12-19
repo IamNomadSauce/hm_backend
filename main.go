@@ -123,14 +123,12 @@ func main() {
 		}
 	}()
 
-	// Trade Manager
 	go func() {
 		log.Println("startingTrade Manage goroutine")
 		for {
 			trades, err := db.GetAllTrades(app.DB)
 			if err != nil {
 				log.Printf("Error getting incomplete trades: %v", err)
-				// time.Sleep(5 * time.Second)
 				continue
 			}
 
@@ -146,9 +144,15 @@ func main() {
 					exchange, err := db.Get_Exchange(trade.XchID, database)
 					if err != nil {
 						log.Println("Error getting exchange: ", err)
+						continue
 					}
-					if trade.EntryOrderID == "" {
+
+					// Only place new orders if there's no entry order ID and status is empty
+					if trade.EntryOrderID == "" && trade.EntryStatus == "" {
 						log.Printf("Placing entry order for trade in group %s", groupID)
+						log.Printf("Entry: %f\nEntry: %f\nEntry: %f\n",
+							trade.EntryPrice, trade.StopPrice, trade.PTPrice)
+
 						orderID, err := exchange.API.PlaceOrder(trade)
 						if err != nil {
 							log.Printf("Error placing entry order: %v", err)
@@ -159,20 +163,35 @@ func main() {
 						if err != nil {
 							log.Printf("Error updating trade entry order: %v", err)
 						}
-					} else if trade.EntryStatus == "FILLED" && trade.StopOrderID == "" && trade.PTOrderID == "" {
-						log.Printf("Placing bracket orders for filled entry in group %s", groupID)
-						err := exchange.API.PlaceBracketOrder
+					} else if trade.EntryOrderID != "" {
+						// Check existing order status
+						order, err := exchange.API.GetOrder(trade.EntryOrderID)
 						if err != nil {
-							log.Printf("Error placing bracket orders: %v", err)
+							log.Printf("Error checking order status: %v", err)
+							continue
+						}
+
+						if order.Status != trade.EntryStatus {
+							err = db.UpdateTradeStatus(database, trade.GroupID, order.Status, trade.StopStatus, trade.PTStatus)
+							if err != nil {
+								log.Printf("Error updating trade status: %v", err)
+							}
+						}
+
+						// Place bracket orders only when entry is filled and no brackets exist
+						if order.Status == "FILLED" && trade.StopOrderID == "" && trade.PTOrderID == "" {
+							log.Printf("Placing bracket orders for filled entry in group %s", groupID)
+							err := exchange.API.PlaceBracketOrder(trade)
+							if err != nil {
+								log.Printf("Error placing bracket orders: %v", err)
+							}
 						}
 					}
 				}
-
 			}
 
 			time.Sleep(1 * time.Minute)
 		}
-
 	}()
 
 	select {}

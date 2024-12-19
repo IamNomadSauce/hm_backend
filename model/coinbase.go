@@ -152,7 +152,6 @@ func generateNonce() string {
 
 func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 	orderStatuses := make(map[string]string)
-
 	for {
 		_, message, err := api.UserWSConn.ReadMessage()
 		if err != nil {
@@ -176,62 +175,61 @@ func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 
 					switch eventType {
 					case "snapshot":
+						// ... existing
 						// Handle orders snapshot
-						if orders, ok := eventMap["orders"].([]interface{}); ok {
-							log.Printf("\n=== Initial Orders Snapshot ===")
-							for _, order := range orders {
-								if o, ok := order.(map[string]interface{}); ok {
-									orderID := o["order_id"].(string)
-									status := o["status"].(string)
-									orderStatuses[orderID] = status
-									log.Printf("Order: ID=%v, Side=%v, Product=%v, Status=%v, Price=%v, Size=%v",
-										orderID, o["order_side"], o["product_id"],
-										status, o["limit_price"], o["leaves_quantity"])
-								}
-							}
-						}
+						// if orders, ok := eventMap["orders"].([]interface{}); ok {
+						// 	log.Printf("\n=== Initial Orders Snapshot ===")
+						// 	for _, order := range orders {
+						// 		if o, ok := order.(map[string]interface{}); ok {
+						// 			orderID := o["order_id"].(string)
+						// 			status := o["status"].(string)
+						// 			orderStatuses[orderID] = status
+						// 			// log.Printf("Order: ID=%v, Side=%v, Product=%v, Status=%v, Price=%v, Size=%v", orderID, o["order_side"], o["product_id"],status, o["limit_price"], o["leaves_quantity"])
+						// 		}
+						// 	}
+						// }
 
 						// Handle positions snapshot
-						if positions, ok := eventMap["positions"].(map[string]interface{}); ok {
-							log.Printf("\n=== Initial Positions Snapshot ===")
-							log.Println(eventMap["positions"])
+						// if positions, ok := eventMap["positions"].(map[string]interface{}); ok {
+						// log.Printf("\n=== Initial Positions Snapshot ===")
+						// log.Println(eventMap["positions"])
 
-							// Handle perpetual futures positions
-							if perpetual, ok := positions["perpetual_futures_positions"].([]interface{}); ok && len(perpetual) > 0 {
-								log.Printf("\nPerpetual Futures Positions:")
-								for _, pos := range perpetual {
-									if p, ok := pos.(map[string]interface{}); ok {
-										log.Printf("Product: %v, Side: %v, Size: %v, Entry Price: %v, Mark Price: %v, PnL: %v",
-											p["product_id"],
-											p["position_side"],
-											p["net_size"],
-											p["entry_vwap"],
-											p["mark_price"],
-											p["unrealized_pnl"])
-									}
-								}
-							}
+						// Handle perpetual futures positions
+						// if perpetual, ok := positions["perpetual_futures_positions"].([]interface{}); ok && len(perpetual) > 0 {
+						// 	log.Printf("\nPerpetual Futures Positions:")
+						// 	for _, pos := range perpetual {
+						// 		if p, ok := pos.(map[string]interface{}); ok {
+						// 			log.Printf("Product: %v, Side: %v, Size: %v, Entry Price: %v, Mark Price: %v, PnL: %v",
+						// 				p["product_id"],
+						// 				p["position_side"],
+						// 				p["net_size"],
+						// 				p["entry_vwap"],
+						// 				p["mark_price"],
+						// 				p["unrealized_pnl"])
+						// 		}
+						// 	}
+						// }
 
-							// Handle expiring futures positions
-							if expiring, ok := positions["expiring_futures_positions"].([]interface{}); ok && len(expiring) > 0 {
-								log.Printf("\nExpiring Futures Positions:")
-								for _, pos := range expiring {
-									if p, ok := pos.(map[string]interface{}); ok {
-										log.Printf("Product: %v, Side: %v, Contracts: %v, Entry Price: %v, PnL: %v",
-											p["product_id"],
-											p["side"],
-											p["number_of_contracts"],
-											p["entry_price"],
-											p["unrealized_pnl"])
-									}
-								}
-							}
+						// Handle expiring futures positions
+						// if expiring, ok := positions["expiring_futures_positions"].([]interface{}); ok && len(expiring) > 0 {
+						// 	log.Printf("\nExpiring Futures Positions:")
+						// 	for _, pos := range expiring {
+						// 		if p, ok := pos.(map[string]interface{}); ok {
+						// 			log.Printf("Product: %v, Side: %v, Contracts: %v, Entry Price: %v, PnL: %v",
+						// 				p["product_id"],
+						// 				p["side"],
+						// 				p["number_of_contracts"],
+						// 				p["entry_price"],
+						// 				p["unrealized_pnl"])
+						// 		}
+						// 	}
+						// }
 
-							// If no positions found
-							if len(positions) == 0 {
-								log.Printf("No open positions found")
-							}
-						}
+						// If no positions found
+						// 	if len(positions) == 0 {
+						// 		log.Printf("No open positions found")
+						// 	}
+						// }
 
 					case "update":
 						if orders, ok := eventMap["orders"].([]interface{}); ok {
@@ -248,33 +246,9 @@ func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 								}
 							}
 						}
-						if positions, ok := eventMap["positions"].(map[string]interface{}); ok {
-							log.Printf("\n=== Position Update ===")
-							if perpetual, ok := positions["perpetual_futures_positions"].([]interface{}); ok {
-								for _, pos := range perpetual {
-									if p, ok := pos.(map[string]interface{}); ok {
-										log.Printf("Perpetual Future Update: Product=%v, Side=%v, Size=%v",
-											p["product_id"], p["position_side"], p["net_size"])
-									}
-								}
-							}
-							if expiring, ok := positions["expiring_futures_positions"].([]interface{}); ok {
-								for _, pos := range expiring {
-									if p, ok := pos.(map[string]interface{}); ok {
-										log.Printf("Expiring Future Update: Product=%v, Side=%v, Contracts=%v",
-											p["product_id"], p["side"], p["number_of_contracts"])
-									}
-								}
-							}
-						}
 					}
 				}
 			}
-		}
-
-		if msgType, ok := msg["type"].(string); ok && msgType == "error" {
-			log.Printf("User WebSocket error: %v", msg["message"])
-			return
 		}
 	}
 }
@@ -947,7 +921,7 @@ func (api *CoinbaseAPI) PlaceBracketOrder(trade_group Trade) error {
 	entryOrderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.8f", trade_group.Size)
 	entryOrderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.8f", trade_group.Size)
 
-	entryOrderID, err := api.PlaceOrder(entryOrderBody)
+	entryOrderID, err := api.PlaceOrder(trade_group)
 	if err != nil {
 		return fmt.Errorf("failed to place entry order: %w", err)
 	}
@@ -992,7 +966,7 @@ func (api *CoinbaseAPI) PlaceBracketOrder(trade_group Trade) error {
 				bracketBody.OrderConfiguration.TriggerBracketGTD.StopTriggerPrice = fmt.Sprintf("%.8f", trade_group.StopPrice)
 				bracketBody.OrderConfiguration.TriggerBracketGTD.EndTime = time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
 
-				_, err = api.PlaceOrder(bracketBody)
+				_, err = api.PlaceOrder(trade_group)
 				if err != nil {
 					log.Printf("Error placing bracket orders: %v", err)
 				}
@@ -1007,22 +981,45 @@ func (api *CoinbaseAPI) PlaceBracketOrder(trade_group Trade) error {
 	return nil
 }
 
-func (api *CoinbaseAPI) PlaceOrder(orderBody interface{}) (string, error) {
-	fmt.Println("Place Coinbase Order", orderBody)
-	timestamp := time.Now().Unix()
-	path := "/api/v3/brokerage/orders" // Fixed typo in path
-	method := "POST"
+func (api *CoinbaseAPI) PlaceOrder(trade Trade) (string, error) {
+	orderBody := struct {
+		ClientOrderID      string `json:"client_order_id"`
+		ProductID          string `json:"product_id"`
+		Side               string `json:"side"`
+		OrderConfiguration struct {
+			LimitLimitGtc struct {
+				BaseSize   string `json:"base_size"`
+				LimitPrice string `json:"limit_price"`
+				PostOnly   bool   `json:"post_only"`
+			} `json:"limit_limit_gtc"`
+		} `json:"order_configuration"`
+	}{
+		ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
+		ProductID:     trade.ProductID,
+		Side:          trade.Side,
+	}
+
+	// Format size and price with proper precision (6 decimal places for XLM)
+	orderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.2f", trade.Size)
+	orderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.6f", trade.EntryPrice)
+	orderBody.OrderConfiguration.LimitLimitGtc.PostOnly = false
 
 	bodyBytes, err := json.Marshal(orderBody)
 	if err != nil {
-		return "", fmt.Errorf("Error marshaling request body: %w", err)
+		return "", fmt.Errorf("error marshaling request body: %w", err)
 	}
+
+	log.Printf("Request body: %s", string(bodyBytes))
+
+	timestamp := time.Now().Unix()
+	path := "/api/v3/brokerage/orders"
+	method := "POST"
 
 	signature := GetCBSign(api.APISecret, timestamp, method, path, string(bodyBytes))
 
 	req, err := http.NewRequest(method, api.BaseURL+path, bytes.NewBuffer(bodyBytes))
 	if err != nil {
-		return "", fmt.Errorf("Error creating order request: %w", err)
+		return "", fmt.Errorf("error creating request: %w", err)
 	}
 
 	req.Header.Add("CB-ACCESS-SIGN", signature)
@@ -1034,27 +1031,36 @@ func (api *CoinbaseAPI) PlaceOrder(orderBody interface{}) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("Error executing order request: %w", err)
+		return "", fmt.Errorf("error executing request: %w", err)
 	}
 	defer resp.Body.Close()
 
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	log.Printf("Response body: %s", string(respBody))
+
 	var response struct {
+		Success       bool `json:"success"`
+		ErrorResponse struct {
+			Error        string `json:"error"`
+			Message      string `json:"message"`
+			ErrorDetails string `json:"error_details"`
+		} `json:"error_response"`
 		OrderID string `json:"order_id"`
-		Success bool   `json:"success"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return "", fmt.Errorf("Error decoding response: %w", err)
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return "", fmt.Errorf("error decoding response: %w", err)
 	}
 
 	if !response.Success {
-		return "", fmt.Errorf("Order placement unsuccessful")
+		return "", fmt.Errorf("order placement failed: %s - %s",
+			response.ErrorResponse.Error, response.ErrorResponse.Message)
 	}
 
 	return response.OrderID, nil
 }
 
-func (api *CoinbaseAPI) GetOrder(orderID string) (*CoinbaseOrder, error) {
+func (api *CoinbaseAPI) GetOrder(orderID string) (*Order, error) {
 	timestamp := time.Now().Unix()
 	path := fmt.Sprintf("/api/v3/brokerage/orders/get_order?order_id=%s", orderID)
 	method := "GET"
@@ -1067,7 +1073,7 @@ func (api *CoinbaseAPI) GetOrder(orderID string) (*CoinbaseOrder, error) {
 	}
 
 	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
 	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
 	req.Header.Add("CB-VERSION", "2015-07-22")
 	req.Header.Add("Content-Type", "application/json")
@@ -1077,20 +1083,60 @@ func (api *CoinbaseAPI) GetOrder(orderID string) (*CoinbaseOrder, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error executing get order request: %w", err)
 	}
-
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Error getting orger: status %d - %s", resp.StatusCode, string(body))
+	log.Printf("Getting order status for ID: %s", orderID)
+
+	var response struct {
+		Order struct {
+			OrderID            string `json:"order_id"`
+			ProductID          string `json:"product_id"`
+			Side               string `json:"side"`
+			Status             string `json:"status"`
+			CreatedTime        string `json:"created_time"`
+			CompletedTime      string `json:"completed_time"`
+			FilledSize         string `json:"filled_size"`
+			OrderType          string `json:"order_type"`
+			OrderConfiguration struct {
+				LimitLimitGtc struct {
+					BaseSize   string `json:"base_size"`
+					LimitPrice string `json:"limit_price"`
+				} `json:"limit_limit_gtc"`
+			} `json:"order_configuration"`
+		} `json:"order"`
+		Success bool `json:"success"`
 	}
 
-	var order CoinbaseOrder
-	if err := json.NewDecoder(resp.Body).Decode(&order); err != nil {
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Error reading response body: %w", err)
+	}
+
+	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("Error decoding order response: %w", err)
 	}
 
-	return &order, nil
+	if !response.Success {
+		return nil, fmt.Errorf("Unsuccessful order query")
+	}
+
+	log.Printf("Order %s status: %s", orderID, response.Order.Status)
+
+	size, _ := strconv.ParseFloat(response.Order.OrderConfiguration.LimitLimitGtc.BaseSize, 64)
+	price, _ := strconv.ParseFloat(response.Order.OrderConfiguration.LimitLimitGtc.LimitPrice, 64)
+	filledSize, _ := strconv.ParseFloat(response.Order.FilledSize, 64)
+
+	return &Order{
+		OrderID:    response.Order.OrderID,
+		ProductID:  response.Order.ProductID,
+		Side:       response.Order.Side,
+		Status:     response.Order.Status,
+		Size:       size,
+		Price:      price,
+		FilledSize: filledSize,
+		// OrderType: response.Order.OrderType,
+		Timestamp: response.Order.CreatedTime,
+	}, nil
 }
 
 // Exchange operation
