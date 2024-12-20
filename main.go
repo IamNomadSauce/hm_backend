@@ -230,7 +230,7 @@ func TradeBlockHandler(w http.ResponseWriter, r *http.Request) {
 		trade_group.EntryPrice,
 		trade_group.Size,
 		trade_group.StopPrice,
-		trade_group.RiskReward,
+		// trade_group.RiskReward,
 	)
 
 	exchange, err := db.Get_Exchange(trade_group.XchID, app.DB)

@@ -186,8 +186,18 @@ type TradeBlock struct {
 	EntryPrice    float64   `json:"entry_price"`
 	StopPrice     float64   `json:"stop_price"`
 	ProfitTargets []float64 `json:"profit_targets"`
-	RiskReward    float64   `json:"risk_reward"`
 	XchID         int       `json:"xch_id"`
+	// Trigger on Alert?
+}
+
+type Alert struct {
+	ID             string    `json:"id"`
+	ProductID      string    `json:"product_id`
+	Price          float64   `json:"price"`
+	TriggerOnClose bool      `json:"clolseorwick"`
+	AboveBelow     bool      `json:"abovebelow"`
+	TimeFrame      Timeframe `json"timeframe"`
+	// TradeBlock GroupID?
 }
 
 type Fill struct {

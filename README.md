@@ -19,8 +19,27 @@ mainloop
     |> api.Fetch_and_store_portfolio
         |> 
 Server
+--------------------------------------
+Loops:
+- Fetch and store candles, fills, portfolilo, orders, etc
+- Trade Manager
+- Alerts
+- SSE DB change 
 
-TODO:
+
+--------------------------------------
+Alerts
+- [ ] Create alert on client chart
+- [ ] Receive alert on backend
+- [ ] Write alert to db
+- [ ] Headers:
+    - AlertID
+    - Product_id
+    - Wick/Clolse
+    - AboveBelow
+    - Price
+    - Timeframe
+
 --------------------------------------
 - [x] Portfolio coinbase retrieval
 - [x] Portfolio storage
