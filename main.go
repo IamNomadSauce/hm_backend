@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/alerts"
 	"backend/api"
 	"backend/db"
 	"backend/model"
@@ -15,8 +16,10 @@ import (
 )
 
 type Application struct {
-	DB *sql.DB
-	mu sync.Mutex
+	DB           *sql.DB
+	mu           sync.Mutex
+	Exhanges     map[int]*model.Exchange
+	AlertManager *alerts.AlertManager
 }
 
 var app *Application
@@ -30,26 +33,12 @@ func main() {
 		log.Fatal("Error on main db connection:", err)
 	}
 
-	app = &Application{
-		DB: database,
-	}
-	defer app.DB.Close()
-
-	err = db.CreateTables(app.DB)
-	if err != nil {
-		log.Fatal("Error creating tables:", err)
-	}
-
-	err = db.ListTables(app.DB)
-	if err != nil {
-		log.Fatal("Error listing tables:", err)
-	}
-
 	// Initialize websockets
 	db_exchanges, err := db.Get_Exchanges(app.DB)
 	if err != nil {
 		log.Printf("Error getting initial exchanges: %v", err)
 	} else {
+		//Websockets
 		for _, exchange := range db_exchanges {
 			if exchange.API == nil {
 				log.Printf("API for exchange %s is not initialized\n", exchange.Name)
@@ -69,6 +58,24 @@ func main() {
 		log.Println("Websockets Initialized")
 	}
 
+	alerts_manager := alerts.NewAlertManager()
+	app = &Application{
+		DB:           database,
+		AlertManager: alerts_manager,
+	}
+	defer app.DB.Close()
+
+	err = db.CreateTables(app.DB)
+	if err != nil {
+		log.Fatal("Error creating tables:", err)
+	}
+
+	err = db.ListTables(app.DB)
+	if err != nil {
+		log.Fatal("Error listing tables:", err)
+	}
+
+	// Fill db loop
 	go func() {
 		for {
 			db_exchanges, err := db.Get_Exchanges(app.DB)
@@ -123,6 +130,7 @@ func main() {
 		}
 	}()
 
+	// Trade Manager
 	go func() {
 		log.Println("startingTrade Manage goroutine")
 		for {
@@ -191,6 +199,26 @@ func main() {
 			}
 
 			time.Sleep(1 * time.Minute)
+		}
+	}()
+
+	// Alerts. not so sure about this
+	go func() {
+		log.Println("Starting Alert Manager GoRoutine")
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+
+				// alerts, err := app.DB.GetActiveAlerts(app.DB)
+				// if err != nil {
+				// 	log.Printf("Error getting alerts: %v", err)
+				// 	continue
+				// }
+				// app.AlertManager.UpdateAlerts(alerts)
+			}
 		}
 	}()
 

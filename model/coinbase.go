@@ -1,6 +1,7 @@
 package model
 
 import (
+	"backend/alerts"
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/hmac"
@@ -13,6 +14,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	_ "hm/alerts"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -45,6 +47,7 @@ type CoinbaseAPI struct {
 	TakerFee            float64
 	WSConn              *websocket.Conn
 	UserWSConn          *websocket.Conn
+	alertManager        *alerts.AlertManager
 }
 
 func (api *CoinbaseAPI) ConnectUserWebsocket() error {
@@ -328,6 +331,8 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		case "ticker":
 			if events, ok := msg["events"].([]interface{}); ok {
 				for _, event := range events {
+					tickerData := event.(map[string]interface{})
+
 					api.handleTickerUpdate(event.(map[string]interface{}))
 				}
 			}
