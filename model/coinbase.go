@@ -329,13 +329,17 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		case "heartbeat":
 			log.Printf("Heartbeat received for: %v", msg["product_ids"])
 		case "ticker":
-			if events, ok := msg["events"].([]interface{}); ok {
-				for _, event := range events {
-					tickerData := event.(map[string]interface{})
+			productID := msg["product_id"].(string)
+			price, _ := strconv.ParseFloat(msg["product_id"].(string), 64)
+			triggeredAlerts := api.alertManager.ProcessTickerUpdate(productID, price)
 
-					api.handleTickerUpdate(event.(map[string]interface{}))
-				}
+			for _, alert := range triggeredAlerts {
+				log.Println("Alert Triggered", alert)
+				// if err := db.UpdateAlertStatus(api.DB, alert.ID, "triggered"); err != nil {
+				// 	log.Printf("Error updating alert status: %v", err)
+				// }
 			}
+
 		}
 	}
 }

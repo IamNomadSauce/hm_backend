@@ -19,7 +19,7 @@ func GetActiveAlerts(db *sql.DB) ([]alerts.Alert, error) {
 	}
 	defer rows.Close()
 
-	var alerts []alerts.Alert
+	var messages []alerts.Alert
 	for rows.Next() {
 		var alert alerts.Alert
 		err := rows.Scan(
@@ -35,9 +35,9 @@ func GetActiveAlerts(db *sql.DB) ([]alerts.Alert, error) {
 		if err != nil {
 			return nil, err
 		}
-		alerts = append(alerts, alert)
+		messages = append(messages, alert)
 	}
-	return alerts, nil
+	return messages, nil
 }
 
 func UpdateAlertStatus(db *sql.DB, alertID int, status string) error {
