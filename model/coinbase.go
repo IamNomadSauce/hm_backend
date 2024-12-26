@@ -14,7 +14,8 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	_ "hm/alerts"
+
+	// _ "hm/alerts"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -335,7 +336,7 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 
 			for _, alert := range triggeredAlerts {
 				log.Println("Alert Triggered", alert)
-				// if err := db.UpdateAlertStatus(api.DB, alert.ID, "triggered"); err != nil {
+				// if err := api.alertManager.UpdateAlertStatus(alert.ID, "triggered"); err != nil {
 				// 	log.Printf("Error updating alert status: %v", err)
 				// }
 			}

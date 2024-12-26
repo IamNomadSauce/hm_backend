@@ -18,51 +18,48 @@ import (
 type Application struct {
 	DB           *sql.DB
 	mu           sync.Mutex
-	Exhanges     map[int]*model.Exchange
+	Exchanges    map[int]*model.Exchange
 	AlertManager *alerts.AlertManager
 }
 
 var app *Application
 
 func main() {
-	fmt.Println("Main 10.25.2024")
+
+	app = &Application{
+		Exchanges: make(map[int]*model.Exchange), // Initialize the map
+	}
 
 	// Connect to DB
 	database, err := db.DBConnect()
 	if err != nil {
 		log.Fatal("Error on main db connection:", err)
 	}
+	app.DB = database // Set the DB connection
 
-	// Initialize websockets
+	// Initialize alert manager
+	alerts_manager := alerts.NewAlertManager()
+	app.AlertManager = alerts_manager
+
+	// Now you can safely get exchanges using app.DB
 	db_exchanges, err := db.Get_Exchanges(app.DB)
 	if err != nil {
 		log.Printf("Error getting initial exchanges: %v", err)
 	} else {
-		//Websockets
+		// Initialize websockets
 		for _, exchange := range db_exchanges {
 			if exchange.API == nil {
 				log.Printf("API for exchange %s is not initialized\n", exchange.Name)
 				continue
 			}
 
-			// Works
-			// if err := exchange.API.ConnectMarketDataWebSocket(); err != nil {
-			// 	log.Printf("Error connecting WebSocket for %s: %v", exchange.Name, err)
-			// }
-
 			if err := exchange.API.ConnectUserWebsocket(); err != nil {
 				log.Printf("Error connecting WebSocket for %s: %v", exchange.Name, err)
 			}
 		}
-
 		log.Println("Websockets Initialized")
 	}
 
-	alerts_manager := alerts.NewAlertManager()
-	app = &Application{
-		DB:           database,
-		AlertManager: alerts_manager,
-	}
 	defer app.DB.Close()
 
 	err = db.CreateTables(app.DB)
@@ -145,6 +142,7 @@ func main() {
 				tradeGroups[trade.GroupID] = append(tradeGroups[trade.GroupID], trade)
 			}
 
+			log.Println("Trade Blocks: ", len(tradeGroups))
 			for groupID, groupTrades := range tradeGroups {
 				log.Printf("Processing trade group: %s", groupID)
 
@@ -203,24 +201,24 @@ func main() {
 	}()
 
 	// Alerts. not so sure about this
-	go func() {
-		log.Println("Starting Alert Manager GoRoutine")
-		ticker := time.NewTicker(1 * time.Minute)
-		defer ticker.Stop()
+	// go func() {
+	// 	log.Println("Starting Alert Manager GoRoutine")
+	// 	ticker := time.NewTicker(1 * time.Minute)
+	// 	defer ticker.Stop()
 
-		for {
-			select {
-			case <-ticker.C:
+	// 	for {
+	// 		select {
+	// 		case <-ticker.C:
 
-				// alerts, err := app.DB.GetActiveAlerts(app.DB)
-				// if err != nil {
-				// 	log.Printf("Error getting alerts: %v", err)
-				// 	continue
-				// }
-				// app.AlertManager.UpdateAlerts(alerts)
-			}
-		}
-	}()
+	// 			// alerts, err := app.DB.GetActiveAlerts(app.DB)
+	// 			// if err != nil {
+	// 			// 	log.Printf("Error getting alerts: %v", err)
+	// 			// 	continue
+	// 			// }
+	// 			// app.AlertManager.UpdateAlerts(alerts)
+	// 		}
+	// 	}
+	// }()
 
 	select {}
 }

@@ -1,9 +1,9 @@
 package db
 
 import (
+	// "backend/alerts"
 	"backend/alerts"
 	"database/sql"
-	_ "hm/alerts"
 	"time"
 )
 
