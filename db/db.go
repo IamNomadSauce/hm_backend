@@ -211,6 +211,22 @@ func CreateTables(db *sql.DB) error {
 		log.Printf("Failed to create trades: %v", err)
 	}
 
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS alerts (
+			id SERIAL PRIMARY KEY,
+			product_id VARCHAR(255) NOT NULL,
+			type VARCHAR(50) NOT NULL,
+			price DECIMAL(18, 8) NOT NULL,
+			status VARCHAR(50) NOT NULL,
+			xch_id INT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil {
+		return fmt.Errorf("error creating alerts table: %w", err)
+	}
+
 	return nil
 }
 
