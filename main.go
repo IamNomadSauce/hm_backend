@@ -118,6 +118,7 @@ func main() {
 		http.HandleFunc("/candles", handleCandlesRequest)
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 		http.HandleFunc("/new_trade_group", TradeBlockHandler)
+		http.HandleFunc("/create-alert", createAlertHandler)
 
 		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
@@ -221,6 +222,37 @@ func main() {
 	// }()
 
 	select {}
+}
+
+func createAlertHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Create Alert")
+
+	var alert alerts.Alert
+
+	if err := json.NewDecoder(r.Body).Decode(&alert); err != nil {
+		log.Println("Error decoding json for new alert")
+		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	if alert.ProductID == "" || alert.Type == "" || (alert.Type != "price_above" && alert.Type != "price_below") || alert.Price <= 0 {
+		http.Error(w, "Invalid input: ProductID, Type (price_above/price_below, and Price are required", http.StatusBadRequest)
+		return
+	}
+
+	alertID, err := db.CreateAlert(app.DB, &alert)
+	if err != nil {
+		log.Println("Error inserting alert into database:", err)
+		http.Error(w, fmt.Sprintf("Failed to create alert: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "applilcation/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "success",
+		"message": "Alert Created Successfuly",
+		"alertID": alertID,
+	})
 }
 
 func TradeBlockHandler(w http.ResponseWriter, r *http.Request) {

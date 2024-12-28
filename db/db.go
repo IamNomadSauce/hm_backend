@@ -1,6 +1,7 @@
 package db
 
 import (
+	"backend/alerts"
 	"backend/model"
 	"context"
 	"database/sql"
@@ -1159,4 +1160,27 @@ func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptSt
 		groupID)
 
 	return err
+}
+
+func CreateAlert(db *sql.DB, alert *alerts.Alert) (int, error) {
+	query := `
+		INSERT INTO alerts (product_id, type, price, status, xch_id, created_at, update_at)
+		VALUES ($1, $2, $3, $4, %5, NOW(), NOW())
+		RETURNING id;
+	`
+
+	var alertID int
+	err := db.QueryRow(query,
+		alert.ProductID,
+		alert.Type,
+		alert.Price,
+		alert.Status,
+		alert.XchID,
+	).Scan(&alertID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return alertID, nil
 }
