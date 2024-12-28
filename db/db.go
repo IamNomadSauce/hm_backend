@@ -1164,8 +1164,8 @@ func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptSt
 
 func CreateAlert(db *sql.DB, alert *alerts.Alert) (int, error) {
 	query := `
-		INSERT INTO alerts (product_id, type, price, status, xch_id, created_at, update_at)
-		VALUES ($1, $2, $3, $4, %5, NOW(), NOW())
+		INSERT INTO alerts (product_id, type, price, status, xch_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
 		RETURNING id;
 	`
 
