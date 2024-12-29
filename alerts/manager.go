@@ -30,11 +30,13 @@ func (am *AlertManager) ProcessTickerUpdate(productID string, price float64) []A
 			}
 
 			triggered := false
-			switch alert.Type {
-			case "price_above":
+			switch alert.Condition {
+			case "wick_above":
 				triggered = price > alert.Price
-			case "price_below":
+			case "wick_below":
 				triggered = price < alert.Price
+			case "close_above":
+			case "close_below":
 			}
 
 			if triggered {

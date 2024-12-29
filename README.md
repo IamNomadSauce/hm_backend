@@ -29,16 +29,10 @@ Loops:
 
 --------------------------------------
 Alerts
-- [ ] Create alert on client chart
-- [ ] Receive alert on backend
-- [ ] Write alert to db
-- [ ] Headers:
-    - AlertID
-    - Product_id
-    - Wick/Clolse
-    - AboveBelow
-    - Price
-    - Timeframe
+- [x] Create alert on client chart
+- [x] Receive alert on backend
+- [x] Write alert to db
+- [ ] wick/close above/below for x_candles on x_timeline
 
 --------------------------------------
 - [x] Portfolio coinbase retrieval

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"backend/alerts"
 	"encoding/json"
 	"strconv"
 	"time"
@@ -25,6 +26,7 @@ type Timeframe struct {
 
 type Exchange struct {
 	ID                int
+	Alerts            []alerts.Alert
 	Name              string
 	Timeframes        []Timeframe
 	Orders            []Order

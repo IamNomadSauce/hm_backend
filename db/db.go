@@ -218,7 +218,11 @@ func CreateTables(db *sql.DB) error {
 			product_id VARCHAR(255) NOT NULL,
 			type VARCHAR(50) NOT NULL,
 			price DECIMAL(18, 8) NOT NULL,
+			timeframe VARCHAR(50) NOT NULL,
+			candle_count INT NOT NULL,
+			condition VARCHA(50) NOT NULL,
 			status VARCHAR(50) NOT NULL,
+			triggered_cound INT DEFAULT 0,
 			xch_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -623,6 +627,10 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	exchange.Trades, err = GetTradesByExchange(db, exchange.ID)
 	if err != nil {
 		return exchange, fmt.Errorf("error getting trades: %v", err)
+	}
+	exchange.Alerts, err = GetAlerts(db, exchange.ID, "active")
+	if err != nil {
+		return exchange, fmt.Errorf("error getting alerts %v", err)
 	}
 
 	switch exchange.Name {
@@ -1162,19 +1170,32 @@ func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptSt
 	return err
 }
 
+// ------------------------------------------------------------------------
+// Alerts
+// ------------------------------------------------------------------------
+
 func CreateAlert(db *sql.DB, alert *alerts.Alert) (int, error) {
 	query := `
-		INSERT INTO alerts (product_id, type, price, status, xch_id, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-		RETURNING id;
-	`
+        INSERT INTO alerts (
+            product_id, type, price, timeframe, candle_count, 
+            condition, status, triggered_count, xch_id, 
+            created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        RETURNING id;
+    `
 
 	var alertID int
-	err := db.QueryRow(query,
+	err := db.QueryRow(
+		query,
 		alert.ProductID,
 		alert.Type,
 		alert.Price,
+		alert.Timeframe,
+		alert.CandleCount,
+		alert.Condition,
 		alert.Status,
+		alert.TriggeredCount,
 		alert.XchID,
 	).Scan(&alertID)
 
@@ -1183,4 +1204,63 @@ func CreateAlert(db *sql.DB, alert *alerts.Alert) (int, error) {
 	}
 
 	return alertID, nil
+}
+
+func UpdateAlertTriggerCount(db *sql.DB, alertID int, triggeredCount int) error {
+	query := `
+        UPDATE alerts 
+        SET triggered_count = $1, updated_at = NOW()
+        WHERE id = $2
+    `
+	_, err := db.Exec(query, triggeredCount, alertID)
+	return err
+}
+
+func GetAlerts(db *sql.DB, xch_id int, status string) ([]alerts.Alert, error) {
+	query := `
+        SELECT 
+            id, product_id, type, price, timeframe, 
+            candle_count, condition, status, triggered_count,
+            xch_id, created_at, updated_at
+        FROM alerts
+    `
+
+	var rows *sql.Rows
+	var err error
+	if status != "" {
+		query += " WHERE status = $1 AND xch_id = $2"
+		rows, err = db.Query(query, status, xch_id)
+	} else {
+		rows, err = db.Query(query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var alertsList []alerts.Alert
+	for rows.Next() {
+		var alert alerts.Alert
+		err := rows.Scan(
+			&alert.ID,
+			&alert.ProductID,
+			&alert.Type,
+			&alert.Price,
+			&alert.Timeframe,
+			&alert.CandleCount,
+			&alert.Condition,
+			&alert.Status,
+			&alert.TriggeredCount,
+			&alert.XchID,
+			&alert.CreatedAt,
+			&alert.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		alertsList = append(alertsList, alert)
+	}
+
+	return alertsList, nil
 }
