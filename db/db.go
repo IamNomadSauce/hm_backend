@@ -220,9 +220,9 @@ func CreateTables(db *sql.DB) error {
 			price DECIMAL(18, 8) NOT NULL,
 			timeframe VARCHAR(50) NOT NULL,
 			candle_count INT NOT NULL,
-			condition VARCHA(50) NOT NULL,
+			condition VARCHAR(50) NOT NULL,
 			status VARCHAR(50) NOT NULL,
-			triggered_cound INT DEFAULT 0,
+			triggered_count INT DEFAULT 0,
 			xch_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

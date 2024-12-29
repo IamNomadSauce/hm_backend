@@ -332,7 +332,7 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		case "ticker":
 			productID := msg["product_id"].(string)
 			price, _ := strconv.ParseFloat(msg["product_id"].(string), 64)
-			triggeredAlerts := api.alertManager.ProcessTickerUpdate(productID, price)
+			triggeredAlerts := api.alertManager.ProcessPriceAlerts(productID, price)
 
 			for _, alert := range triggeredAlerts {
 				log.Println("Alert Triggered", alert)

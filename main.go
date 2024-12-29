@@ -221,6 +221,8 @@ func main() {
 	// 	}
 	// }()
 
+	// Live database SSE events trigger
+
 	select {}
 }
 

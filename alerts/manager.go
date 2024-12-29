@@ -18,6 +18,40 @@ func (am *AlertManager) UpdateAlerts(alerts []Alert) {
 	am.alerts = newAlerts
 }
 
+func (am *AlertManager) ProcessPriceAlerts(productID string, price float64) []Alert {
+	am.alertMutex.RLock()
+	defer am.alertMutex.RUnlock()
+
+	var triggeredAlerts []Alert
+
+	if alerts, exists := am.alerts[productID]; exists {
+		for _, alert := range alerts {
+			if alert.Status != "active" {
+				continue
+			}
+
+			triggered := false
+			switch alert.Condition {
+			case "wick_above":
+				if price > alert.Price {
+					triggered = true
+				}
+
+			case "wick_below":
+				if price < alert.Price {
+					triggered = true
+				}
+			}
+
+			if triggered {
+				alert.Status = "triggered"
+				triggeredAlerts = append(triggeredAlerts, alert)
+			}
+		}
+	}
+	return triggeredAlerts
+}
+
 func (am *AlertManager) ProcessTickerUpdate(productID string, price float64) []Alert {
 	am.alertMutex.RLock()
 	defer am.alertMutex.RUnlock()
