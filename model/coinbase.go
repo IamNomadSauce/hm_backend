@@ -1,7 +1,6 @@
 package model
 
 import (
-	"backend/alerts"
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/hmac"
@@ -48,7 +47,7 @@ type CoinbaseAPI struct {
 	TakerFee            float64
 	WSConn              *websocket.Conn
 	UserWSConn          *websocket.Conn
-	alertManager        *alerts.AlertManager
+	alertManager        *AlertManager
 }
 
 func (api *CoinbaseAPI) ConnectUserWebsocket() error {
@@ -330,16 +329,16 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		case "heartbeat":
 			log.Printf("Heartbeat received for: %v", msg["product_ids"])
 		case "ticker":
-			productID := msg["product_id"].(string)
-			price, _ := strconv.ParseFloat(msg["product_id"].(string), 64)
-			triggeredAlerts := api.alertManager.ProcessPriceAlerts(productID, price)
+			// productID := msg["product_id"].(string)
+			// price, _ := strconv.ParseFloat(msg["product_id"].(string), 64)
+			// triggeredAlerts := api.alertManager.ProcessPriceAlerts(productID, price)
 
-			for _, alert := range triggeredAlerts {
-				log.Println("Alert Triggered", alert)
-				// if err := api.alertManager.UpdateAlertStatus(alert.ID, "triggered"); err != nil {
-				// 	log.Printf("Error updating alert status: %v", err)
-				// }
-			}
+			// for _, alert := range triggeredAlerts {
+			// 	log.Println("Alert Triggered", alert)
+			// 	// if err := api.alertManager.UpdateAlertStatus(alert.ID, "triggered"); err != nil {
+			// 	// 	log.Printf("Error updating alert status: %v", err)
+			// 	// }
+			// }
 
 		}
 	}

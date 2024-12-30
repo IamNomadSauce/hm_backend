@@ -5,11 +5,14 @@ import (
 	"backend/db"
 	"backend/model"
 	_ "backend/model"
+	"backend/sse"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -110,6 +113,25 @@ func main() {
 		}
 	}()
 
+	host := os.Getenv("PG_HOST")
+	portStr := os.Getenv("PG_PORT")
+	user := os.Getenv("PG_USER")
+	password := os.Getenv("PG_PASS")
+	dbname := os.Getenv("PG_DBNAME")
+
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		fmt.Errorf("Invalid port number: %v", err)
+	}
+
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	// Live database SSE events trigger
+	globalSSEManager := sse.NewSSEManager()
+
+	go globalSSEManager.ListenForDBChanges(dsn, "global_changes")
+
 	go func() {
 		log.Println("Starting HTTP server goroutine")
 		http.HandleFunc("/", handleMain)
@@ -118,6 +140,7 @@ func main() {
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 		http.HandleFunc("/new_trade_group", TradeBlockHandler)
 		http.HandleFunc("/create-alert", createAlertHandler)
+		http.Handle("/alerts/stream", globalSSEManager)
 
 		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
@@ -205,11 +228,9 @@ func main() {
 	// 	log.Println("Starting Alert Manager GoRoutine")
 	// 	ticker := time.NewTicker(1 * time.Minute)
 	// 	defer ticker.Stop()
-
 	// 	for {
 	// 		select {
 	// 		case <-ticker.C:
-
 	// 			// alerts, err := app.DB.GetActiveAlerts(app.DB)
 	// 			// if err != nil {
 	// 			// 	log.Printf("Error getting alerts: %v", err)
@@ -219,8 +240,6 @@ func main() {
 	// 		}
 	// 	}
 	// }()
-
-	// Live database SSE events trigger
 
 	select {}
 }
