@@ -2,12 +2,13 @@ package db
 
 import (
 	// "backend/alerts"
-	"backend/alerts"
+
+	"backend/model"
 	"database/sql"
 	"time"
 )
 
-func GetActiveAlerts(db *sql.DB) ([]alerts.Alert, error) {
+func GetActiveAlerts(db *sql.DB) ([]model.Alert, error) {
 	query := `
         SELECT id, product_id, type, price, status, xch_id, created_at, updated_at
         FROM alerts
@@ -19,9 +20,9 @@ func GetActiveAlerts(db *sql.DB) ([]alerts.Alert, error) {
 	}
 	defer rows.Close()
 
-	var messages []alerts.Alert
+	var messages []model.Alert
 	for rows.Next() {
-		var alert alerts.Alert
+		var alert model.Alert
 		err := rows.Scan(
 			&alert.ID,
 			&alert.ProductID,

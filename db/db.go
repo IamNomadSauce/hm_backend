@@ -1,7 +1,6 @@
 package db
 
 import (
-	"backend/alerts"
 	"backend/model"
 	"context"
 	"database/sql"
@@ -1174,7 +1173,7 @@ func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptSt
 // Alerts
 // ------------------------------------------------------------------------
 
-func CreateAlert(db *sql.DB, alert *alerts.Alert) (int, error) {
+func CreateAlert(db *sql.DB, alert *model.Alert) (int, error) {
 	query := `
         INSERT INTO alerts (
             product_id, type, price, timeframe, candle_count, 
@@ -1216,7 +1215,7 @@ func UpdateAlertTriggerCount(db *sql.DB, alertID int, triggeredCount int) error 
 	return err
 }
 
-func GetAlerts(db *sql.DB, xch_id int, status string) ([]alerts.Alert, error) {
+func GetAlerts(db *sql.DB, xch_id int, status string) ([]model.Alert, error) {
 	query := `
         SELECT 
             id, product_id, type, price, timeframe, 
@@ -1239,9 +1238,9 @@ func GetAlerts(db *sql.DB, xch_id int, status string) ([]alerts.Alert, error) {
 	}
 	defer rows.Close()
 
-	var alertsList []alerts.Alert
+	var alertsList []model.Alert
 	for rows.Next() {
-		var alert alerts.Alert
+		var alert model.Alert
 		err := rows.Scan(
 			&alert.ID,
 			&alert.ProductID,

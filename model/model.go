@@ -1,13 +1,14 @@
 package model
 
 import (
-	"backend/alerts"
 	"encoding/json"
 	"strconv"
+	"sync"
 	"time"
 )
 
 type Candle struct {
+	ProductID string
 	Timestamp int64
 	Open      float64
 	High      float64
@@ -26,7 +27,7 @@ type Timeframe struct {
 
 type Exchange struct {
 	ID                int
-	Alerts            []alerts.Alert
+	Alerts            []Alert
 	Name              string
 	Timeframes        []Timeframe
 	Orders            []Order
@@ -192,14 +193,41 @@ type TradeBlock struct {
 	// Trigger on Alert?
 }
 
+// type Alert struct {
+// 	ID             string    `json:"id"`
+// 	ProductID      string    `json:"product_id"`
+// 	Price          float64   `json:"price"`
+// 	TriggerOnClose bool      `json:"clolseorwick"`
+// 	AboveBelow     bool      `json:"abovebelow"`
+// 	TimeFrame      Timeframe `json:"timeframe"`
+// 	Type           string    `json:"type"`
+// 	// TradeBlock GroupID?
+// }
+
+func NewAlertManager() *AlertManager {
+	return &AlertManager{
+		alerts: make(map[string][]Alert),
+	}
+}
+
 type Alert struct {
-	ID             string    `json:"id"`
-	ProductID      string    `json:"product_id`
-	Price          float64   `json:"price"`
-	TriggerOnClose bool      `json:"clolseorwick"`
-	AboveBelow     bool      `json:"abovebelow"`
-	TimeFrame      Timeframe `json"timeframe"`
-	// TradeBlock GroupID?
+	ID             int     `json:"id"`
+	ProductID      string  `json:"product_id"`
+	Type           string  `json:"type"`
+	Price          float64 `json:"price"`
+	Timeframe      string  `json:"timeframe"`    // e.g., "1m", "5m", "1h"
+	CandleCount    int     `json:"candle_count"` // Number of candles needed to trigger
+	Condition      string  `json:"condition"`    // WICKS_ABOVE, WICKS_BELOW, etc.
+	Status         string  `json:"status"`
+	TriggeredCount int     `json:"triggered_count"`
+	XchID          int     `json:"xch_id"`
+	CreatedAt      string  `json:"created_at"`
+	UpdatedAt      string  `json:"updated_at"`
+}
+
+type AlertManager struct {
+	alerts     map[string][]Alert // map[productID][]Alert
+	alertMutex sync.RWMutex
 }
 
 type Fill struct {

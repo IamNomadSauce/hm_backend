@@ -1,7 +1,6 @@
 package main
 
 import (
-	"backend/alerts"
 	"backend/api"
 	"backend/db"
 	"backend/model"
@@ -19,7 +18,7 @@ type Application struct {
 	DB           *sql.DB
 	mu           sync.Mutex
 	Exchanges    map[int]*model.Exchange
-	AlertManager *alerts.AlertManager
+	AlertManager *model.AlertManager
 }
 
 var app *Application
@@ -38,7 +37,7 @@ func main() {
 	app.DB = database // Set the DB connection
 
 	// Initialize alert manager
-	alerts_manager := alerts.NewAlertManager()
+	alerts_manager := model.NewAlertManager()
 	app.AlertManager = alerts_manager
 
 	// Now you can safely get exchanges using app.DB
@@ -229,7 +228,7 @@ func main() {
 func createAlertHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Create Alert")
 
-	var alert alerts.Alert
+	var alert model.Alert
 
 	if err := json.NewDecoder(r.Body).Decode(&alert); err != nil {
 		log.Println("Error decoding json for new alert")
