@@ -67,46 +67,51 @@ func (sse *SSEManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
-	listener := pq.NewListener(
-		dsn,            // Pass the DSN directly
-		10*time.Second, // MinReconnectInterval
-		time.Minute,    // MaxReconnectInterval
+	listener := pq.NewListener(dsn, 10*time.Second, time.Minute,
 		func(ev pq.ListenerEventType, err error) {
 			if err != nil {
-				log.Printf("Postgres listener error: %v", err)
+				log.Printf("Listener error: %v", err)
 			}
-		},
-	)
+		})
 
-	err := listener.Listen(channel)
-	if err != nil {
-		log.Fatalf("Error listening to channel %s: %v", channel, err)
+	if err := listener.Listen(channel); err != nil {
+		log.Fatalf("Listen error: %v", err)
 	}
 
-	log.Printf("Listening for database changes on channel: %s", channel)
+	log.Printf("Listening on channel: %s", channel)
 
-	for {
-		select {
-		case notification := <-listener.Notify:
-			if notification != nil {
-				var payload map[string]interface{}
-				err := json.Unmarshal([]byte(notification.Extra), &payload)
-				if err != nil {
-					log.Printf("Error unmarshalling notification payload: %v", err)
-					continue
-				}
-
-				message := fmt.Sprintf("DB Change - Channel: %s, Payload: %+v", channel, payload)
-				sse.Broadcast(message)
+	// Add ping routine to keep connection alive
+	go func() {
+		for {
+			time.Sleep(30 * time.Second)
+			if err := listener.Ping(); err != nil {
+				log.Printf("Error pinging listener: %v", err)
 			}
-		case <-time.After(90 * time.Second):
-			log.Println("No notifications received in 90 seconds, checking connection...")
-			go func() {
-				err := listener.Ping()
-				if err != nil {
-					log.Printf("Listener ping error: %v", err)
-				}
-			}()
 		}
+	}()
+
+	for notification := range listener.Notify {
+		if notification == nil {
+			continue
+		}
+
+		log.Printf("Received notification: %+v", notification)
+
+		var payload struct {
+			Table     string          `json:"table"`
+			Operation string          `json:"operation"`
+			Data      json.RawMessage `json:"data"`
+		}
+
+		if err := json.Unmarshal([]byte(notification.Extra), &payload); err != nil {
+			log.Printf("Error parsing notification: %v", err)
+			continue
+		}
+
+		log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
+
+		message := fmt.Sprintf("Table %s %s: %s",
+			payload.Table, payload.Operation, string(payload.Data))
+		sse.Broadcast(message)
 	}
 }

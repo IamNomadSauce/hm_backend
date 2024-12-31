@@ -350,16 +350,54 @@ func AttachTriggersToNewTables(db *sql.DB) error {
 }
 
 func CreateTriggersForExistingTables(db *sql.DB) error {
-	log.Println("Creating triggers for all existing tables...")
+	log.Println("Creating triggers for existing tables...")
+
+	// First, create the notification function if it doesn't exist
+	notifyFuncSQL := `
+	CREATE OR REPLACE FUNCTION notify_table_update() 
+	RETURNS trigger AS $$
+	DECLARE
+		payload json;
+	BEGIN
+		-- Create the payload based on the operation
+		payload = json_build_object(
+			'table', TG_TABLE_NAME,
+			'operation', TG_OP,
+			'data', CASE 
+				WHEN TG_OP = 'DELETE' THEN row_to_json(OLD)
+				ELSE row_to_json(NEW)
+			END
+		);
+
+		-- Send notification
+		PERFORM pg_notify('global_changes', payload::text);
+		
+		-- Log the notification for debugging
+		RAISE NOTICE 'Notification sent on channel global_changes: %', payload::text;
+		
+		RETURN NEW;
+	END;
+	$$
+	LANGUAGE plpgsql;`
+
+	if _, err := db.Exec(notifyFuncSQL); err != nil {
+		return fmt.Errorf("failed to create notification function: %w", err)
+	}
 
 	query := `
         SELECT table_name 
         FROM information_schema.tables 
-        WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
-    `
+        WHERE table_schema = 'public' 
+        AND table_type = 'BASE TABLE'
+        AND table_name NOT IN (
+            SELECT event_object_table 
+            FROM information_schema.triggers 
+            WHERE trigger_name LIKE 'notify_%'
+        )`
+
 	rows, err := db.Query(query)
 	if err != nil {
-		return fmt.Errorf("failed to query existing tables: %w", err)
+		return fmt.Errorf("failed to query tables: %w", err)
 	}
 	defer rows.Close()
 
@@ -369,41 +407,18 @@ func CreateTriggersForExistingTables(db *sql.DB) error {
 			return fmt.Errorf("failed to scan table name: %w", err)
 		}
 
-		triggerName := fmt.Sprintf("notify_%s", tableName)
+		triggerSQL := fmt.Sprintf(`
+            CREATE TRIGGER notify_%s
+            AFTER INSERT OR UPDATE OR DELETE ON %s
+            FOR EACH ROW
+            EXECUTE FUNCTION notify_table_update();`,
+			tableName, tableName)
 
-		// Check if the trigger already exists
-		checkTriggerQuery := `
-            SELECT COUNT(*) 
-            FROM information_schema.triggers 
-            WHERE event_object_table = $1 AND trigger_name = $2;
-        `
-		var count int
-		err := db.QueryRow(checkTriggerQuery, tableName, triggerName).Scan(&count)
-		if err != nil {
-			log.Printf("Error checking for existing trigger on table %s: %v", tableName, err)
+		if _, err := db.Exec(triggerSQL); err != nil {
+			log.Printf("Warning: failed to create trigger for %s: %v", tableName, err)
 			continue
 		}
-
-		if count > 0 {
-			log.Printf("Trigger already exists for table: %s", tableName)
-			continue
-		}
-
-		// Create the trigger if it doesn't exist
-		createTriggerQuery := fmt.Sprintf(`
-            CREATE TRIGGER %s 
-            AFTER INSERT OR UPDATE OR DELETE ON %s 
-            FOR EACH ROW EXECUTE FUNCTION notify_table_update();
-        `, triggerName, tableName)
-
-		log.Printf("Creating trigger for table: %s with query:\n%s", tableName, createTriggerQuery)
-
-		if _, err := db.Exec(createTriggerQuery); err != nil {
-			log.Printf("Failed to create trigger for table %s: %v", tableName, err)
-			continue
-		}
-
-		log.Printf("Trigger created for table: %s", tableName)
+		log.Printf("Created trigger for table: %s", tableName)
 	}
 
 	return nil
