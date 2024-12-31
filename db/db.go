@@ -13,8 +13,8 @@ import (
 	_ "time"
 
 	"github.com/google/uuid"
-
 	"github.com/joho/godotenv"
+
 	_ "github.com/lib/pq"
 )
 
@@ -55,12 +55,10 @@ func DBConnect() (*sql.DB, error) {
 		return nil, fmt.Errorf("Error opening Postgres connection: %v", err)
 	}
 
-	// Set connection pool parameters
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(5 * time.Minute)
 
-	// Ping the database to verify the connection
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -70,6 +68,28 @@ func DBConnect() (*sql.DB, error) {
 	}
 
 	log.Println("Successfully connected to database")
+
+	// Ensure triggers for existing tables are created
+	err = CreateTriggersForExistingTables(db)
+	if err != nil {
+		log.Printf("Error creating triggers for existing tables: %v", err)
+	}
+
+	// Ensure triggers for new tables are created automatically
+	if err = CreateEventTriggerForNewTables(db); err != nil {
+		log.Printf("Error creating event trigger for new tables: %v", err)
+	}
+
+	go func() {
+		for {
+			err := AttachTriggersToNewTables(db)
+			if err != nil {
+				log.Printf("Error attaching triggers: %v", err)
+			}
+			time.Sleep(10 * time.Second) // Check every 10 seconds
+		}
+	}()
+
 	return db, nil
 }
 
@@ -229,6 +249,161 @@ func CreateTables(db *sql.DB) error {
 	`)
 	if err != nil {
 		return fmt.Errorf("error creating alerts table: %w", err)
+	}
+
+	return nil
+}
+
+func CreateEventTriggerForNewTables(db *sql.DB) error {
+	log.Println("Creating event trigger for new tables...")
+
+	// Step 1: Ensure the logging table exists
+	createLogTableSQL := `
+	CREATE TABLE IF NOT EXISTS table_creation_log (
+	    id SERIAL PRIMARY KEY,
+	    table_name TEXT NOT NULL UNIQUE,
+	    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+	`
+	if _, err := db.Exec(createLogTableSQL); err != nil {
+		return fmt.Errorf("failed to create table_creation_log: %w", err)
+	}
+	log.Println("Successfully ensured table_creation_log exists.")
+
+	// Step 2: Create the event trigger function
+	triggerFunctionSQL := `
+	CREATE OR REPLACE FUNCTION log_new_table_creation()
+	RETURNS EVENT TRIGGER AS $$
+	DECLARE
+	    tbl_name TEXT;
+	BEGIN
+	    SELECT INTO tbl_name objid::regclass::text
+	    FROM pg_event_trigger_ddl_commands()
+	    WHERE command_tag = 'CREATE TABLE';
+
+	    INSERT INTO table_creation_log (table_name)
+	    VALUES (tbl_name)
+	    ON CONFLICT (table_name) DO NOTHING;
+	END;
+	$$ LANGUAGE plpgsql;
+	`
+	if _, err := db.Exec(triggerFunctionSQL); err != nil {
+		return fmt.Errorf("failed to create log_new_table_creation function: %w", err)
+	}
+	log.Println("Successfully created log_new_table_creation function.")
+
+	// Step 3: Create the event trigger
+	eventTriggerSQL := `
+	CREATE EVENT TRIGGER on_table_creation
+	ON ddl_command_end
+	WHEN TAG IN ('CREATE TABLE')
+	EXECUTE FUNCTION log_new_table_creation();
+	`
+	if _, err := db.Exec(eventTriggerSQL); err != nil {
+		return fmt.Errorf("failed to create on_table_creation event trigger: %w", err)
+	}
+	log.Println("Successfully created on_table_creation event trigger.")
+
+	return nil
+}
+
+func AttachTriggersToNewTables(db *sql.DB) error {
+	log.Println("Checking for new tables to attach triggers...")
+
+	query := `
+        SELECT table_name 
+        FROM table_creation_log 
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM information_schema.triggers 
+            WHERE event_object_table = table_creation_log.table_name
+        )
+    `
+	rows, err := db.Query(query)
+	if err != nil {
+		return fmt.Errorf("failed to query new tables: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil {
+			return fmt.Errorf("failed to scan table name: %w", err)
+		}
+
+		triggerName := fmt.Sprintf("notify_%s", tableName)
+		createTriggerQuery := fmt.Sprintf(`
+            CREATE TRIGGER %s 
+            AFTER INSERT OR UPDATE OR DELETE ON %s 
+            FOR EACH ROW EXECUTE FUNCTION notify_table_update();
+        `, triggerName, tableName)
+
+		if _, err := db.Exec(createTriggerQuery); err != nil {
+			log.Printf("Failed to create trigger for table %s: %v", tableName, err)
+			continue
+		}
+
+		log.Printf("Trigger created for table: %s", tableName)
+	}
+
+	return nil
+}
+
+func CreateTriggersForExistingTables(db *sql.DB) error {
+	log.Println("Creating triggers for all existing tables...")
+
+	query := `
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+    `
+	rows, err := db.Query(query)
+	if err != nil {
+		return fmt.Errorf("failed to query existing tables: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil {
+			return fmt.Errorf("failed to scan table name: %w", err)
+		}
+
+		triggerName := fmt.Sprintf("notify_%s", tableName)
+
+		// Check if the trigger already exists
+		checkTriggerQuery := `
+            SELECT COUNT(*) 
+            FROM information_schema.triggers 
+            WHERE event_object_table = $1 AND trigger_name = $2;
+        `
+		var count int
+		err := db.QueryRow(checkTriggerQuery, tableName, triggerName).Scan(&count)
+		if err != nil {
+			log.Printf("Error checking for existing trigger on table %s: %v", tableName, err)
+			continue
+		}
+
+		if count > 0 {
+			log.Printf("Trigger already exists for table: %s", tableName)
+			continue
+		}
+
+		// Create the trigger if it doesn't exist
+		createTriggerQuery := fmt.Sprintf(`
+            CREATE TRIGGER %s 
+            AFTER INSERT OR UPDATE OR DELETE ON %s 
+            FOR EACH ROW EXECUTE FUNCTION notify_table_update();
+        `, triggerName, tableName)
+
+		log.Printf("Creating trigger for table: %s with query:\n%s", tableName, createTriggerQuery)
+
+		if _, err := db.Exec(createTriggerQuery); err != nil {
+			log.Printf("Failed to create trigger for table %s: %v", tableName, err)
+			continue
+		}
+
+		log.Printf("Trigger created for table: %s", tableName)
 	}
 
 	return nil
