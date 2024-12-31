@@ -308,7 +308,7 @@ func CreateEventTriggerForNewTables(db *sql.DB) error {
 }
 
 func AttachTriggersToNewTables(db *sql.DB) error {
-	log.Println("Checking for new tables to attach triggers...")
+	// log.Println("Checking for new tables to attach triggers...")
 
 	query := `
         SELECT table_name 
