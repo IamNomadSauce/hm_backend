@@ -95,7 +95,7 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
 			continue
 		}
 
-		log.Printf("Received notification: %+v", notification)
+		// log.Printf("Received notification: %+v\n", notification)
 
 		var payload struct {
 			Table     string          `json:"table"`
@@ -108,7 +108,10 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
 			continue
 		}
 
-		log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
+		if payload.Table == "alerts" {
+			log.Println("Alert:", payload.Table)
+			log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
+		}
 
 		message := fmt.Sprintf("Table %s %s: %s",
 			payload.Table, payload.Operation, string(payload.Data))

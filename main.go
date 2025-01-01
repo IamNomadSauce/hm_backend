@@ -140,6 +140,8 @@ func main() {
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 		http.HandleFunc("/new_trade_group", TradeBlockHandler)
 		http.HandleFunc("/create-alert", createAlertHandler)
+		http.HandleFunc("/delete-alert", deleteAlertHandler)
+
 		http.Handle("/alerts/stream", globalSSEManager)
 
 		// TODO Make App config struct and add DB
@@ -165,9 +167,9 @@ func main() {
 				tradeGroups[trade.GroupID] = append(tradeGroups[trade.GroupID], trade)
 			}
 
-			log.Println("Trade Blocks: ", len(tradeGroups))
+			// log.Println("Trade Blocks: ", len(tradeGroups))
 			for groupID, groupTrades := range tradeGroups {
-				log.Printf("Processing trade group: %s", groupID)
+				// log.Printf("Processing trade group: %s", groupID)
 
 				for _, trade := range groupTrades {
 					exchange, err := db.Get_Exchange(trade.XchID, database)
@@ -242,6 +244,42 @@ func main() {
 	// }()
 
 	select {}
+}
+
+func deleteAlertHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Delete Alert")
+
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var request struct {
+		AlertID int `json:"alert_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if request.AlertID <= 0 {
+		http.Error(w, "Invalid alert ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := db.DeleteAlert(app.DB, request.AlertID); err != nil {
+		log.Printf("Error deleting alert: %v", err)
+		http.Error(w, "Failed to delete alert", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "success",
+		"message": "Alert deleted successfully",
+	})
+
 }
 
 func createAlertHandler(w http.ResponseWriter, r *http.Request) {

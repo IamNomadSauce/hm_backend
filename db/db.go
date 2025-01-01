@@ -1363,6 +1363,21 @@ func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptSt
 // Alerts
 // ------------------------------------------------------------------------
 
+func DeleteAlert(db *sql.DB, alertID int) error {
+	query := `
+		DELETE FROM alerts
+		WHERE id = $1
+		RETURNING id
+	`
+
+	var deletedID int
+	err := db.QueryRow(query, alertID).Scan(&deletedID)
+	if err == sql.ErrNoRows {
+		return fmt.Errorf("alert with ID %d not found", alertID)
+	}
+	return err
+}
+
 func CreateAlert(db *sql.DB, alert *model.Alert) (int, error) {
 	query := `
         INSERT INTO alerts (
