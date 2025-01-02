@@ -3,12 +3,12 @@ package db
 import (
 	// "backend/alerts"
 
-	"backend/model"
+	"backend/triggers"
 	"database/sql"
 	"time"
 )
 
-func GetActiveAlerts(db *sql.DB) ([]model.Alert, error) {
+func GetActiveTriggers(db *sql.DB) ([]triggers.Trigger, error) {
 	query := `
         SELECT id, product_id, type, price, status, xch_id, created_at, updated_at
         FROM alerts
@@ -20,9 +20,9 @@ func GetActiveAlerts(db *sql.DB) ([]model.Alert, error) {
 	}
 	defer rows.Close()
 
-	var messages []model.Alert
+	var messages []triggers.Trigger
 	for rows.Next() {
-		var alert model.Alert
+		var alert triggers.Trigger
 		err := rows.Scan(
 			&alert.ID,
 			&alert.ProductID,

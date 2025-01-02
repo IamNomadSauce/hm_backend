@@ -1,4 +1,4 @@
-package alerts
+package triggers
 
 // type Alert struct {
 // 	ID             int     `json:"id"`

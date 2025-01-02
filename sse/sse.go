@@ -1,6 +1,7 @@
 package sse
 
 import (
+	"backend/triggers"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -12,13 +13,15 @@ import (
 )
 
 type SSEManager struct {
-	clients   map[chan string]struct{}
-	clientMux sync.RWMutex
+	clients      map[chan string]struct{}
+	clientMux    sync.RWMutex
+	alertManager *triggers.TriggerManager
 }
 
-func NewSSEManager() *SSEManager {
+func NewSSEManager(alertManager *triggers.TriggerManager) *SSEManager {
 	return &SSEManager{
-		clients: make(map[chan string]struct{}),
+		clients:      make(map[chan string]struct{}),
+		alertManager: alertManager,
 	}
 }
 
@@ -108,9 +111,17 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
 			continue
 		}
 
+		// ------
 		if payload.Table == "alerts" {
-			log.Println("Alert:", payload.Table)
+			log.Println("Trigger:", payload.Table)
 			log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
+
+			var trigger triggers.Trigger
+			if err := json.Unmarshal(payload.Data, &trigger); err != nil {
+				log.Printf("Error parsing trigger data: %v", err)
+				continue
+			}
+			sse.alertManager.UpdateTriggers([]triggers.Trigger{trigger})
 		}
 
 		message := fmt.Sprintf("Table %s %s: %s",

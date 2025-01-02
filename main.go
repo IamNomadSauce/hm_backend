@@ -6,6 +6,7 @@ import (
 	"backend/model"
 	_ "backend/model"
 	"backend/sse"
+	"backend/triggers"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -18,10 +19,10 @@ import (
 )
 
 type Application struct {
-	DB           *sql.DB
-	mu           sync.Mutex
-	Exchanges    map[int]*model.Exchange
-	AlertManager *model.AlertManager
+	DB             *sql.DB
+	mu             sync.Mutex
+	Exchanges      map[int]*model.Exchange
+	TriggerManager *triggers.TriggerManager
 }
 
 var app *Application
@@ -39,9 +40,9 @@ func main() {
 	}
 	app.DB = database // Set the DB connection
 
-	// Initialize alert manager
-	alerts_manager := model.NewAlertManager()
-	app.AlertManager = alerts_manager
+	// Initialize trigger manager
+	triggers_manager := triggers.NewTriggerManager()
+	app.TriggerManager = triggers_manager
 
 	// Now you can safely get exchanges using app.DB
 	db_exchanges, err := db.Get_Exchanges(app.DB)
@@ -128,7 +129,7 @@ func main() {
 		host, port, user, password, dbname)
 
 	// Live database SSE events trigger
-	globalSSEManager := sse.NewSSEManager()
+	globalSSEManager := sse.NewSSEManager(triggers_manager)
 
 	go globalSSEManager.ListenForDBChanges(dsn, "global_changes")
 
@@ -139,10 +140,10 @@ func main() {
 		http.HandleFunc("/candles", handleCandlesRequest)
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 		http.HandleFunc("/new_trade_group", TradeBlockHandler)
-		http.HandleFunc("/create-alert", createAlertHandler)
-		http.HandleFunc("/delete-alert", deleteAlertHandler)
+		http.HandleFunc("/create-trigger", createTriggerHandler)
+		http.HandleFunc("/delete-trigger", deleteTriggerHandler)
 
-		http.Handle("/alerts/stream", globalSSEManager)
+		http.Handle("/trigger/stream", globalSSEManager)
 
 		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
@@ -246,8 +247,8 @@ func main() {
 	select {}
 }
 
-func deleteAlertHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Delete Alert")
+func deleteTriggerHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Delete Trigger")
 
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -255,7 +256,7 @@ func deleteAlertHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		AlertID int `json:"alert_id"`
+		TriggerID int `json:"trigger_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -263,53 +264,53 @@ func deleteAlertHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.AlertID <= 0 {
-		http.Error(w, "Invalid alert ID", http.StatusBadRequest)
+	if request.TriggerID <= 0 {
+		http.Error(w, "Invalid trigger ID", http.StatusBadRequest)
 		return
 	}
 
-	if err := db.DeleteAlert(app.DB, request.AlertID); err != nil {
-		log.Printf("Error deleting alert: %v", err)
-		http.Error(w, "Failed to delete alert", http.StatusInternalServerError)
+	if err := db.DeleteTrigger(app.DB, request.TriggerID); err != nil {
+		log.Printf("Error deleting trigger: %v", err)
+		http.Error(w, "Failed to delete trigger", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"status":  "success",
-		"message": "Alert deleted successfully",
+		"message": "Trigger deleted successfully",
 	})
 
 }
 
-func createAlertHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Create Alert")
+func createTriggerHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Create Trigger")
 
-	var alert model.Alert
+	var trigger triggers.Trigger
 
-	if err := json.NewDecoder(r.Body).Decode(&alert); err != nil {
-		log.Println("Error decoding json for new alert")
+	if err := json.NewDecoder(r.Body).Decode(&trigger); err != nil {
+		log.Println("Error decoding json for new trigger")
 		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	if alert.ProductID == "" || alert.Type == "" || (alert.Type != "price_above" && alert.Type != "price_below") || alert.Price <= 0 {
+	if trigger.ProductID == "" || trigger.Type == "" || (trigger.Type != "price_above" && trigger.Type != "price_below") || trigger.Price <= 0 {
 		http.Error(w, "Invalid input: ProductID, Type (price_above/price_below, and Price are required", http.StatusBadRequest)
 		return
 	}
 
-	alertID, err := db.CreateAlert(app.DB, &alert)
+	triggerID, err := db.CreateTrigger(app.DB, &trigger)
 	if err != nil {
-		log.Println("Error inserting alert into database:", err)
-		http.Error(w, fmt.Sprintf("Failed to create alert: %v", err), http.StatusInternalServerError)
+		log.Println("Error inserting trigger into database:", err)
+		http.Error(w, fmt.Sprintf("Failed to create trigger: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "applilcation/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":  "success",
-		"message": "Alert Created Successfuly",
-		"alertID": alertID,
+		"status":    "success",
+		"message":   "trigger Created Successfuly",
+		"triggerID": triggerID,
 	})
 }
 

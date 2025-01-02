@@ -1,6 +1,8 @@
 package model
 
 import (
+	"backend/db"
+	"backend/triggers"
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/hmac"
@@ -47,7 +49,7 @@ type CoinbaseAPI struct {
 	TakerFee            float64
 	WSConn              *websocket.Conn
 	UserWSConn          *websocket.Conn
-	alertManager        *AlertManager
+	alertManager        *triggers.TriggerManager
 }
 
 func (api *CoinbaseAPI) ConnectUserWebsocket() error {
@@ -329,6 +331,22 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		case "heartbeat":
 			log.Printf("Heartbeat received for: %v", msg["product_ids"])
 		case "ticker":
+			if events, ok := msg["events"].([]interface{}); ok {
+
+				for _, event := range events {
+					tickerData := event.(map[string]interface{}).(string)
+					productID := tickerData["product_id"].(string)
+					price, _ := strconv.ParseFloat(tickerData["price"].(string), 64)
+
+					triggeredAlerts := api.alertManager.ProcessPriceAlerts(productID, price)
+					for _, alert := range triggeredAlerts {
+						log.Printf("Alert triggered for %s at price %f", productID, price)
+						if err := db.UpdateAlertStatus(database, alert.ID, "triggered"); err != nil {
+							log.Printf("Error updating alert status: %v", err)
+						}
+					}
+				}
+			}
 			// productID := msg["product_id"].(string)
 			// price, _ := strconv.ParseFloat(msg["product_id"].(string), 64)
 			// triggeredAlerts := api.alertManager.ProcessPriceAlerts(productID, price)

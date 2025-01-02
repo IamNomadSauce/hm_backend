@@ -2,6 +2,7 @@ package db
 
 import (
 	"backend/model"
+	"backend/triggers"
 	"context"
 	"database/sql"
 	"fmt"
@@ -232,7 +233,7 @@ func CreateTables(db *sql.DB) error {
 	}
 
 	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS alerts (
+		CREATE TABLE IF NOT EXISTS triggers (
 			id SERIAL PRIMARY KEY,
 			product_id VARCHAR(255) NOT NULL,
 			type VARCHAR(50) NOT NULL,
@@ -248,7 +249,7 @@ func CreateTables(db *sql.DB) error {
 		);
 	`)
 	if err != nil {
-		return fmt.Errorf("error creating alerts table: %w", err)
+		return fmt.Errorf("error creating triggers table: %w", err)
 	}
 
 	return nil
@@ -817,9 +818,9 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	if err != nil {
 		return exchange, fmt.Errorf("error getting trades: %v", err)
 	}
-	exchange.Alerts, err = GetAlerts(db, exchange.ID, "active")
+	exchange.Triggers, err = GetTriggers(db, exchange.ID, "active")
 	if err != nil {
-		return exchange, fmt.Errorf("error getting alerts %v", err)
+		return exchange, fmt.Errorf("error getting triggers %v", err)
 	}
 
 	switch exchange.Name {
@@ -1360,12 +1361,12 @@ func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptSt
 }
 
 // ------------------------------------------------------------------------
-// Alerts
+// Triggers
 // ------------------------------------------------------------------------
 
-func DeleteAlert(db *sql.DB, alertID int) error {
+func DeleteTrigger(db *sql.DB, alertID int) error {
 	query := `
-		DELETE FROM alerts
+		DELETE FROM triggers
 		WHERE id = $1
 		RETURNING id
 	`
@@ -1378,9 +1379,9 @@ func DeleteAlert(db *sql.DB, alertID int) error {
 	return err
 }
 
-func CreateAlert(db *sql.DB, alert *model.Alert) (int, error) {
+func CreateTrigger(db *sql.DB, alert *triggers.Trigger) (int, error) {
 	query := `
-        INSERT INTO alerts (
+        INSERT INTO triggers (
             product_id, type, price, timeframe, candle_count, 
             condition, status, triggered_count, xch_id, 
             created_at, updated_at
@@ -1410,9 +1411,9 @@ func CreateAlert(db *sql.DB, alert *model.Alert) (int, error) {
 	return alertID, nil
 }
 
-func UpdateAlertTriggerCount(db *sql.DB, alertID int, triggeredCount int) error {
+func UpdateTriggerCount(db *sql.DB, alertID int, triggeredCount int) error {
 	query := `
-        UPDATE alerts 
+        UPDATE triggers 
         SET triggered_count = $1, updated_at = NOW()
         WHERE id = $2
     `
@@ -1420,13 +1421,13 @@ func UpdateAlertTriggerCount(db *sql.DB, alertID int, triggeredCount int) error 
 	return err
 }
 
-func GetAlerts(db *sql.DB, xch_id int, status string) ([]model.Alert, error) {
+func GetTriggers(db *sql.DB, xch_id int, status string) ([]triggers.Trigger, error) {
 	query := `
         SELECT 
             id, product_id, type, price, timeframe, 
             candle_count, condition, status, triggered_count,
             xch_id, created_at, updated_at
-        FROM alerts
+        FROM triggers
     `
 
 	var rows *sql.Rows
@@ -1443,9 +1444,9 @@ func GetAlerts(db *sql.DB, xch_id int, status string) ([]model.Alert, error) {
 	}
 	defer rows.Close()
 
-	var alertsList []model.Alert
+	var alertsList []triggers.Trigger
 	for rows.Next() {
-		var alert model.Alert
+		var alert triggers.Trigger
 		err := rows.Scan(
 			&alert.ID,
 			&alert.ProductID,
