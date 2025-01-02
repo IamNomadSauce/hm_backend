@@ -1,6 +1,7 @@
 package model
 
 import (
+	"backend/common"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -260,8 +261,8 @@ func (api *AlpacaAPI) FetchOrdersFills() ([]Order, error) {
 }
 
 // Exchange operation
-func (api *AlpacaAPI) FetchCandles(productID string, timeframe Timeframe, start, end time.Time) ([]Candle, error) {
-	var candles []Candle
+func (api *AlpacaAPI) FetchCandles(productID string, timeframe Timeframe, start, end time.Time) ([]common.Candle, error) {
+	var candles []common.Candle
 	fmt.Println("\n-------------------------\nGet_Coinbase_Candles \n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
 
 	// Maximum number of candles per request
@@ -300,7 +301,7 @@ func (api *AlpacaAPI) FetchCandles(productID string, timeframe Timeframe, start,
 	return candles, nil
 }
 
-func fetch_Alpaca_Candles(productID string, timeframe Timeframe, start, end time.Time) ([]Candle, error) {
+func fetch_Alpaca_Candles(productID string, timeframe Timeframe, start, end time.Time) ([]common.Candle, error) {
 	fmt.Println("\n-------------------------\nGet_Coinbase_Candles \n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
 	apiKey := os.Getenv("CBAPIKEY")
 	apiSecret := os.Getenv("CBAPISECRET")
@@ -350,7 +351,7 @@ func fetch_Alpaca_Candles(productID string, timeframe Timeframe, start, end time
 	}
 
 	var candleData struct {
-		Candles []Candle `json:"candles"`
+		Candles []common.Candle `json:"candles"`
 	}
 
 	err = json.Unmarshal(body, &candleData)

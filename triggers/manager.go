@@ -1,168 +1,84 @@
 package triggers
 
-import "sync"
+import (
+	"backend/common"
+	"sync"
+)
 
 func NewTriggerManager() *TriggerManager {
 	return &TriggerManager{
-		trigger: make(map[string][]Trigger),
+		triggers: make(map[string][]common.Trigger),
 	}
 }
 
-type Trigger struct {
-	ID             int     `json:"id"`
-	ProductID      string  `json:"product_id"`
-	Type           string  `json:"type"`
-	Price          float64 `json:"price"`
-	Timeframe      string  `json:"timeframe"`    // e.g., "1m", "5m", "1h"
-	CandleCount    int     `json:"candle_count"` // Number of candles needed to trigger
-	Condition      string  `json:"condition"`    // WICKS_ABOVE, WICKS_BELOW, etc.
-	Status         string  `json:"status"`
-	TriggeredCount int     `json:"triggered_count"`
-	XchID          int     `json:"xch_id"`
-	CreatedAt      string  `json:"created_at"`
-	UpdatedAt      string  `json:"updated_at"`
-}
-
 type TriggerManager struct {
-	trigger      map[string][]Trigger // map[productID][]Alert
+	triggers     map[string][]common.Trigger
 	triggerMutex sync.RWMutex
 }
 
-// func NewAlertManager() *AlertManager {
-// 	return &AlertManager{
-// 		alerts: make(map[string][]Alert),
-// 	}
-// }
+func (tm *TriggerManager) UpdateTriggers(triggers []common.Trigger) {
+	tm.triggerMutex.Lock()
+	defer tm.triggerMutex.Unlock()
 
-// func (am *AlertManager) UpdateAlerts(alerts []Alert) {
-// 	am.alertMutex.Lock()
-// 	defer am.alertMutex.Unlock()
+	newTriggers := make(map[string][]common.Trigger)
+	for _, trigger := range triggers {
+		newTriggers[trigger.ProductID] = append(newTriggers[trigger.ProductID], trigger)
+	}
+	tm.triggers = newTriggers
+}
 
-// 	// Group alerts by product
-// 	newAlerts := make(map[string][]Alert)
-// 	for _, alert := range alerts {
-// 		newAlerts[alert.ProductID] = append(newAlerts[alert.ProductID], alert)
-// 	}
-// 	am.alerts = newAlerts
-// }
+func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []common.Trigger {
+	tm.triggerMutex.RLock()
+	defer tm.triggerMutex.RUnlock()
 
-// func (am *AlertManager) ProcessPriceAlerts(productID string, price float64) []Alert {
-// 	am.alertMutex.RLock()
-// 	defer am.alertMutex.RUnlock()
+	var triggeredTriggers []common.Trigger
+	if triggers, exists := tm.triggers[productID]; exists {
+		for _, trigger := range triggers {
+			if trigger.Status != "active" {
+				continue
+			}
 
-// 	var triggeredAlerts []Alert
+			if trigger.Type == "price_above" && price > trigger.Price || trigger.Type == "price_below" && price < trigger.Price {
+				trigger.Status = "triggered"
+				triggeredTriggers = append(triggeredTriggers, trigger)
 
-// 	if alerts, exists := am.alerts[productID]; exists {
-// 		for _, alert := range alerts {
-// 			if alert.Status != "active" {
-// 				continue
-// 			}
+			}
+		}
+	}
+	return triggeredTriggers
+}
 
-// 			triggered := false
-// 			switch alert.Condition {
-// 			case "wick_above":
-// 				if price > alert.Price {
-// 					triggered = true
-// 				}
+func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string, candle common.Candle) []common.Trigger {
+	tm.triggerMutex.RLock()
+	defer tm.triggerMutex.RUnlock()
 
-// 			case "wick_below":
-// 				if price < alert.Price {
-// 					triggered = true
-// 				}
-// 			}
+	var triggeredTriggers []common.Trigger
+	if triggers, exists := tm.triggers[productID]; exists {
+		for _, trigger := range triggers {
+			if trigger.Status != "active" || trigger.Timeframe != timeframe {
+				continue
+			}
 
-// 			if triggered {
-// 				alert.Status = "triggered"
-// 				triggeredAlerts = append(triggeredAlerts, alert)
-// 			}
-// 		}
-// 	}
-// 	return triggeredAlerts
-// }
+			triggered := false
+			switch trigger.Condition {
+			case "WICKS_ABOVE":
+				triggered = candle.High > trigger.Price
+			case "WICKS_BELOW":
+				triggered = candle.Low < trigger.Price
+			case "CLOSES_ABOVE":
+				triggered = candle.Close > trigger.Price
+			case "CLOSES_BELOW":
+				triggered = candle.Close < trigger.Price
+			}
 
-// func (am *AlertManager) ProcessTickerUpdate(productID string, price float64) []Alert {
-// 	am.alertMutex.RLock()
-// 	defer am.alertMutex.RUnlock()
-
-// 	var triggeredAlerts []Alert
-// 	if alerts, exists := am.alerts[productID]; exists {
-// 		for _, alert := range alerts {
-// 			if alert.Status != "active" {
-// 				continue
-// 			}
-
-// 			triggered := false
-// 			switch alert.Condition {
-// 			case "wick_above":
-// 				triggered = price > alert.Price
-// 			case "wick_below":
-// 				triggered = price < alert.Price
-// 			case "close_above":
-// 			case "close_below":
-// 			}
-
-// 			if triggered {
-// 				alert.Status = "triggered"
-// 				triggeredAlerts = append(triggeredAlerts, alert)
-// 			}
-
-// 		}
-// 	}
-// 	return triggeredAlerts
-// }
-
-// func (am *AlertManager) ListenForChanges(database *sql.DB) error {
-// 	listener := pq.NewListener(
-// 		"connection_string", // This needs to be altered
-// 		0,
-// 		time.Minute,
-// 		func(ev pq.ListenerEventType, err error) {
-// 			if err != nil {
-// 				log.Printf("Error in database listener: %v", err)
-// 			}
-// 		},
-// 	)
-
-// 	err := listener.Listen("table_changes")
-// 	if err != nil {
-// 		return fmt.Errorf("error setting up database listener; %v", err)
-// 	}
-
-// 	go func() {
-// 		for notification := range listener.Notify {
-// 			var change struct {
-// 				Table     string          `json:"table"`
-// 				Operation string          `json:"operation"`
-// 				Data      json.RawMessage `json:"data"`
-// 			}
-
-// 			if err := json.Unmarshal([]byte(notification.Extra), &change); err != nil {
-// 				log.Printf("Error parsing notification: %v", err)
-// 				continue
-// 			}
-
-// 			switch change.Table {
-// 			case "alerts":
-// 				alerts, err := db.GetAlerts(database, 1, "active")
-// 				if err != nil {
-// 					log.Printf("Error refreshing alerts: %v", err)
-// 					continue
-// 				}
-// 				am.UpdateAlerts(alerts)
-// 				// case "candles":
-// 				// 	var candle model.Candle
-// 				// 	if err := json.Unmarshal(change.Data, &candle); err != nil {
-// 				// 		continue
-// 				// 	}
-// 				// 	am.ProcessCandleAlert(candle.ProductID, candle.Timeframe, candle)
-
-// 			}
-// 		}
-// 	}()
-
-// 	return nil
-// }
-
-// func (am *AlertManager) LIstenForChanges(db *sql.DB) error {
-// 	listener := pq.NewListener(db.DriverName(), 10*)
-// }
+			if triggered {
+				trigger.TriggeredCount++
+				if trigger.TriggeredCount >= trigger.CandleCount {
+					trigger.Status = "triggered"
+					triggeredTriggers = append(triggeredTriggers, trigger)
+				}
+			}
+		}
+	}
+	return triggeredTriggers
+}

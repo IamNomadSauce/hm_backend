@@ -1,8 +1,8 @@
 package db
 
 import (
+	"backend/common"
 	"backend/model"
-	"backend/triggers"
 	"context"
 	"database/sql"
 	"fmt"
@@ -697,7 +697,7 @@ func convertEmptyToZero(value string) string {
 
 // ---------------------------------------------------------------
 
-func Write_Candles(candles []model.Candle, product, exchange, tf string, db *sql.DB) error {
+func Write_Candles(candles []common.Candle, product, exchange, tf string, db *sql.DB) error {
 	// log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
 	// log.Println(product, tf, exchange, len(candles))
 
@@ -1067,11 +1067,11 @@ func Get_Timeframes(id int, db *sql.DB) ([]model.Timeframe, error) {
 	return timeframes, nil
 }
 
-func Get_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
+func Get_Candles(product, tf, xch string, db *sql.DB) ([]common.Candle, error) {
 	log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
 
 	//product = strings.Trim("-", "_")
-	var candles []model.Candle
+	var candles []common.Candle
 	log.Printf("DB:Get Candles2 %s_%s_%s", product, tf, xch)
 
 	// Construct the table name
@@ -1087,7 +1087,7 @@ func Get_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
 	defer candle_rows.Close()
 
 	for candle_rows.Next() {
-		var candle model.Candle
+		var candle common.Candle
 		err := candle_rows.Scan(
 			&candle.Timestamp,
 			&candle.Open,
@@ -1109,10 +1109,10 @@ func Get_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
 	return candles, nil
 }
 
-func Get_All_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error) {
+func Get_All_Candles(product, tf, xch string, db *sql.DB) ([]common.Candle, error) {
 	log.Printf("DB:Get All Candles %s_%s_%s", product, tf, xch)
 
-	var candles []model.Candle
+	var candles []common.Candle
 
 	product = strings.Replace(product, "-", "_", -1)
 	fmt.Println(product)
@@ -1130,7 +1130,7 @@ func Get_All_Candles(product, tf, xch string, db *sql.DB) ([]model.Candle, error
 	defer candle_rows.Close()
 
 	for candle_rows.Next() {
-		var candle model.Candle
+		var candle common.Candle
 		err := candle_rows.Scan(
 			&candle.Timestamp,
 			&candle.Open,
@@ -1364,7 +1364,7 @@ func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptSt
 // Triggers
 // ------------------------------------------------------------------------
 
-func DeleteTrigger(db *sql.DB, alertID int) error {
+func DeleteTrigger(db *sql.DB, triggerID int) error {
 	query := `
 		DELETE FROM triggers
 		WHERE id = $1
@@ -1372,14 +1372,14 @@ func DeleteTrigger(db *sql.DB, alertID int) error {
 	`
 
 	var deletedID int
-	err := db.QueryRow(query, alertID).Scan(&deletedID)
+	err := db.QueryRow(query, triggerID).Scan(&deletedID)
 	if err == sql.ErrNoRows {
-		return fmt.Errorf("alert with ID %d not found", alertID)
+		return fmt.Errorf("alert with ID %d not found", triggerID)
 	}
 	return err
 }
 
-func CreateTrigger(db *sql.DB, alert *triggers.Trigger) (int, error) {
+func CreateTrigger(db *sql.DB, trigger *common.Trigger) (int, error) {
 	query := `
         INSERT INTO triggers (
             product_id, type, price, timeframe, candle_count, 
@@ -1390,38 +1390,38 @@ func CreateTrigger(db *sql.DB, alert *triggers.Trigger) (int, error) {
         RETURNING id;
     `
 
-	var alertID int
+	var triggerID int
 	err := db.QueryRow(
 		query,
-		alert.ProductID,
-		alert.Type,
-		alert.Price,
-		alert.Timeframe,
-		alert.CandleCount,
-		alert.Condition,
-		alert.Status,
-		alert.TriggeredCount,
-		alert.XchID,
-	).Scan(&alertID)
+		trigger.ProductID,
+		trigger.Type,
+		trigger.Price,
+		trigger.Timeframe,
+		trigger.CandleCount,
+		trigger.Condition,
+		trigger.Status,
+		trigger.TriggeredCount,
+		trigger.XchID,
+	).Scan(&triggerID)
 
 	if err != nil {
 		return 0, err
 	}
 
-	return alertID, nil
+	return triggerID, nil
 }
 
-func UpdateTriggerCount(db *sql.DB, alertID int, triggeredCount int) error {
+func UpdateTriggerCount(db *sql.DB, triggerID int, triggeredCount int) error {
 	query := `
         UPDATE triggers 
         SET triggered_count = $1, updated_at = NOW()
         WHERE id = $2
     `
-	_, err := db.Exec(query, triggeredCount, alertID)
+	_, err := db.Exec(query, triggeredCount, triggerID)
 	return err
 }
 
-func GetTriggers(db *sql.DB, xch_id int, status string) ([]triggers.Trigger, error) {
+func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error) {
 	query := `
         SELECT 
             id, product_id, type, price, timeframe, 
@@ -1444,27 +1444,27 @@ func GetTriggers(db *sql.DB, xch_id int, status string) ([]triggers.Trigger, err
 	}
 	defer rows.Close()
 
-	var alertsList []triggers.Trigger
+	var alertsList []common.Trigger
 	for rows.Next() {
-		var alert triggers.Trigger
+		var trigger common.Trigger
 		err := rows.Scan(
-			&alert.ID,
-			&alert.ProductID,
-			&alert.Type,
-			&alert.Price,
-			&alert.Timeframe,
-			&alert.CandleCount,
-			&alert.Condition,
-			&alert.Status,
-			&alert.TriggeredCount,
-			&alert.XchID,
-			&alert.CreatedAt,
-			&alert.UpdatedAt,
+			&trigger.ID,
+			&trigger.ProductID,
+			&trigger.Type,
+			&trigger.Price,
+			&trigger.Timeframe,
+			&trigger.CandleCount,
+			&trigger.Condition,
+			&trigger.Status,
+			&trigger.TriggeredCount,
+			&trigger.XchID,
+			&trigger.CreatedAt,
+			&trigger.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
-		alertsList = append(alertsList, alert)
+		alertsList = append(alertsList, trigger)
 	}
 
 	return alertsList, nil

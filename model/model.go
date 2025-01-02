@@ -1,21 +1,9 @@
 package model
 
 import (
-	"backend/triggers"
-	"encoding/json"
-	"strconv"
+	"backend/common"
 	"time"
 )
-
-type Candle struct {
-	ProductID string
-	Timestamp int64
-	Open      float64
-	High      float64
-	Low       float64
-	Close     float64
-	Volume    float64
-}
 
 type Timeframe struct {
 	ID       int64  `db:"id"`
@@ -27,7 +15,6 @@ type Timeframe struct {
 
 type Exchange struct {
 	ID                int
-	Triggers          []triggers.Trigger
 	Name              string
 	Timeframes        []Timeframe
 	Orders            []Order
@@ -38,13 +25,14 @@ type Exchange struct {
 	AvailableProducts []Product
 	Portfolio         []Asset
 	Trades            []Trade
+	Triggers          []common.Trigger
 }
 
 type ExchangeAPI interface {
 	FetchOrdersFills() ([]Order, error)
 	FetchFills() ([]Fill, error)
 	FetchPortfolio() ([]Asset, error)
-	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]Candle, error)
+	FetchCandles(product string, timeframe Timeframe, start, end time.Time) ([]common.Candle, error)
 	FetchAvailableProducts() ([]Product, error)
 	PlaceBracketOrder(trade_group Trade) error
 	PlaceOrder(trade Trade) (string, error)
@@ -52,6 +40,8 @@ type ExchangeAPI interface {
 	ConnectUserWebsocket() error
 	ConnectMarketDataWebSocket() error
 	GetOrder(orderID string) (*Order, error)
+	// ProcessPrice(productID string, price float64)
+	// ProcessCandle(productID string, timeframe string, candle common.Candle)
 }
 
 type Product struct {
@@ -222,58 +212,4 @@ type Fill struct {
 type OrderFill struct {
 	Orders []Order
 	Fills  []Fill
-}
-
-func (c *Candle) UnmarshalJSON(data []byte) error {
-	var temp struct {
-		Timestamp string `json:"start"`
-		Open      string `json:"open"`
-		High      string `json:"high"`
-		Low       string `json:"low"`
-		Close     string `json:"close"`
-		Volume    string `json:"volume"`
-	}
-
-	if err := json.Unmarshal(data, &temp); err != nil {
-		return err
-	}
-
-	timestamp, err := strconv.ParseInt(temp.Timestamp, 10, 64)
-	if err != nil {
-		return err
-	}
-
-	open, err := strconv.ParseFloat(temp.Open, 64)
-	if err != nil {
-		return err
-	}
-
-	high, err := strconv.ParseFloat(temp.High, 64)
-	if err != nil {
-		return err
-	}
-
-	low, err := strconv.ParseFloat(temp.Low, 64)
-	if err != nil {
-		return err
-	}
-
-	close, err := strconv.ParseFloat(temp.Close, 64)
-	if err != nil {
-		return err
-	}
-
-	volume, err := strconv.ParseFloat(temp.Volume, 64)
-	if err != nil {
-		return err
-	}
-
-	c.Timestamp = timestamp
-	c.Open = open
-	c.High = high
-	c.Low = low
-	c.Close = close
-	c.Volume = volume
-
-	return nil
 }

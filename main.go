@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/api"
+	"backend/common"
 	"backend/db"
 	"backend/model"
 	_ "backend/model"
@@ -286,7 +287,7 @@ func deleteTriggerHandler(w http.ResponseWriter, r *http.Request) {
 func createTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Create Trigger")
 
-	var trigger triggers.Trigger
+	var trigger common.Trigger
 
 	if err := json.NewDecoder(r.Body).Decode(&trigger); err != nil {
 		log.Println("Error decoding json for new trigger")

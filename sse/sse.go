@@ -1,6 +1,7 @@
 package sse
 
 import (
+	"backend/common"
 	"backend/triggers"
 	"encoding/json"
 	"fmt"
@@ -112,20 +113,22 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
 		}
 
 		// ------
-		if payload.Table == "alerts" {
+		if payload.Table == "triggers" {
 			log.Println("Trigger:", payload.Table)
 			log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
 
-			var trigger triggers.Trigger
+			var trigger common.Trigger
 			if err := json.Unmarshal(payload.Data, &trigger); err != nil {
 				log.Printf("Error parsing trigger data: %v", err)
 				continue
 			}
-			sse.alertManager.UpdateTriggers([]triggers.Trigger{trigger})
+			sse.alertManager.UpdateTriggers([]common.Trigger{trigger})
+			message := fmt.Sprintf("Table %s %s: %s",
+				trigger.ProductID,
+				payload.Operation,
+				trigger.Status)
+			sse.Broadcast(message)
 		}
 
-		message := fmt.Sprintf("Table %s %s: %s",
-			payload.Table, payload.Operation, string(payload.Data))
-		sse.Broadcast(message)
 	}
 }

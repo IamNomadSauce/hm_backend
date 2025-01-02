@@ -1,7 +1,7 @@
 package model
 
 import (
-	"backend/db"
+	"backend/common"
 	"backend/triggers"
 	"bytes"
 	"crypto/ecdsa"
@@ -49,7 +49,7 @@ type CoinbaseAPI struct {
 	TakerFee            float64
 	WSConn              *websocket.Conn
 	UserWSConn          *websocket.Conn
-	alertManager        *triggers.TriggerManager
+	triggerManager      *triggers.TriggerManager
 }
 
 func (api *CoinbaseAPI) ConnectUserWebsocket() error {
@@ -101,6 +101,16 @@ func (api *CoinbaseAPI) ConnectUserWebsocket() error {
 	go api.monitorUserHeartbeat()
 
 	return nil
+}
+
+func (api *CoinbaseAPI) ProcessPrice(productID string, price float64) {
+	if api.triggerManager != nil {
+		triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price)
+		for _, trigger := range triggeredTriggers {
+			log.Printf("Trigger %d activated for %s at price %f", trigger.ID, productID, price)
+			// db.UpdateTradeStatus(trigger.ID, "triggered")
+		}
+	}
 }
 
 func (api *CoinbaseAPI) generateJWT() string {
@@ -331,22 +341,22 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		case "heartbeat":
 			log.Printf("Heartbeat received for: %v", msg["product_ids"])
 		case "ticker":
-			if events, ok := msg["events"].([]interface{}); ok {
+			// if events, ok := msg["events"].([]interface{}); ok {
 
-				for _, event := range events {
-					tickerData := event.(map[string]interface{}).(string)
-					productID := tickerData["product_id"].(string)
-					price, _ := strconv.ParseFloat(tickerData["price"].(string), 64)
+			// 	for _, event := range events {
+			// 		tickerData := event.(map[string]interface{}).(string)
+			// 		productID := tickerData["product_id"].(string)
+			// 		price, _ := strconv.ParseFloat(tickerData["price"].(string), 64)
 
-					triggeredAlerts := api.alertManager.ProcessPriceAlerts(productID, price)
-					for _, alert := range triggeredAlerts {
-						log.Printf("Alert triggered for %s at price %f", productID, price)
-						if err := db.UpdateAlertStatus(database, alert.ID, "triggered"); err != nil {
-							log.Printf("Error updating alert status: %v", err)
-						}
-					}
-				}
-			}
+			// 		triggeredAlerts := api.triggerManager.ProcessPriceAlerts(productID, price)
+			// 		for _, alert := range triggeredAlerts {
+			// 			log.Printf("Alert triggered for %s at price %f", productID, price)
+			// 			if err := db.UpdateAlertStatus(database, alert.ID, "triggered"); err != nil {
+			// 				log.Printf("Error updating alert status: %v", err)
+			// 			}
+			// 		}
+			// 	}
+			// }
 			// productID := msg["product_id"].(string)
 			// price, _ := strconv.ParseFloat(msg["product_id"].(string), 64)
 			// triggeredAlerts := api.alertManager.ProcessPriceAlerts(productID, price)
@@ -712,8 +722,8 @@ func (api *CoinbaseAPI) FetchAvailableProducts() ([]Product, error) {
 }
 
 // Exchange operation
-func (api *CoinbaseAPI) FetchCandles(productID string, timeframe Timeframe, start, end time.Time) ([]Candle, error) {
-	var candles []Candle
+func (api *CoinbaseAPI) FetchCandles(productID string, timeframe Timeframe, start, end time.Time) ([]common.Candle, error) {
+	var candles []common.Candle
 	fmt.Println("\n-------------------------\nCoinbaseAPI.FetchCandles\n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
 	fmt.Println("APIKEY", api.BaseURL)
 
@@ -755,7 +765,7 @@ func (api *CoinbaseAPI) FetchCandles(productID string, timeframe Timeframe, star
 	return candles, nil
 }
 
-func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end time.Time) ([]Candle, error) {
+func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end time.Time) ([]common.Candle, error) {
 	fmt.Println("\n-------------------------\nfetch_Coinbase_Candles \n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
 	apiKey := os.Getenv("CBAPIKEY")
 	apiSecret := os.Getenv("CBAPISECRET")
@@ -805,7 +815,7 @@ func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end ti
 	}
 
 	var candleData struct {
-		Candles []Candle `json:"candles"`
+		Candles []common.Candle `json:"candles"`
 	}
 
 	err = json.Unmarshal(body, &candleData)

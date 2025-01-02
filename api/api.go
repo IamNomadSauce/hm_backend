@@ -1,6 +1,7 @@
 package api
 
 import (
+	"backend/common"
 	"backend/db"
 	"backend/model"
 	"database/sql"
@@ -42,7 +43,7 @@ func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 }
 
 // Get Candles from the Database
-func Get_Candles(product, timeframe, exchange string, database *sql.DB) ([]model.Candle, error) {
+func Get_Candles(product, timeframe, exchange string, database *sql.DB) ([]common.Candle, error) {
 	fmt.Println("\n-----------------------------\n Get_Candles:API \n-----------------------------\n")
 	fmt.Println("Request:API: ", product, timeframe, exchange)
 
