@@ -2,6 +2,7 @@ package model
 
 import (
 	"backend/common"
+	"backend/sse"
 	"backend/triggers"
 	"bytes"
 	"crypto/ecdsa"
@@ -50,6 +51,7 @@ type CoinbaseAPI struct {
 	WSConn              *websocket.Conn
 	UserWSConn          *websocket.Conn
 	triggerManager      *triggers.TriggerManager
+	sseManager          *sse.SSEManager
 }
 
 func (api *CoinbaseAPI) ConnectUserWebsocket() error {
@@ -103,15 +105,15 @@ func (api *CoinbaseAPI) ConnectUserWebsocket() error {
 	return nil
 }
 
-func (api *CoinbaseAPI) ProcessPrice(productID string, price float64) {
-	if api.triggerManager != nil {
-		triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price)
-		for _, trigger := range triggeredTriggers {
-			log.Printf("Trigger %d activated for %s at price %f", trigger.ID, productID, price)
-			// db.UpdateTradeStatus(trigger.ID, "triggered")
-		}
-	}
-}
+// func (api *CoinbaseAPI) ProcessPrice(productID string, price float64) {
+// 	if api.triggerManager != nil {
+// 		triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price)
+// 		for _, trigger := range triggeredTriggers {
+// 			log.Printf("Trigger %d activated for %s at price %f", trigger.ID, productID, price)
+// 			// db.UpdateTradeStatus(trigger.ID, "triggered")
+// 		}
+// 	}
+// }
 
 func (api *CoinbaseAPI) generateJWT() string {
 	timestamp := time.Now().Unix()
@@ -120,49 +122,6 @@ func (api *CoinbaseAPI) generateJWT() string {
 	h := hmac.New(sha256.New, []byte(api.APISecret))
 	h.Write([]byte(message))
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-func generateUserJWT(apiKeyName string, privateKeyBytes []byte) (string, error) {
-	block, _ := pem.Decode(privateKeyBytes)
-	if block == nil {
-		return "", fmt.Errorf("invalid PEM block")
-	}
-
-	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-	if err != nil {
-		key, err = x509.ParseECPrivateKey(block.Bytes) // Try EC key parsing if PKCS8 fails
-		if err != nil {
-			return "", fmt.Errorf("failed to parse private key: %v", err)
-		}
-	}
-
-	ecKey, ok := key.(*ecdsa.PrivateKey)
-	if !ok {
-		return "", fmt.Errorf("key is not an ECDSA private key")
-	}
-
-	now := time.Now().Unix()
-	claims := jwt.MapClaims{
-		"iss": "coinbase-cloud",
-		"sub": apiKeyName,
-		"nbf": now,
-		"exp": now + 120,
-		"uri": "wss://advanced-trade-ws-user.coinbase.com",
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-	token.Header["kid"] = apiKeyName
-	token.Header["nonce"] = generateNonce()
-
-	return token.SignedString(ecKey)
-}
-
-func generateNonce() string {
-	nonce := make([]byte, 16)
-	if _, err := rand.Read(nonce); err != nil {
-		panic(err)
-	}
-	return base64.StdEncoding.EncodeToString(nonce)
 }
 
 func (api *CoinbaseAPI) handleUserWebsocketMessages() {
@@ -341,32 +300,25 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		case "heartbeat":
 			log.Printf("Heartbeat received for: %v", msg["product_ids"])
 		case "ticker":
-			// if events, ok := msg["events"].([]interface{}); ok {
+			if events, ok := msg["events"].([]interface{}); ok {
+				for _, event := range events {
+					tickerData := event.(map[string]interface{})
+					productID := tickerData["product_id"].(string)
+					price, _ := strconv.ParseFloat(tickerData["price"].(string), 64)
 
-			// 	for _, event := range events {
-			// 		tickerData := event.(map[string]interface{}).(string)
-			// 		productID := tickerData["product_id"].(string)
-			// 		price, _ := strconv.ParseFloat(tickerData["price"].(string), 64)
+					api.sseManager.BroadcastPrice(sse.PriceUpdate{
+						ProductID: productID,
+						Price:     price,
+						Timestamp: time.Now().Unix(),
+					})
 
-			// 		triggeredAlerts := api.triggerManager.ProcessPriceAlerts(productID, price)
-			// 		for _, alert := range triggeredAlerts {
-			// 			log.Printf("Alert triggered for %s at price %f", productID, price)
-			// 			if err := db.UpdateAlertStatus(database, alert.ID, "triggered"); err != nil {
-			// 				log.Printf("Error updating alert status: %v", err)
-			// 			}
-			// 		}
-			// 	}
-			// }
-			// productID := msg["product_id"].(string)
-			// price, _ := strconv.ParseFloat(msg["product_id"].(string), 64)
-			// triggeredAlerts := api.alertManager.ProcessPriceAlerts(productID, price)
-
-			// for _, alert := range triggeredAlerts {
-			// 	log.Println("Alert Triggered", alert)
-			// 	// if err := api.alertManager.UpdateAlertStatus(alert.ID, "triggered"); err != nil {
-			// 	// 	log.Printf("Error updating alert status: %v", err)
-			// 	// }
-			// }
+					if triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price); len(triggeredTriggers) > 0 {
+						for _, trigger := range triggeredTriggers {
+							api.sseManager.BroadcastTrigger(trigger)
+						}
+					}
+				}
+			}
 
 		}
 	}
@@ -1342,4 +1294,47 @@ func GetCBSign(apiSecret string, timestamp int64, method, path, body string) str
 	hasher.Write([]byte(message))
 	signature := hex.EncodeToString(hasher.Sum(nil))
 	return signature
+}
+
+func generateUserJWT(apiKeyName string, privateKeyBytes []byte) (string, error) {
+	block, _ := pem.Decode(privateKeyBytes)
+	if block == nil {
+		return "", fmt.Errorf("invalid PEM block")
+	}
+
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		key, err = x509.ParseECPrivateKey(block.Bytes) // Try EC key parsing if PKCS8 fails
+		if err != nil {
+			return "", fmt.Errorf("failed to parse private key: %v", err)
+		}
+	}
+
+	ecKey, ok := key.(*ecdsa.PrivateKey)
+	if !ok {
+		return "", fmt.Errorf("key is not an ECDSA private key")
+	}
+
+	now := time.Now().Unix()
+	claims := jwt.MapClaims{
+		"iss": "coinbase-cloud",
+		"sub": apiKeyName,
+		"nbf": now,
+		"exp": now + 120,
+		"uri": "wss://advanced-trade-ws-user.coinbase.com",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token.Header["kid"] = apiKeyName
+	token.Header["nonce"] = generateNonce()
+
+	return token.SignedString(ecKey)
+}
+
+func generateNonce() string {
+	nonce := make([]byte, 16)
+	if _, err := rand.Read(nonce); err != nil {
+		panic(err)
+	}
+	return base64.StdEncoding.EncodeToString(nonce)
 }

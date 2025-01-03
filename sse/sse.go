@@ -14,32 +14,58 @@ import (
 )
 
 type SSEManager struct {
-	clients      map[chan string]struct{}
-	clientMux    sync.RWMutex
-	alertManager *triggers.TriggerManager
+	clients        map[chan string]struct{}
+	clientMux      sync.RWMutex
+	triggerManager *triggers.TriggerManager
+	priceUpdates   chan PriceUpdate
 }
 
-func NewSSEManager(alertManager *triggers.TriggerManager) *SSEManager {
-	return &SSEManager{
-		clients:      make(map[chan string]struct{}),
-		alertManager: alertManager,
+type PriceUpdate struct {
+	ProductID string  `json:"product_id"`
+	Price     float64 `json:"price"`
+	Timestamp int64   `json:"timestamp"`
+}
+
+func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
+	sse := &SSEManager{
+		clients:        make(map[chan string]struct{}),
+		triggerManager: triggerManager,
+		priceUpdates:   make(chan PriceUpdate, 100),
+	}
+
+	go sse.handlePriceUpdates()
+	return sse
+}
+
+func (sse *SSEManager) handlePriceUpdates() {
+	for update := range sse.priceUpdates {
+		// Process triggers
+		if triggeredTriggers := sse.triggerManager.ProcessPriceUpdate(update.ProductID, update.Price); len(triggeredTriggers) > 0 {
+			for _, trigger := range triggeredTriggers {
+				sse.BroadcastTrigger(trigger)
+			}
+		}
+
+		// Broadcast price update
+		sse.BroadcastPrice(update)
 	}
 }
 
-func (sse *SSEManager) AddClient(client chan string) {
-	sse.clientMux.RLock()
-	defer sse.clientMux.Unlock()
-	sse.clients[client] = struct{}{}
+// Broadcast price updates
+func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
+	message, err := json.Marshal(map[string]interface{}{
+		"event": "price",
+		"data":  update,
+	})
+	if err != nil {
+		log.Printf("Error marshaling price update: %v", err)
+		return
+	}
+	sse.broadcastMessage(string(message))
 }
 
-func (sse *SSEManager) RemoveClient(client chan string) {
-	sse.clientMux.Lock()
-	defer sse.clientMux.Unlock()
-	delete(sse.clients, client)
-	close(client)
-}
-
-func (sse *SSEManager) Broadcast(message string) {
+// Base broadcast method for string messages
+func (sse *SSEManager) broadcastMessage(message string) {
 	sse.clientMux.RLock()
 	defer sse.clientMux.RUnlock()
 	for client := range sse.clients {
@@ -51,23 +77,17 @@ func (sse *SSEManager) Broadcast(message string) {
 	}
 }
 
-func (sse *SSEManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Println("New SSE client connected")
-
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-
-	client := make(chan string)
-	sse.AddClient(client)
-	defer sse.RemoveClient(client)
-
-	for message := range client {
-		fmt.Fprintf(w, "data: %s\n\n", message)
-		if flusher, ok := w.(http.Flusher); ok {
-			flusher.Flush()
-		}
+// Broadcast trigger updates
+func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
+	message, err := json.Marshal(map[string]interface{}{
+		"event": "trigger",
+		"data":  trigger,
+	})
+	if err != nil {
+		log.Printf("Error marshaling trigger: %v", err)
+		return
 	}
+	sse.broadcastMessage(string(message))
 }
 
 func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
@@ -113,22 +133,77 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
 		}
 
 		// ------
-		if payload.Table == "triggers" {
-			log.Println("Trigger:", payload.Table)
-			log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
 
+		switch payload.Table {
+		case "triggers":
 			var trigger common.Trigger
 			if err := json.Unmarshal(payload.Data, &trigger); err != nil {
 				log.Printf("Error parsing trigger data: %v", err)
 				continue
 			}
-			sse.alertManager.UpdateTriggers([]common.Trigger{trigger})
-			message := fmt.Sprintf("Table %s %s: %s",
-				trigger.ProductID,
-				payload.Operation,
-				trigger.Status)
-			sse.Broadcast(message)
+			sse.triggerManager.UpdateTriggers([]common.Trigger{trigger})
+			sse.BroadcastTrigger(trigger)
+
 		}
 
+		if payload.Table == "triggers" {
+			log.Println("Trigger:", payload.Table)
+			log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
+
+		}
+
+	}
+}
+
+func toJSON(v interface{}) string {
+	data, err := json.Marshal(v)
+	if err != nil {
+		log.Printf("Error marshalling to JSON: %v", err)
+		return "{}"
+	}
+	return string(data)
+}
+
+func (sse *SSEManager) AddClient(client chan string) {
+	sse.clientMux.RLock()
+	defer sse.clientMux.Unlock()
+	sse.clients[client] = struct{}{}
+}
+
+func (sse *SSEManager) RemoveClient(client chan string) {
+	sse.clientMux.Lock()
+	defer sse.clientMux.Unlock()
+	delete(sse.clients, client)
+	close(client)
+}
+
+// func (sse *SSEManager) Broadcast(message string) {
+// 	sse.clientMux.RLock()
+// 	defer sse.clientMux.RUnlock()
+// 	for client := range sse.clients {
+// 		select {
+// 		case client <- message:
+// 		default:
+// 			log.Println("Client channel is full, dropping message")
+// 		}
+// 	}
+// }
+
+func (sse *SSEManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Println("New SSE client connected")
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	client := make(chan string)
+	sse.AddClient(client)
+	defer sse.RemoveClient(client)
+
+	for message := range client {
+		fmt.Fprintf(w, "data: %s\n\n", message)
+		if flusher, ok := w.(http.Flusher); ok {
+			flusher.Flush()
+		}
 	}
 }
