@@ -326,37 +326,41 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 		case "ticker":
 			if events, ok := msg["events"].([]interface{}); ok {
 				for _, event := range events {
-					eventMap, ok := event.(map[string]interface{})
-					if !ok {
-						continue
-					}
+					if eventMap, ok := event.(map[string]interface{}); ok {
+						if tickers, ok := eventMap["tickers"].([]interface{}); ok {
+							for _, ticker := range tickers {
+								if tickerData, ok := ticker.(map[string]interface{}); ok {
+									productID, ok1 := tickerData["product_id"].(string)
+									priceStr, ok2 := tickerData["price"].(string)
 
-					tickers, ok := eventMap["tickers"].([]interface{})
-					if !ok {
-						continue
-					}
+									if !ok1 || !ok2 {
+										log.Printf("Invalid ticker data format")
+										continue
+									}
 
-					for _, ticker := range tickers {
-						tickerData, ok := ticker.(map[string]interface{})
-						if !ok {
-							continue
-						}
+									price, err := strconv.ParseFloat(priceStr, 64)
+									if err != nil {
+										log.Printf("Error parsing price: %v", err)
+										continue
+									}
 
-						productID, _ := tickerData["product_id"].(string)
-						price, _ := strconv.ParseFloat(tickerData["price"].(string), 64)
+									// log.Printf("Price Update - Product: %s, Price: %.2f", productID, price)
 
-						if api.sseManager != nil {
-							api.sseManager.BroadcastPrice(sse.PriceUpdate{
-								ProductID: productID,
-								Price:     price,
-								Timestamp: time.Now().Unix(),
-							})
-						}
+									if api.sseManager != nil {
+										api.sseManager.BroadcastPrice(sse.PriceUpdate{
+											ProductID: productID,
+											Price:     price,
+											Timestamp: time.Now().Unix(),
+										})
+									}
 
-						if api.triggerManager != nil {
-							if triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price); len(triggeredTriggers) > 0 {
-								for _, trigger := range triggeredTriggers {
-									api.sseManager.BroadcastTrigger(trigger)
+									if api.triggerManager != nil {
+										if triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price); len(triggeredTriggers) > 0 {
+											for _, trigger := range triggeredTriggers {
+												api.sseManager.BroadcastTrigger(trigger)
+											}
+										}
+									}
 								}
 							}
 						}
