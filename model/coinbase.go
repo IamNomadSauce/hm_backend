@@ -54,7 +54,38 @@ type CoinbaseAPI struct {
 	sseManager          *sse.SSEManager
 }
 
+// Update the CoinbaseAPI implementation to match the interface exactly
+func (api *CoinbaseAPI) SetManagers(triggerManager *triggers.TriggerManager, sseManager *sse.SSEManager) {
+	api.triggerManager = triggerManager
+	api.sseManager = sseManager
+}
+
+// Add to model/coinbase.go
+func (api *CoinbaseAPI) ProcessCandle(productID string, timeframe string, candle common.Candle) {
+	if api.triggerManager != nil {
+		triggeredTriggers := api.triggerManager.ProcessCandleUpdate(productID, timeframe, candle)
+		for _, trigger := range triggeredTriggers {
+			if api.sseManager != nil {
+				api.sseManager.BroadcastTrigger(trigger)
+			}
+		}
+	}
+}
+
+func (api *CoinbaseAPI) ProcessPrice(productID string, price float64) {
+	if api.triggerManager != nil {
+		triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price)
+		for _, trigger := range triggeredTriggers {
+			log.Printf("Trigger %d activated for %s at price %f", trigger.ID, productID, price)
+			if api.sseManager != nil {
+				api.sseManager.BroadcastTrigger(trigger)
+			}
+		}
+	}
+}
+
 func (api *CoinbaseAPI) ConnectUserWebsocket() error {
+	log.Println("Connect User Websocket")
 	url := "wss://advanced-trade-ws-user.coinbase.com"
 	c, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
@@ -228,6 +259,7 @@ func (api *CoinbaseAPI) handleUserWebsocketMessages() {
 }
 
 func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
+	log.Println("Connect Market Data Websocket")
 	url := "wss://advanced-trade-ws.coinbase.com"
 	c, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
@@ -261,7 +293,7 @@ func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
 		Type:       "subscribe",
 		ProductIDs: []string{"BTC-USD", "XLM-USD"},
 		Channel:    "heartbeats",
-		JWT:        api.generateJWT(), // You'll need to implement this
+		JWT:        api.generateJWT(),
 	}
 
 	// log.Printf("Debug - Sending heartbeat subscription message: %+v", heartbeatMsg)
@@ -276,6 +308,7 @@ func (api *CoinbaseAPI) ConnectMarketDataWebSocket() error {
 }
 
 func (api *CoinbaseAPI) handleWebsocketMessages() {
+	log.Printf("Starting WebSocket message handler for %s", api.BaseURL)
 	for {
 		_, message, err := api.WSConn.ReadMessage()
 		if err != nil {
@@ -289,37 +322,47 @@ func (api *CoinbaseAPI) handleWebsocketMessages() {
 			continue
 		}
 
-		// log.Printf("Debug - Received message: %+v", msg)
-
 		switch msg["channel"] {
-		case "error":
-			log.Printf("WebSocket error received: %v", msg["message"])
-			return
-		case "subscribe":
-			log.Printf("Subscription confirmed for channels: %v", msg["channels"])
-		case "heartbeat":
-			log.Printf("Heartbeat received for: %v", msg["product_ids"])
 		case "ticker":
 			if events, ok := msg["events"].([]interface{}); ok {
 				for _, event := range events {
-					tickerData := event.(map[string]interface{})
-					productID := tickerData["product_id"].(string)
-					price, _ := strconv.ParseFloat(tickerData["price"].(string), 64)
+					eventMap, ok := event.(map[string]interface{})
+					if !ok {
+						continue
+					}
 
-					api.sseManager.BroadcastPrice(sse.PriceUpdate{
-						ProductID: productID,
-						Price:     price,
-						Timestamp: time.Now().Unix(),
-					})
+					tickers, ok := eventMap["tickers"].([]interface{})
+					if !ok {
+						continue
+					}
 
-					if triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price); len(triggeredTriggers) > 0 {
-						for _, trigger := range triggeredTriggers {
-							api.sseManager.BroadcastTrigger(trigger)
+					for _, ticker := range tickers {
+						tickerData, ok := ticker.(map[string]interface{})
+						if !ok {
+							continue
+						}
+
+						productID, _ := tickerData["product_id"].(string)
+						price, _ := strconv.ParseFloat(tickerData["price"].(string), 64)
+
+						if api.sseManager != nil {
+							api.sseManager.BroadcastPrice(sse.PriceUpdate{
+								ProductID: productID,
+								Price:     price,
+								Timestamp: time.Now().Unix(),
+							})
+						}
+
+						if api.triggerManager != nil {
+							if triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price); len(triggeredTriggers) > 0 {
+								for _, trigger := range triggeredTriggers {
+									api.sseManager.BroadcastTrigger(trigger)
+								}
+							}
 						}
 					}
 				}
 			}
-
 		}
 	}
 }
@@ -361,29 +404,6 @@ func (api *CoinbaseAPI) reconnectUserWebSocket() {
 		return
 	}
 }
-
-// func (api *CoinbaseAPI) monitorHeartbeat() {
-// 	ticker := time.NewTicker(30 * time.Second)
-// 	defer ticker.Stop()
-
-// 	for {
-// 		select {
-// 		case <-ticker.C:
-// 			if err := api.WSConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-// 				log.Printf("Failed to send ping: %v", err)
-// 				api.reconnectWebSocket()
-// 				return
-// 			}
-// 		}
-// 	}
-// }
-
-// func (api *CoinbaseAPI) reconnectWebSocket() {
-// 	time.Sleep(5 * time.Second)
-// 	if err := api.ConnectWebSocket(); err != nil {
-// 		log.Printf("Failed to reconnect WebSocket: %v", err)
-// 	}
-// }
 
 func (api *CoinbaseAPI) handleTickerUpdate(msg map[string]interface{}) {
 	log.Println("Handle Ticker Update", msg)
@@ -562,6 +582,29 @@ func ParseCoinbaseOrder(response CoinbaseOrderResponse) (Order, error) {
 		// ... set other fields
 	}, nil
 }
+
+// func (api *CoinbaseAPI) monitorHeartbeat() {
+// 	ticker := time.NewTicker(30 * time.Second)
+// 	defer ticker.Stop()
+
+// 	for {
+// 		select {
+// 		case <-ticker.C:
+// 			if err := api.WSConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+// 				log.Printf("Failed to send ping: %v", err)
+// 				api.reconnectWebSocket()
+// 				return
+// 			}
+// 		}
+// 	}
+// }
+
+// func (api *CoinbaseAPI) reconnectWebSocket() {
+// 	time.Sleep(5 * time.Second)
+// 	if err := api.ConnectWebSocket(); err != nil {
+// 		log.Printf("Failed to reconnect WebSocket: %v", err)
+// 	}
+// }
 
 func toNullFloat64(s string) sql.NullFloat64 {
 	if s == "" {

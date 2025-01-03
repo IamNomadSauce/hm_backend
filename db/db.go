@@ -831,9 +831,6 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 			BaseURL:     "https://api.coinbase.com",
 			CandleLimit: 350,
 			ExchangeID:  exchange.ID,
-			// alertManager: &AlertManager{
-			// 	alerts: make(map[string][]Alert),
-			// },
 		}
 		exchange.CandleLimit = 350
 	case "Alpaca":

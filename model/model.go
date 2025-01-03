@@ -2,6 +2,8 @@ package model
 
 import (
 	"backend/common"
+	"backend/sse"
+	"backend/triggers"
 	"time"
 )
 
@@ -40,6 +42,11 @@ type ExchangeAPI interface {
 	ConnectUserWebsocket() error
 	ConnectMarketDataWebSocket() error
 	GetOrder(orderID string) (*Order, error)
+
+	SetManagers(triggerManager *triggers.TriggerManager, sseManager *sse.SSEManager)
+	ProcessPrice(productID string, price float64)
+	ProcessCandle(productID string, timeframe string, candle common.Candle)
+
 	// ProcessPrice(productID string, price float64)
 	// ProcessCandle(productID string, timeframe string, candle common.Candle)
 }

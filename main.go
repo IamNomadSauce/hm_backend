@@ -45,6 +45,8 @@ func main() {
 	triggers_manager := triggers.NewTriggerManager()
 	app.TriggerManager = triggers_manager
 
+	globalSSEManager := sse.NewSSEManager(triggers_manager)
+
 	// Now you can safely get exchanges using app.DB
 	db_exchanges, err := db.Get_Exchanges(app.DB)
 	if err != nil {
@@ -57,9 +59,16 @@ func main() {
 				continue
 			}
 
+			exchange.API.SetManagers(triggers_manager, globalSSEManager)
+
+			if err := exchange.API.ConnectMarketDataWebSocket(); err != nil {
+				log.Printf("Error connecting Market WebSocket for %s: %v", exchange.Name, err)
+			}
+
 			if err := exchange.API.ConnectUserWebsocket(); err != nil {
 				log.Printf("Error connecting WebSocket for %s: %v", exchange.Name, err)
 			}
+
 		}
 		log.Println("Websockets Initialized")
 	}
@@ -130,7 +139,6 @@ func main() {
 		host, port, user, password, dbname)
 
 	// Live database SSE events trigger
-	globalSSEManager := sse.NewSSEManager(triggers_manager)
 
 	go globalSSEManager.ListenForDBChanges(dsn, "global_changes")
 

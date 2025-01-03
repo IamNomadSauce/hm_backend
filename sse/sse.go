@@ -27,6 +27,7 @@ type PriceUpdate struct {
 }
 
 func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
+	log.Println("New SSE Manager")
 	sse := &SSEManager{
 		clients:        make(map[chan string]struct{}),
 		triggerManager: triggerManager,
@@ -91,6 +92,7 @@ func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
 }
 
 func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
+	log.Println("SSE Listen For DB Changes")
 	listener := pq.NewListener(dsn, 10*time.Second, time.Minute,
 		func(ev pq.ListenerEventType, err error) {
 			if err != nil {

@@ -2,10 +2,13 @@ package model
 
 import (
 	"backend/common"
+	"backend/sse"
+	"backend/triggers"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,6 +33,8 @@ type AlpacaAPI struct {
 	MinimumOrderSizes   map[string]float64
 	MakerFee            float64
 	TakerFee            float64
+	triggerManager      *triggers.TriggerManager
+	sseManager          *sse.SSEManager
 }
 
 func (api *AlpacaAPI) ConnectWebSocket() error {
@@ -40,6 +45,35 @@ func (api *AlpacaAPI) ConnectMarketDataWebSocket() error {
 }
 func (api *AlpacaAPI) ConnectUserWebSocket() error {
 	return nil
+}
+
+func (api *AlpacaAPI) SetManagers(tm *triggers.TriggerManager, sm *sse.SSEManager) {
+	api.triggerManager = tm
+	api.sseManager = sm
+}
+
+// Add to model/coinbase.go
+func (api *AlpacaAPI) ProcessCandle(productID string, timeframe string, candle common.Candle) {
+	if api.triggerManager != nil {
+		triggeredTriggers := api.triggerManager.ProcessCandleUpdate(productID, timeframe, candle)
+		for _, trigger := range triggeredTriggers {
+			if api.sseManager != nil {
+				api.sseManager.BroadcastTrigger(trigger)
+			}
+		}
+	}
+}
+
+func (api *AlpacaAPI) ProcessPrice(productID string, price float64) {
+	if api.triggerManager != nil {
+		triggeredTriggers := api.triggerManager.ProcessPriceUpdate(productID, price)
+		for _, trigger := range triggeredTriggers {
+			log.Printf("Trigger %d activated for %s at price %f", trigger.ID, productID, price)
+			if api.sseManager != nil {
+				api.sseManager.BroadcastTrigger(trigger)
+			}
+		}
+	}
 }
 
 func (api *AlpacaAPI) PlaceBracketOrder(trade_group TradeBlock) error {
