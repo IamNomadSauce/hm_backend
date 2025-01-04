@@ -22,6 +22,7 @@ type TriggerManager struct {
 }
 
 func (tm *TriggerManager) InitializeTriggersFromExchange(exchangeID int) error {
+	log.Println("TM.InitializeTriggersFromExchange", exchangeID)
 	triggers, err := GetTriggers(tm.db, exchangeID, "active")
 	if err != nil {
 		return fmt.Errorf("failed to initialize triggers: %w", err)
@@ -48,17 +49,19 @@ func (tm *TriggerManager) UpdateTriggers(triggers []common.Trigger) {
 }
 
 func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []common.Trigger {
-	log.Println("TM:ProcessPriceUpdate:", productID, price)
+	log.Printf("\nTM:ProcessPriceUpdate:\n Product: %s\n Price: %f", productID, price)
 	tm.triggerMutex.RLock()
 	defer tm.triggerMutex.RUnlock()
-	log.Println("TM.ProcessPriceUpdate:Triggers:", tm.triggers)
+	// log.Println("TM.ProcessPriceUpdate:Triggers:", tm.triggers)
 
 	var triggeredTriggers []common.Trigger
 	if triggers, exists := tm.triggers[productID]; exists {
 		for _, trigger := range triggers {
-			if trigger.Status != "active" {
+			if trigger.ProductID != productID || trigger.Status != "active" {
 				continue
 			}
+
+			log.Printf("\nTrigger:\n Product: %s\n Type: %s\n Trigger-Price: %f\n Price: %f", trigger.ProductID, trigger.Type, trigger.Price, price)
 
 			if trigger.Type == "price_above" && price > trigger.Price || trigger.Type == "price_below" && price < trigger.Price {
 				trigger.Status = "triggered"
@@ -69,6 +72,7 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 	}
 	return triggeredTriggers
 }
+
 func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error) {
 	query := `
         SELECT 

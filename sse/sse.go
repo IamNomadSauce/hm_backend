@@ -52,11 +52,12 @@ func (sse *SSEManager) handlePriceUpdates() {
 		// Broadcast price update
 		sse.BroadcastPrice(update)
 	}
+	log.Println("\n")
 }
 
 // Broadcast price updates
 func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
-	log.Println("SSE:BroadcastPrice", update)
+	log.Printf("\nSSE:BroadcastPrice\n Product: %s\n Price: %f\n Time: %d\n", update.ProductID, update.Price, update.Timestamp)
 	message, err := json.Marshal(map[string]interface{}{
 		"event": "price",
 		"data":  update,
