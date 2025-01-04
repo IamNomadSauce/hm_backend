@@ -28,11 +28,18 @@ Loops:
 
 
 --------------------------------------
-Alerts
+Triggers
 - [x] Create alert on client chart
 - [x] Receive alert on backend
 - [x] Write alert to db
-- [ ] wick/close above/below for x_candles on x_timeline
+- [x] Connect SSE and Trigger system
+- [x] wick/close above/below for x_candles on x_timeline
+- [x] Test websocket live feed 
+- [x] Test trigger on SSE side
+- [x] Test trigger on trigger_manager side
+- [ ] Send alert to front-end
+    - [ ] Backend stream endpoint
+    - [ ] Fix front end to write to triggers
 
 --------------------------------------
 - [x] Portfolio coinbase retrieval

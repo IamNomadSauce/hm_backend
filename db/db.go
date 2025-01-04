@@ -1371,7 +1371,7 @@ func DeleteTrigger(db *sql.DB, triggerID int) error {
 	var deletedID int
 	err := db.QueryRow(query, triggerID).Scan(&deletedID)
 	if err == sql.ErrNoRows {
-		return fmt.Errorf("alert with ID %d not found", triggerID)
+		return fmt.Errorf("trigger with ID %d not found", triggerID)
 	}
 	return err
 }
@@ -1441,7 +1441,7 @@ func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error
 	}
 	defer rows.Close()
 
-	var alertsList []common.Trigger
+	var triggersList []common.Trigger
 	for rows.Next() {
 		var trigger common.Trigger
 		err := rows.Scan(
@@ -1461,8 +1461,8 @@ func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error
 		if err != nil {
 			return nil, err
 		}
-		alertsList = append(alertsList, trigger)
+		triggersList = append(triggersList, trigger)
 	}
 
-	return alertsList, nil
+	return triggersList, nil
 }
