@@ -2,18 +2,38 @@ package triggers
 
 import (
 	"backend/common"
+	"database/sql"
+	"fmt"
+	"log"
 	"sync"
 )
 
-func NewTriggerManager() *TriggerManager {
+func NewTriggerManager(db *sql.DB) *TriggerManager {
 	return &TriggerManager{
 		triggers: make(map[string][]common.Trigger),
+		db:       db,
 	}
 }
 
 type TriggerManager struct {
 	triggers     map[string][]common.Trigger
 	triggerMutex sync.RWMutex
+	db           *sql.DB
+}
+
+func (tm *TriggerManager) InitializeTriggersFromExchange(exchangeID int) error {
+	triggers, err := GetTriggers(tm.db, exchangeID, "active")
+	if err != nil {
+		return fmt.Errorf("failed to initialize triggers: %w", err)
+	}
+
+	tm.triggerMutex.Lock()
+	defer tm.triggerMutex.Unlock()
+
+	for _, trigger := range triggers {
+		tm.triggers[trigger.ProductID] = append(tm.triggers[trigger.ProductID], trigger)
+	}
+	return nil
 }
 
 func (tm *TriggerManager) UpdateTriggers(triggers []common.Trigger) {
@@ -28,8 +48,10 @@ func (tm *TriggerManager) UpdateTriggers(triggers []common.Trigger) {
 }
 
 func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []common.Trigger {
+	log.Println("TM:ProcessPriceUpdate:", productID, price)
 	tm.triggerMutex.RLock()
 	defer tm.triggerMutex.RUnlock()
+	log.Println("TM.ProcessPriceUpdate:Triggers:", tm.triggers)
 
 	var triggeredTriggers []common.Trigger
 	if triggers, exists := tm.triggers[productID]; exists {
@@ -46,6 +68,54 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 		}
 	}
 	return triggeredTriggers
+}
+func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error) {
+	query := `
+        SELECT 
+            id, product_id, type, price, timeframe, 
+            candle_count, condition, status, triggered_count,
+            xch_id, created_at, updated_at
+        FROM triggers
+    `
+
+	var rows *sql.Rows
+	var err error
+	if status != "" {
+		query += " WHERE status = $1 AND xch_id = $2"
+		rows, err = db.Query(query, status, xch_id)
+	} else {
+		rows, err = db.Query(query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var triggersList []common.Trigger
+	for rows.Next() {
+		var trigger common.Trigger
+		err := rows.Scan(
+			&trigger.ID,
+			&trigger.ProductID,
+			&trigger.Type,
+			&trigger.Price,
+			&trigger.Timeframe,
+			&trigger.CandleCount,
+			&trigger.Condition,
+			&trigger.Status,
+			&trigger.TriggeredCount,
+			&trigger.XchID,
+			&trigger.CreatedAt,
+			&trigger.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		triggersList = append(triggersList, trigger)
+	}
+
+	return triggersList, nil
 }
 
 func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string, candle common.Candle) []common.Trigger {

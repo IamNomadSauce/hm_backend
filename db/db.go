@@ -3,6 +3,7 @@ package db
 import (
 	"backend/common"
 	"backend/model"
+	"backend/triggers"
 	"context"
 	"database/sql"
 	"fmt"
@@ -818,7 +819,7 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	if err != nil {
 		return exchange, fmt.Errorf("error getting trades: %v", err)
 	}
-	exchange.Triggers, err = GetTriggers(db, exchange.ID, "active")
+	exchange.Triggers, err = triggers.GetTriggers(db, exchange.ID, "active")
 	if err != nil {
 		return exchange, fmt.Errorf("error getting triggers %v", err)
 	}
@@ -1416,53 +1417,4 @@ func UpdateTriggerCount(db *sql.DB, triggerID int, triggeredCount int) error {
     `
 	_, err := db.Exec(query, triggeredCount, triggerID)
 	return err
-}
-
-func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error) {
-	query := `
-        SELECT 
-            id, product_id, type, price, timeframe, 
-            candle_count, condition, status, triggered_count,
-            xch_id, created_at, updated_at
-        FROM triggers
-    `
-
-	var rows *sql.Rows
-	var err error
-	if status != "" {
-		query += " WHERE status = $1 AND xch_id = $2"
-		rows, err = db.Query(query, status, xch_id)
-	} else {
-		rows, err = db.Query(query)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var triggersList []common.Trigger
-	for rows.Next() {
-		var trigger common.Trigger
-		err := rows.Scan(
-			&trigger.ID,
-			&trigger.ProductID,
-			&trigger.Type,
-			&trigger.Price,
-			&trigger.Timeframe,
-			&trigger.CandleCount,
-			&trigger.Condition,
-			&trigger.Status,
-			&trigger.TriggeredCount,
-			&trigger.XchID,
-			&trigger.CreatedAt,
-			&trigger.UpdatedAt,
-		)
-		if err != nil {
-			return nil, err
-		}
-		triggersList = append(triggersList, trigger)
-	}
-
-	return triggersList, nil
 }

@@ -42,7 +42,7 @@ func main() {
 	app.DB = database // Set the DB connection
 
 	// Initialize trigger manager
-	triggers_manager := triggers.NewTriggerManager()
+	triggers_manager := triggers.NewTriggerManager(app.DB)
 	app.TriggerManager = triggers_manager
 
 	globalSSEManager := sse.NewSSEManager(triggers_manager)
@@ -54,6 +54,11 @@ func main() {
 	} else {
 		// Initialize websockets
 		for _, exchange := range db_exchanges {
+
+			if err := triggers_manager.InitializeTriggersFromExchange(exchange.ID); err != nil {
+				log.Printf("Error initializing triggers for exchange %s: %v", exchange.Name, err)
+			}
+
 			if exchange.API == nil {
 				log.Printf("API for exchange %s is not initialized\n", exchange.Name)
 				continue
@@ -234,25 +239,6 @@ func main() {
 			time.Sleep(1 * time.Minute)
 		}
 	}()
-
-	// Alerts. not so sure about this
-	// go func() {
-	// 	log.Println("Starting Alert Manager GoRoutine")
-	// 	ticker := time.NewTicker(1 * time.Minute)
-	// 	defer ticker.Stop()
-	// 	for {
-	// 		select {
-	// 		case <-ticker.C:
-	// 			// alerts, err := app.DB.GetActiveAlerts(app.DB)
-	// 			// if err != nil {
-	// 			// 	log.Printf("Error getting alerts: %v", err)
-	// 			// 	continue
-	// 			// }
-	// 			// app.AlertManager.UpdateAlerts(alerts)
-	// 		}
-	// 	}
-	// }()
-
 	select {}
 }
 

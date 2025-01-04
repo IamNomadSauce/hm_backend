@@ -39,7 +39,7 @@ Triggers
 - [x] Test trigger on trigger_manager side
 - [ ] Send alert to front-end
     - [ ] Backend stream endpoint
-    - [ ] Fix front end to write to triggers
+    - [x] Fix front end to write to triggers
 
 --------------------------------------
 - [x] Portfolio coinbase retrieval

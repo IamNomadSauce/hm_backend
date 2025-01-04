@@ -39,7 +39,9 @@ func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
 }
 
 func (sse *SSEManager) handlePriceUpdates() {
+	log.Println("SSE:Handle Price Updates", sse.priceUpdates)
 	for update := range sse.priceUpdates {
+		log.Println("Price_Update:", update)
 		// Process triggers
 		if triggeredTriggers := sse.triggerManager.ProcessPriceUpdate(update.ProductID, update.Price); len(triggeredTriggers) > 0 {
 			for _, trigger := range triggeredTriggers {
@@ -54,6 +56,7 @@ func (sse *SSEManager) handlePriceUpdates() {
 
 // Broadcast price updates
 func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
+	log.Println("SSE:BroadcastPrice", update)
 	message, err := json.Marshal(map[string]interface{}{
 		"event": "price",
 		"data":  update,
@@ -80,6 +83,7 @@ func (sse *SSEManager) broadcastMessage(message string) {
 
 // Broadcast trigger updates
 func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
+	log.Println("SSE:BroadcastTrigger", trigger)
 	message, err := json.Marshal(map[string]interface{}{
 		"event": "trigger",
 		"data":  trigger,
