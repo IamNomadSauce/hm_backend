@@ -49,7 +49,7 @@ func (tm *TriggerManager) UpdateTriggers(triggers []common.Trigger) {
 }
 
 func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []common.Trigger {
-	log.Printf("\nTM:ProcessPriceUpdate:\n Product: %s\n Price: %f", productID, price)
+	// log.Printf("\nTM:ProcessPriceUpdate:\n Product: %s\n Price: %f", productID, price)
 	tm.triggerMutex.RLock()
 	defer tm.triggerMutex.RUnlock()
 	// log.Println("TM.ProcessPriceUpdate:Triggers:", tm.triggers)
@@ -61,12 +61,28 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 				continue
 			}
 
-			log.Printf("\nTrigger:\n Product: %s\n Type: %s\n Trigger-Price: %f\n Price: %f", trigger.ProductID, trigger.Type, trigger.Price, price)
+			// log.Printf("\nTrigger:\n Product: %s\n Type: %s\n Trigger-Price: %f\n Price: %f", trigger.ProductID, trigger.Type, trigger.Price, price)
 
-			if trigger.Type == "price_above" && price > trigger.Price || trigger.Type == "price_below" && price < trigger.Price {
-				trigger.Status = "triggered"
+			var triggered bool
+			switch trigger.Type {
+			case "price_below":
+				triggered = price < trigger.Price
+			case "price_above":
+				triggered = price > trigger.Price
+				if price > trigger.Price {
+					trigger.Status = "triggered"
+				}
+			}
+
+			if triggered {
+				// log.Printf("TRIGGERED: %s\n %f Above %f\n", trigger.ProductID, price, trigger.Price)
+
+				// trigger.Status = "triggered"
+				// if err := db.UpdateTriggerStatus(tm.db, trigger.ID, "triggered"); err != nil {
+				// 	log.Printf("Error updating trigger status: %v", err)
+				// 	continue
+				// }
 				triggeredTriggers = append(triggeredTriggers, trigger)
-
 			}
 		}
 	}

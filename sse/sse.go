@@ -39,9 +39,9 @@ func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
 }
 
 func (sse *SSEManager) handlePriceUpdates() {
-	log.Println("SSE:Handle Price Updates", sse.priceUpdates)
+	// log.Println("SSE:Handle Price Updates", sse.priceUpdates)
 	for update := range sse.priceUpdates {
-		log.Println("Price_Update:", update)
+		// log.Println("Price_Update:", update)
 		// Process triggers
 		if triggeredTriggers := sse.triggerManager.ProcessPriceUpdate(update.ProductID, update.Price); len(triggeredTriggers) > 0 {
 			for _, trigger := range triggeredTriggers {
@@ -52,12 +52,11 @@ func (sse *SSEManager) handlePriceUpdates() {
 		// Broadcast price update
 		sse.BroadcastPrice(update)
 	}
-	log.Println("\n")
 }
 
 // Broadcast price updates
 func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
-	log.Printf("\nSSE:BroadcastPrice\n Product: %s\n Price: %f\n Time: %d\n", update.ProductID, update.Price, update.Timestamp)
+	// log.Printf("\nSSE:BroadcastPrice\n Product: %s\n Price: %f\n Time: %d\n", update.ProductID, update.Price, update.Timestamp)
 	message, err := json.Marshal(map[string]interface{}{
 		"event": "price",
 		"data":  update,
@@ -84,7 +83,7 @@ func (sse *SSEManager) broadcastMessage(message string) {
 
 // Broadcast trigger updates
 func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
-	log.Println("SSE:BroadcastTrigger", trigger)
+	// log.Println("SSE:BroadcastTrigger", trigger)
 	message, err := json.Marshal(map[string]interface{}{
 		"event": "trigger",
 		"data":  trigger,
@@ -156,9 +155,7 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
 		if payload.Table == "triggers" {
 			log.Println("Trigger:", payload.Table)
 			log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
-
 		}
-
 	}
 }
 
