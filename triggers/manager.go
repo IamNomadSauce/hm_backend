@@ -75,18 +75,35 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 			}
 
 			if triggered {
-				// log.Printf("TRIGGERED: %s\n %f Above %f\n", trigger.ProductID, price, trigger.Price)
+				log.Printf("TRIGGERED: %s\n %f Above %f\n", trigger.ProductID, price, trigger.Price)
 
-				// trigger.Status = "triggered"
-				// if err := db.UpdateTriggerStatus(tm.db, trigger.ID, "triggered"); err != nil {
-				// 	log.Printf("Error updating trigger status: %v", err)
-				// 	continue
-				// }
+				trigger.Status = "triggered"
+				if err := tm.updateTriggerStatus(trigger.ID, "triggered"); err != nil {
+					log.Printf("Error updating trigger status: %v", err)
+					continue
+				}
 				triggeredTriggers = append(triggeredTriggers, trigger)
 			}
 		}
 	}
 	return triggeredTriggers
+}
+
+func (tm *TriggerManager) updateTriggerStatus(triggerID int, status string) error {
+	query := `
+		UPDATE triggers
+		SET status = $1,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE id = $2
+		RETURNING id
+	`
+
+	var updatedID int
+	err := tm.db.QueryRow(query, status, triggerID).Scan(&updatedID)
+	if err == sql.ErrNoRows {
+		return fmt.Errorf("trigger with ID %d not found", triggerID)
+	}
+	return err
 }
 
 func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error) {
