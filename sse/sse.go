@@ -18,6 +18,7 @@ type SSEManager struct {
 	clientMux      sync.RWMutex
 	triggerManager *triggers.TriggerManager
 	priceUpdates   chan PriceUpdate
+	activeConns    map[string]bool
 }
 
 type PriceUpdate struct {
@@ -32,6 +33,7 @@ func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
 		clients:        make(map[chan string]struct{}),
 		triggerManager: triggerManager,
 		priceUpdates:   make(chan PriceUpdate, 100),
+		activeConns:    make(map[string]bool),
 	}
 
 	go sse.handlePriceUpdates()
@@ -57,15 +59,8 @@ func (sse *SSEManager) handlePriceUpdates() {
 // Broadcast price updates
 func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
 	// log.Printf("\nSSE:BroadcastPrice\n Product: %s\n Price: %f\n Time: %d\n", update.ProductID, update.Price, update.Timestamp)
-	message, err := json.Marshal(map[string]interface{}{
-		"event": "price",
-		"data":  update,
-	})
-	if err != nil {
-		log.Printf("Error marshaling price update: %v", err)
-		return
-	}
-	sse.broadcastMessage(string(message))
+	message := fmt.Sprintf("event: price\ndata: %s\n\n", toJSON(update))
+	sse.broadcastMessage(message)
 }
 
 // Base broadcast method for string messages
@@ -84,15 +79,8 @@ func (sse *SSEManager) broadcastMessage(message string) {
 // Broadcast trigger updates
 func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
 	// log.Println("SSE:BroadcastTrigger", trigger)
-	message, err := json.Marshal(map[string]interface{}{
-		"event": "trigger",
-		"data":  trigger,
-	})
-	if err != nil {
-		log.Printf("Error marshaling trigger: %v", err)
-		return
-	}
-	sse.broadcastMessage(string(message))
+	message := fmt.Sprintf("event: trigger\ndata: %s\n\n", toJSON(trigger))
+	sse.broadcastMessage(message)
 }
 
 func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
@@ -169,7 +157,7 @@ func toJSON(v interface{}) string {
 }
 
 func (sse *SSEManager) AddClient(client chan string) {
-	sse.clientMux.RLock()
+	sse.clientMux.Lock() // Change from RLock to Lock
 	defer sse.clientMux.Unlock()
 	sse.clients[client] = struct{}{}
 }
@@ -177,8 +165,10 @@ func (sse *SSEManager) AddClient(client chan string) {
 func (sse *SSEManager) RemoveClient(client chan string) {
 	sse.clientMux.Lock()
 	defer sse.clientMux.Unlock()
-	delete(sse.clients, client)
-	close(client)
+	if _, exists := sse.clients[client]; exists {
+		delete(sse.clients, client)
+		close(client)
+	}
 }
 
 // func (sse *SSEManager) Broadcast(message string) {
@@ -194,20 +184,52 @@ func (sse *SSEManager) RemoveClient(client chan string) {
 // }
 
 func (sse *SSEManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Println("New SSE client connected")
+	log.Printf("New SSE connection attempt from %s", r.RemoteAddr)
+	log.Printf("Request headers: %+v", r.Header)
 
+	// Add CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080") // Match your frontend origin
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	// Handle preflight
+	if r.Method == "OPTIONS" {
+		log.Printf("Handling OPTIONS preflight request from %s", r.RemoteAddr)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// SSE headers
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	client := make(chan string)
+	// Flush headers immediately
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+		log.Printf("Headers flushed for client %s", r.RemoteAddr)
+	} else {
+		log.Printf("Warning: ResponseWriter doesn't support Flushing for client %s", r.RemoteAddr)
+	}
+
+	client := make(chan string, 100)
 	sse.AddClient(client)
-	defer sse.RemoveClient(client)
+	log.Printf("Client %s added to SSE manager", r.RemoteAddr)
+
+	// Monitor connection state
+	notify := r.Context().Done()
+	go func() {
+		<-notify
+		log.Printf("Client %s connection closed", r.RemoteAddr)
+		sse.RemoveClient(client)
+	}()
 
 	for message := range client {
+		log.Printf("Sending message to client %s: %s", r.RemoteAddr, message)
 		fmt.Fprintf(w, "data: %s\n\n", message)
-		if flusher, ok := w.(http.Flusher); ok {
-			flusher.Flush()
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
 		}
 	}
 }
