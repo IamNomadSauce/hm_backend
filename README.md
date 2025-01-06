@@ -37,8 +37,8 @@ Triggers
 - [x] Test websocket live feed 
 - [x] Test trigger on SSE side
 - [x] Test trigger on trigger_manager side
-- [ ] Send alert to front-end
-    - [ ] Backend stream endpoint
+- [x] Send alert to front-end
+    - [x] Backend stream endpoint
     - [x] Fix front end to write to triggers
 
 --------------------------------------

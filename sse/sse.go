@@ -19,6 +19,7 @@ type SSEManager struct {
 	triggerManager *triggers.TriggerManager
 	priceUpdates   chan PriceUpdate
 	activeConns    map[string]bool
+	candleUpdates  chan common.Candle
 }
 
 type PriceUpdate struct {
@@ -34,9 +35,11 @@ func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
 		triggerManager: triggerManager,
 		priceUpdates:   make(chan PriceUpdate, 100),
 		activeConns:    make(map[string]bool),
+		candleUpdates:  make(chan common.Candle, 100),
 	}
 
 	go sse.handlePriceUpdates()
+	go sse.handleCandleUpdates()
 	return sse
 }
 
@@ -54,6 +57,24 @@ func (sse *SSEManager) handlePriceUpdates() {
 		// Broadcast price update
 		sse.BroadcastPrice(update)
 	}
+}
+
+func (sse *SSEManager) handleCandleUpdates() {
+	for candle := range sse.candleUpdates {
+		sse.BroadcastCandle(candle)
+	}
+}
+
+func (sse *SSEManager) BroadcastCandle(candle common.Candle) {
+	message, err := json.Marshal(map[string]interface{}{
+		"event": "candle",
+		"data":  candle,
+	})
+	if err != nil {
+		log.Printf("Error marshaling candle update: %v", err)
+		return
+	}
+	sse.broadcastMessage(string(message))
 }
 
 // Broadcast price updates
