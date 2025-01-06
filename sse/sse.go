@@ -58,8 +58,13 @@ func (sse *SSEManager) handlePriceUpdates() {
 
 // Broadcast price updates
 func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
-	// log.Printf("\nSSE:BroadcastPrice\n Product: %s\n Price: %f\n Time: %d\n", update.ProductID, update.Price, update.Timestamp)
-	message := fmt.Sprintf("event: price\ndata: %s\n\n", toJSON(update))
+	data, err := json.Marshal(update)
+	if err != nil {
+		log.Printf("Error marshaling price update: %v", err)
+		return
+	}
+	// Format as proper SSE message with event type on separate line
+	message := fmt.Sprintf("event: price\ndata: %s\n\n", data)
 	sse.broadcastMessage(message)
 }
 
@@ -226,7 +231,7 @@ func (sse *SSEManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	for message := range client {
-		log.Printf("Sending message to client %s: %s", r.RemoteAddr, message)
+		// log.Printf("Sending message to client %s: %s", r.RemoteAddr, message)
 		fmt.Fprintf(w, "data: %s\n\n", message)
 		if f, ok := w.(http.Flusher); ok {
 			f.Flush()
