@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,12 +15,13 @@ import (
 )
 
 type SSEManager struct {
-	clients        map[chan string]struct{}
-	clientMux      sync.RWMutex
-	triggerManager *triggers.TriggerManager
-	priceUpdates   chan PriceUpdate
-	activeConns    map[string]bool
-	candleUpdates  chan common.Candle
+	clients         map[chan string]struct{}
+	clientMux       sync.RWMutex
+	triggerManager  *triggers.TriggerManager
+	priceUpdates    chan PriceUpdate
+	activeConns     map[string]bool
+	candleUpdates   chan common.Candle
+	selectedProduct string
 }
 
 type PriceUpdate struct {
@@ -41,6 +43,12 @@ func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
 	go sse.handlePriceUpdates()
 	go sse.handleCandleUpdates()
 	return sse
+}
+
+func (sse *SSEManager) UpdateSelectedProduct(productID string) {
+	sse.clientMux.Lock()
+	defer sse.clientMux.Unlock()
+	sse.selectedProduct = productID
 }
 
 func (sse *SSEManager) handlePriceUpdates() {
@@ -109,7 +117,7 @@ func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
 	sse.broadcastMessage(message)
 }
 
-func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
+func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedProduct string) {
 	log.Println("SSE Listen For DB Changes")
 	listener := pq.NewListener(dsn, 10*time.Second, time.Minute,
 		func(ev pq.ListenerEventType, err error) {
@@ -154,7 +162,15 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
 
 		// ------
 
-		switch payload.Table {
+		table := payload.Table
+
+		product_table := ""
+
+		if strings.Contains(table, selectedProduct) {
+			product_table = table
+		}
+
+		switch table {
 		case "triggers":
 			var trigger common.Trigger
 			if err := json.Unmarshal(payload.Data, &trigger); err != nil {
@@ -164,6 +180,14 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string) {
 			sse.triggerManager.UpdateTriggers([]common.Trigger{trigger})
 			sse.BroadcastTrigger(trigger)
 
+		case product_table:
+			var candle common.Candle
+			if err := json.Unmarshal(payload.Data, &candle); err != nil {
+				log.Printf("Error parsing candle data: %v", err)
+				continue
+			}
+			log.Printf("Candle update for %s: %v", table, candle)
+			sse.BroadcastCandle(candle)
 		}
 
 		if payload.Table == "triggers" {

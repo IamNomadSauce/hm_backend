@@ -145,13 +145,19 @@ func main() {
 
 	// Live database SSE events trigger
 
-	go globalSSEManager.ListenForDBChanges(dsn, "global_changes")
+	productID := "XLM-USD"
+
+	go globalSSEManager.ListenForDBChanges(dsn, "global_changes", productID)
 
 	go func() {
 		log.Println("Starting HTTP server goroutine")
 		http.HandleFunc("/", handleMain)
 		http.HandleFunc("/exchanges", handleExchangesRequest)
 		http.HandleFunc("/candles", handleCandlesRequest)
+		http.HandleFunc("/update-selected-product", func(w http.ResponseWriter, r *http.Request) {
+			productID = r.URL.Query().Get("product_id")
+			globalSSEManager.UpdateSelectedProduct(productID)
+		})
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 		http.HandleFunc("/new_trade_group", TradeBlockHandler)
 		http.HandleFunc("/create-trigger", createTriggerHandler)
