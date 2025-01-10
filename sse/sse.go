@@ -22,6 +22,7 @@ type SSEManager struct {
 	activeConns     map[string]bool
 	candleUpdates   chan common.Candle
 	selectedProduct string
+	selectedTable   string
 }
 
 type PriceUpdate struct {
@@ -45,10 +46,14 @@ func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
 	return sse
 }
 
-func (sse *SSEManager) UpdateSelectedProduct(productID string) {
+func (sse *SSEManager) UpdateSelectedProduct(tableName, productID string) {
 	sse.clientMux.Lock()
 	defer sse.clientMux.Unlock()
+
+	sse.selectedTable = tableName
 	sse.selectedProduct = productID
+
+	log.Printf("SSE Manager updated to watch table: %s for product: %s", tableName, productID)
 }
 
 func (sse *SSEManager) handlePriceUpdates() {

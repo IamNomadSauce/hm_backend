@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -24,6 +25,7 @@ type Application struct {
 	mu             sync.Mutex
 	Exchanges      map[int]*model.Exchange
 	TriggerManager *triggers.TriggerManager
+	SSEManager     *sse.SSEManager
 }
 
 var app *Application
@@ -45,7 +47,9 @@ func main() {
 	triggers_manager := triggers.NewTriggerManager(app.DB)
 	app.TriggerManager = triggers_manager
 
-	globalSSEManager := sse.NewSSEManager(triggers_manager)
+	app.SSEManager = sse.NewSSEManager(triggers_manager)
+
+	initialProduct := "XLM-USD"
 
 	// Now you can safely get exchanges using app.DB
 	db_exchanges, err := db.Get_Exchanges(app.DB)
@@ -64,7 +68,7 @@ func main() {
 				continue
 			}
 
-			exchange.API.SetManagers(triggers_manager, globalSSEManager)
+			exchange.API.SetManagers(triggers_manager, app.SSEManager)
 
 			if err := exchange.API.ConnectMarketDataWebSocket(); err != nil {
 				log.Printf("Error connecting Market WebSocket for %s: %v", exchange.Name, err)
@@ -145,25 +149,23 @@ func main() {
 
 	// Live database SSE events trigger
 
-	productID := "XLM-USD"
-
-	go globalSSEManager.ListenForDBChanges(dsn, "global_changes", productID)
+	go app.SSEManager.ListenForDBChanges(dsn, "global_changes", initialProduct)
 
 	go func() {
 		log.Println("Starting HTTP server goroutine")
 		http.HandleFunc("/", handleMain)
 		http.HandleFunc("/exchanges", handleExchangesRequest)
 		http.HandleFunc("/candles", handleCandlesRequest)
-		http.HandleFunc("/update-selected-product", func(w http.ResponseWriter, r *http.Request) {
-			productID = r.URL.Query().Get("product_id")
-			globalSSEManager.UpdateSelectedProduct(productID)
-		})
+		// http.HandleFunc("/update-selected-product", func(w http.ResponseWriter, r *http.Request) {
+		// 	productID = r.URL.Query().Get("product_id")
+		// 	globalSSEManager.UpdateSelectedProduct(productID)
+		// })
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 		http.HandleFunc("/new_trade_group", TradeBlockHandler)
 		http.HandleFunc("/create-trigger", createTriggerHandler)
 		http.HandleFunc("/delete-trigger", deleteTriggerHandler)
 
-		http.Handle("/trigger/stream", globalSSEManager)
+		http.Handle("/trigger/stream", app.SSEManager)
 
 		// TODO Make App config struct and add DB
 		log.Println("Server starting on :31337")
@@ -252,6 +254,7 @@ func deleteTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Delete Trigger")
 
 	if r.Method != http.MethodDelete {
+		log.Println("Method Not Allowed")
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -261,11 +264,15 @@ func deleteTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		log.Println("Error decoding request into struct")
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+	log.Println("Payload", request)
+	log.Println("TriggerID:", request.TriggerID)
 
 	if request.TriggerID <= 0 {
+		log.Println("Invalid Trigger ID")
 		http.Error(w, "Invalid trigger ID", http.StatusBadRequest)
 		return
 	}
@@ -486,6 +493,17 @@ func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Request:main: %s_%s_%s", product, timeframe, exchange)
 
+	// Update SSE manager's selected product
+	tableName := fmt.Sprintf("%s_%s_%s",
+		strings.ReplaceAll(product, "-", "_"),
+		timeframe,
+		exchange)
+
+	// Get the global SSE manager and update its listening table
+	if app.SSEManager != nil {
+		app.SSEManager.UpdateSelectedProduct(tableName, product)
+	}
+
 	candles, err := api.Get_Candles(product, timeframe, exchange, app.DB)
 	if err != nil {
 		log.Printf("Error getting candles handleCandlesRequest %v", err)
@@ -499,6 +517,5 @@ func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-
 	w.Write(jsonData)
 }

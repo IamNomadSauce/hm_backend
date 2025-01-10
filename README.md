@@ -26,6 +26,8 @@ Loops:
 - Alerts
 - SSE DB change 
 
+TODO: Fix Memory leak in chart
+
 
 --------------------------------------
 Triggers
@@ -39,7 +41,9 @@ Triggers
 - [x] Test trigger on trigger_manager side
 - [x] Send alert to front-end
     - [x] Backend stream endpoint
-    - [x] Fix front end to write to triggers
+- [x] Fix front end to write to triggers
+- [ ] Delete/Cancel Trigger front-end -> backend -> confirmation -> remove trigger from chart
+
 
 --------------------------------------
 - [x] Portfolio coinbase retrieval
@@ -73,8 +77,8 @@ Triggers
             - [x] When entry filled -> place bracket order
             - [ ] Update trade status when entry, stop, or profit target are filled.
                 - [x] Entry
-                - [ ] Stoploss
-                - [ ] ProfitTarget
+                - [x] Stoploss
+                - [x] ProfitTarget
         - [x] Add Trade-blocks to Exchange struct
 
 
