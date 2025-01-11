@@ -123,7 +123,7 @@ func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
 }
 
 func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedProduct string) {
-	log.Println("SSE Listen For DB Changes")
+	log.Println("SSE.ListenForDBChanges Initialized")
 	listener := pq.NewListener(dsn, 10*time.Second, time.Minute,
 		func(ev pq.ListenerEventType, err error) {
 			if err != nil {
@@ -152,8 +152,6 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 			continue
 		}
 
-		// log.Printf("Received notification: %+v\n", notification)
-
 		var payload struct {
 			Table     string          `json:"table"`
 			Operation string          `json:"operation"`
@@ -168,10 +166,13 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 		// ------
 
 		table := payload.Table
+		// log.Printf("Received notification: %+v\n", notification)
+		// log.Printf("Table: %s\nSelectedProduct: %s", table, sse.selectedTable)
+		// log.Printf("Table: %s", table)
 
-		product_table := ""
+		var product_table string
 
-		if strings.Contains(table, selectedProduct) {
+		if strings.Contains(table, sse.selectedTable) {
 			product_table = table
 		}
 
@@ -186,12 +187,30 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 			sse.BroadcastTrigger(trigger)
 
 		case product_table:
-			var candle common.Candle
-			if err := json.Unmarshal(payload.Data, &candle); err != nil {
-				log.Printf("Error parsing candle data: %v", err)
+			var rawCandle struct {
+				Timestamp int64   `json:"timestamp"`
+				Open      float64 `json:"open"`
+				High      float64 `json:"high"`
+				Low       float64 `json:"low"`
+				Close     float64 `json:"close"`
+				Volume    float64 `json:"volume"`
+			}
+
+			if err := json.Unmarshal(payload.Data, &rawCandle); err != nil {
+				log.Printf("Error parsing raw candle data: %v", err)
 				continue
 			}
-			log.Printf("Candle update for %s: %v", table, candle)
+
+			candle := common.Candle{
+				Timestamp: rawCandle.Timestamp,
+				Open:      rawCandle.Open,
+				High:      rawCandle.High,
+				Low:       rawCandle.Low,
+				Close:     rawCandle.Close,
+				Volume:    rawCandle.Volume, // Fixed: was using Open instead of Volume
+			}
+
+			// log.Printf("Candle update for %s: %v", table, candle)
 			sse.BroadcastCandle(candle)
 		}
 
@@ -240,7 +259,7 @@ func (sse *SSEManager) RemoveClient(client chan string) {
 
 func (sse *SSEManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("New SSE connection attempt from %s", r.RemoteAddr)
-	log.Printf("Request headers: %+v", r.Header)
+	// log.Printf("Request headers: %+v", r.Header)
 
 	// Add CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080") // Match your frontend origin

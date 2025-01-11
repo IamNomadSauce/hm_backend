@@ -494,10 +494,10 @@ func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Request:main: %s_%s_%s", product, timeframe, exchange)
 
 	// Update SSE manager's selected product
-	tableName := fmt.Sprintf("%s_%s_%s",
+	tableName := strings.ToLower(fmt.Sprintf("%s_%s_%s",
 		strings.ReplaceAll(product, "-", "_"),
 		timeframe,
-		exchange)
+		exchange))
 
 	// Get the global SSE manager and update its listening table
 	if app.SSEManager != nil {
