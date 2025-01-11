@@ -78,6 +78,18 @@ func (sse *SSEManager) handleCandleUpdates() {
 	}
 }
 
+func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
+	message, err := json.Marshal(map[string]interface{}{
+		"event": "price",
+		"data":  update,
+	})
+	if err != nil {
+		log.Printf("Error marshaling price update: %v", err)
+		return
+	}
+	sse.broadcastMessage(string(message))
+}
+
 func (sse *SSEManager) BroadcastCandle(candle common.Candle) {
 	message, err := json.Marshal(map[string]interface{}{
 		"event": "candle",
@@ -88,18 +100,6 @@ func (sse *SSEManager) BroadcastCandle(candle common.Candle) {
 		return
 	}
 	sse.broadcastMessage(string(message))
-}
-
-// Broadcast price updates
-func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
-	data, err := json.Marshal(update)
-	if err != nil {
-		log.Printf("Error marshaling price update: %v", err)
-		return
-	}
-	// Format as proper SSE message with event type on separate line
-	message := fmt.Sprintf("event: price\ndata: %s\n\n", data)
-	sse.broadcastMessage(message)
 }
 
 // Base broadcast method for string messages
@@ -202,6 +202,7 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 			}
 
 			candle := common.Candle{
+				ProductID: sse.selectedTable,
 				Timestamp: rawCandle.Timestamp,
 				Open:      rawCandle.Open,
 				High:      rawCandle.High,
