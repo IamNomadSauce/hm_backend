@@ -62,14 +62,20 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 			}
 
 			// log.Printf("\nTrigger:\n Product: %s\n Type: %s\n Trigger-Price: %f\n Price: %f", trigger.ProductID, trigger.Type, trigger.Price, price)
+			// log.Println(trigger.Type)
 
 			var triggered bool
 			switch trigger.Type {
 			case "price_below":
 				triggered = price < trigger.Price
+				if price < trigger.Price {
+					log.Println("Triggered", trigger)
+					trigger.Status = "triggered"
+				}
 			case "price_above":
 				triggered = price > trigger.Price
 				if price > trigger.Price {
+					log.Println("Triggered", trigger)
 					trigger.Status = "triggered"
 				}
 			}
@@ -88,6 +94,61 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 	}
 	return triggeredTriggers
 }
+
+func (tm *TriggerManager) ReloadTriggers() error {
+	log.Println("tm: Reload Triggers")
+	tm.triggerMutex.Lock()
+	defer tm.triggerMutex.Unlock()
+
+	tm.triggers = make(map[string][]common.Trigger)
+
+	triggers, err := GetActiveTriggers(tm.db)
+	if err != nil {
+		return err
+	}
+
+	for _, trigger := range triggers {
+		tm.triggers[trigger.ProductID] = append(tm.triggers[trigger.ProductID], trigger)
+		log.Printf("Trigger: %+v\n", trigger)
+	}
+	// log.Printf("Trigger: %+v", tm.triggers)
+	return nil
+}
+
+func GetActiveTriggers(db *sql.DB) ([]common.Trigger, error) {
+	query := `
+        SELECT id, product_id, type, price, status, xch_id, created_at, updated_at
+        FROM triggers
+        WHERE status = 'active'
+    `
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var messages []common.Trigger
+	for rows.Next() {
+		var alert common.Trigger
+		err := rows.Scan(
+			&alert.ID,
+			&alert.ProductID,
+			&alert.Type,
+			&alert.Price,
+			&alert.Status,
+			&alert.XchID,
+			&alert.CreatedAt,
+			&alert.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		messages = append(messages, alert)
+	}
+	return messages, nil
+}
+
+// func (tm *TriggerManager) ProcessCandleUpdate()
 
 func (tm *TriggerManager) updateTriggerStatus(triggerID int, status string) error {
 	query := `

@@ -43,6 +43,7 @@ func NewSSEManager(triggerManager *triggers.TriggerManager) *SSEManager {
 
 	go sse.handlePriceUpdates()
 	go sse.handleCandleUpdates()
+	go sse.handleActiveConns()
 	return sse
 }
 
@@ -73,8 +74,17 @@ func (sse *SSEManager) handlePriceUpdates() {
 }
 
 func (sse *SSEManager) handleCandleUpdates() {
+	log.Println("SSE.HandleCandleUpdates")
 	for candle := range sse.candleUpdates {
+		log.Printf("Handle Candle Updates %+v", candle)
 		sse.BroadcastCandle(candle)
+	}
+}
+
+func (sse *SSEManager) handleActiveConns() {
+	log.Println("SSE.HandleActiveConns")
+	for connection := range sse.activeConns {
+		log.Printf("Connection: %+v", connection)
 	}
 }
 
@@ -202,7 +212,7 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 			}
 
 			candle := common.Candle{
-				ProductID: sse.selectedTable,
+				ProductID: sse.selectedProduct,
 				Timestamp: rawCandle.Timestamp,
 				Open:      rawCandle.Open,
 				High:      rawCandle.High,
@@ -238,6 +248,7 @@ func (sse *SSEManager) AddClient(client chan string) {
 }
 
 func (sse *SSEManager) RemoveClient(client chan string) {
+	log.Println("SSE:Remove Client")
 	sse.clientMux.Lock()
 	defer sse.clientMux.Unlock()
 	if _, exists := sse.clients[client]; exists {
@@ -283,12 +294,16 @@ func (sse *SSEManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Flush headers immediately
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
-		log.Printf("Headers flushed for client %s", r.RemoteAddr)
+		// log.Printf("Headers flushed for client %s", r.RemoteAddr)
 	} else {
 		log.Printf("Warning: ResponseWriter doesn't support Flushing for client %s", r.RemoteAddr)
 	}
 
-	client := make(chan string, 100)
+	if err := sse.triggerManager.ReloadTriggers(); err != nil {
+		log.Printf("Error reloading triggers: %v", err)
+	}
+
+	client := make(chan string, 1000)
 	sse.AddClient(client)
 	log.Printf("Client %s added to SSE manager", r.RemoteAddr)
 
