@@ -109,6 +109,7 @@ func (sse *SSEManager) BroadcastCandle(candle common.Candle) {
 		log.Printf("Error marshaling candle update: %v", err)
 		return
 	}
+	// log.Println("Broadcasting Candle:", candle)
 	sse.broadcastMessage(string(message))
 }
 
@@ -128,8 +129,15 @@ func (sse *SSEManager) broadcastMessage(message string) {
 // Broadcast trigger updates
 func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
 	// log.Println("SSE:BroadcastTrigger", trigger)
-	message := fmt.Sprintf("event: trigger\ndata: %s\n\n", toJSON(trigger))
-	sse.broadcastMessage(message)
+	message, err := json.Marshal(map[string]interface{}{
+		"event": "trigger",
+		"data":  trigger,
+	})
+	if err != nil {
+		log.Printf("Error marshaling trigger update: %v", err)
+		return
+	}
+	sse.broadcastMessage(string(message))
 }
 
 func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedProduct string) {
@@ -213,6 +221,7 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 
 			candle := common.Candle{
 				ProductID: sse.selectedProduct,
+				// ProductID: table,
 				Timestamp: rawCandle.Timestamp,
 				Open:      rawCandle.Open,
 				High:      rawCandle.High,

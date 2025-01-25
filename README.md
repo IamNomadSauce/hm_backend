@@ -30,7 +30,7 @@ TODO: Fix Memory leak in chart
 
 
 --------------------------------------
-Triggers
+Triggers/Alerts
 - [x] Create alert on client chart
 - [x] Receive alert on backend
 - [x] Write alert to db
@@ -43,6 +43,7 @@ Triggers
     - [x] Backend stream endpoint
 - [x] Fix front end to write to triggers
 - [ ] Delete/Cancel Trigger front-end -> backend -> confirmation -> remove trigger from chart
+- [ ] Candle Update to front end
 
 
 --------------------------------------
