@@ -234,10 +234,10 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 			sse.BroadcastCandle(candle)
 		}
 
-		if payload.Table == "triggers" {
-			log.Println("Trigger:", payload.Table)
-			log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
-		}
+		// if payload.Table == "triggers" {
+		// 	log.Println("Trigger:", payload.Table)
+		// 	log.Printf("Parsed payload - Table: %s, Operation: %s", payload.Table, payload.Operation)
+		// }
 	}
 }
 
@@ -265,18 +265,6 @@ func (sse *SSEManager) RemoveClient(client chan string) {
 		close(client)
 	}
 }
-
-// func (sse *SSEManager) Broadcast(message string) {
-// 	sse.clientMux.RLock()
-// 	defer sse.clientMux.RUnlock()
-// 	for client := range sse.clients {
-// 		select {
-// 		case client <- message:
-// 		default:
-// 			log.Println("Client channel is full, dropping message")
-// 		}
-// 	}
-// }
 
 func (sse *SSEManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("New SSE connection attempt from %s", r.RemoteAddr)

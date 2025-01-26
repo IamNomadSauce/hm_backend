@@ -41,11 +41,27 @@ func (tm *TriggerManager) UpdateTriggers(triggers []common.Trigger) {
 	tm.triggerMutex.Lock()
 	defer tm.triggerMutex.Unlock()
 
-	newTriggers := make(map[string][]common.Trigger)
+	// Update only the specific triggers while preserving others
 	for _, trigger := range triggers {
-		newTriggers[trigger.ProductID] = append(newTriggers[trigger.ProductID], trigger)
+		// Get current triggers for this product
+		currentTriggers := tm.triggers[trigger.ProductID]
+
+		// Update or append the trigger
+		updated := false
+		for i, existing := range currentTriggers {
+			if existing.ID == trigger.ID {
+				currentTriggers[i] = trigger
+				updated = true
+				break
+			}
+		}
+
+		if !updated {
+			currentTriggers = append(currentTriggers, trigger)
+		}
+
+		tm.triggers[trigger.ProductID] = currentTriggers
 	}
-	tm.triggers = newTriggers
 }
 
 func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []common.Trigger {
@@ -69,13 +85,13 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 			case "price_below":
 				triggered = price < trigger.Price
 				if price < trigger.Price {
-					log.Println("Triggered", trigger)
+					// log.Println("Triggered", trigger)
 					trigger.Status = "triggered"
 				}
 			case "price_above":
 				triggered = price > trigger.Price
 				if price > trigger.Price {
-					log.Println("Triggered", trigger)
+					// log.Println("Triggered", trigger)
 					trigger.Status = "triggered"
 				}
 			}
