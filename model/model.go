@@ -179,14 +179,15 @@ type Trade struct {
 }
 
 type TradeBlock struct {
-	ProductID     string    `json:"product_id"`
-	GroupID       string    `json:"group_id"`
-	Side          string    `json:"side"`
-	Size          float64   `json:"size"`
-	EntryPrice    float64   `json:"entry_price"`
-	StopPrice     float64   `json:"stop_price"`
-	ProfitTargets []float64 `json:"profit_targets"`
-	XchID         int       `json:"xch_id"`
+	ProductID     string           `json:"product_id"`
+	GroupID       string           `json:"group_id"`
+	Side          string           `json:"side"`
+	Size          float64          `json:"size"`
+	EntryPrice    float64          `json:"entry_price"`
+	StopPrice     float64          `json:"stop_price"`
+	ProfitTargets []float64        `json:"profit_targets"`
+	XchID         int              `json:"xch_id"`
+	Triggers      []common.Trigger `json:"trigger_condition"`
 	// Trigger on Alert?
 }
 

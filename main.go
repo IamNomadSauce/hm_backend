@@ -151,6 +151,7 @@ func main() {
 
 	go app.SSEManager.ListenForDBChanges(dsn, "global_changes", initialProduct)
 
+	// Web Server
 	go func() {
 		log.Println("Starting HTTP server goroutine")
 		http.HandleFunc("/", handleMain)
@@ -161,7 +162,7 @@ func main() {
 		// 	globalSSEManager.UpdateSelectedProduct(productID)
 		// })
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
-		http.HandleFunc("/new_trade_group", TradeBlockHandler)
+		http.HandleFunc("/new_trade", TradeBlockHandler)
 		http.HandleFunc("/create-trigger", createTriggerHandler)
 		http.HandleFunc("/delete-trigger", deleteTriggerHandler)
 
@@ -355,6 +356,7 @@ func TradeBlockHandler(w http.ResponseWriter, r *http.Request) {
 		trade_group.EntryPrice,
 		trade_group.Size,
 		trade_group.StopPrice,
+		trade_group.Triggers,
 		// trade_group.RiskReward,
 	)
 

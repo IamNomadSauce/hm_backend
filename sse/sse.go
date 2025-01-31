@@ -202,7 +202,7 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 				continue
 			}
 			sse.triggerManager.UpdateTriggers([]common.Trigger{trigger})
-			sse.BroadcastTrigger(trigger)
+			// sse.BroadcastTrigger(trigger)
 
 		case product_table:
 			var rawCandle struct {
@@ -220,8 +220,8 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 			}
 
 			candle := common.Candle{
-				ProductID: sse.selectedProduct,
-				// ProductID: table,
+				// ProductID: sse.selectedProduct,
+				ProductID: table,
 				Timestamp: rawCandle.Timestamp,
 				Open:      rawCandle.Open,
 				High:      rawCandle.High,

@@ -18,12 +18,12 @@ type Candle struct {
 type Trigger struct {
 	ID             int     `json:"id"`
 	ProductID      string  `json:"product_id"`
-	Type           string  `json:"type"`
+	Type           string  `json:"type"` // Close or Wick
 	Price          float64 `json:"price"`
 	Timeframe      string  `json:"timeframe"`
 	CandleCount    int     `json:"candle_count"`
 	Condition      string  `json:"condition"`
-	Status         string  `json:"status"`
+	Status         string  `json:"status"` // Maybe should be bool?
 	TriggeredCount int     `json:"triggered_count"`
 	XchID          int     `json:"xch_id"`
 	CreatedAt      string  `json:"created_at"`
