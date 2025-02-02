@@ -27,7 +27,6 @@ func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 	}
 
 	// for _, exchange := range exchanges {
-
 	// 	log.Println("Exchange:\n", exchange.Name)
 	// 	log.Println("Timeframes:\n", exchange.Timeframes)
 	// 	log.Println("rders:\n", exchange.Orders)
@@ -37,7 +36,6 @@ func Get_Exchanges(database *sql.DB) ([]model.Exchange, error) {
 	// 	log.Println("\n---------------------------------------------------\n")
 	// 	log.Println("\n---------------------------------------------------\n")
 	// 	log.Println("\n---------------------------------------------------\n")
-
 	// }
 	return exchanges, nil
 }

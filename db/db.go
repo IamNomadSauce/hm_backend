@@ -658,6 +658,7 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 		return exchange, fmt.Errorf("error getting triggers %v", err)
 	}
 
+	log.Printf("Exchange.Triggers:\n\n%+v", exchange.Triggers)
 	switch exchange.Name {
 	case "Coinbase":
 		exchange.API = &model.CoinbaseAPI{

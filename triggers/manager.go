@@ -125,7 +125,7 @@ func (tm *TriggerManager) ReloadTriggers() error {
 
 	for _, trigger := range triggers {
 		tm.triggers[trigger.ProductID] = append(tm.triggers[trigger.ProductID], trigger)
-		log.Printf("Trigger: %+v\n", trigger)
+		// log.Printf("Trigger: %+v\n", trigger)
 	}
 	// log.Printf("Trigger: %+v", tm.triggers)
 	return nil
@@ -133,9 +133,22 @@ func (tm *TriggerManager) ReloadTriggers() error {
 
 func GetActiveTriggers(db *sql.DB) ([]common.Trigger, error) {
 	query := `
-        SELECT id, product_id, type, price, status, xch_id, created_at, updated_at
+        SELECT 
+            id, 
+			product_id, 
+			type, 
+			price, 
+			timeframe, 
+            candle_count, 
+			condition, 
+			status, 
+			triggered_count,
+            xch_id, 
+			created_at, 
+			updated_at
         FROM triggers
         WHERE status = 'active'
+		ORDER BY id ASC
     `
 	rows, err := db.Query(query)
 	if err != nil {
@@ -151,7 +164,11 @@ func GetActiveTriggers(db *sql.DB) ([]common.Trigger, error) {
 			&alert.ProductID,
 			&alert.Type,
 			&alert.Price,
+			&alert.Timeframe,
+			&alert.CandleCount,
+			&alert.Condition,
 			&alert.Status,
+			&alert.TriggeredCount,
 			&alert.XchID,
 			&alert.CreatedAt,
 			&alert.UpdatedAt,
@@ -186,9 +203,18 @@ func (tm *TriggerManager) updateTriggerStatus(triggerID int, status string) erro
 func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error) {
 	query := `
         SELECT 
-            id, product_id, type, price, timeframe, 
-            candle_count, condition, status, triggered_count,
-            xch_id, created_at, updated_at
+            id, 
+			product_id, 
+			type, 
+			price, 
+			timeframe, 
+            candle_count, 
+			condition, 
+			status, 
+			triggered_count,
+            xch_id, 
+			created_at, 
+			updated_at
         FROM triggers
     `
 

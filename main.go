@@ -157,14 +157,11 @@ func main() {
 		http.HandleFunc("/", handleMain)
 		http.HandleFunc("/exchanges", handleExchangesRequest)
 		http.HandleFunc("/candles", handleCandlesRequest)
-		// http.HandleFunc("/update-selected-product", func(w http.ResponseWriter, r *http.Request) {
-		// 	productID = r.URL.Query().Get("product_id")
-		// 	globalSSEManager.UpdateSelectedProduct(productID)
-		// })
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 		http.HandleFunc("/new_trade", TradeBlockHandler)
 		http.HandleFunc("/create-trigger", createTriggerHandler)
 		http.HandleFunc("/delete-trigger", deleteTriggerHandler)
+		http.HandleFunc("/update-trigger", updateTriggerHandler)
 
 		http.Handle("/trigger/stream", app.SSEManager)
 
@@ -251,6 +248,122 @@ func main() {
 	select {}
 }
 
+func updateTriggerHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Update Trigger")
+
+	if r.Method != http.MethodPut {
+		log.Println("Method Not Allowed")
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Match the frontend structure
+	var request struct {
+		TriggerID int                    `json:"trigger_id"`
+		Updates   map[string]interface{} `json:"updates"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		log.Printf("Error decoding request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Trigger to be updated\n%+v", request)
+
+	// Extract values from updates map
+	updates := request.Updates
+	query := `
+        UPDATE triggers 
+        SET 
+            type = COALESCE($1, type),
+            price = COALESCE($2, price),
+            timeframe = COALESCE($3, timeframe),
+            candle_count = COALESCE($4, candle_count),
+            condition = COALESCE($5, condition),
+            status = COALESCE($6, status),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $7
+        RETURNING id`
+
+	var updatedID int
+	err := app.DB.QueryRow(
+		query,
+		getStringValue(updates, "type"),
+		getFloatValue(updates, "price"),
+		getStringValue(updates, "timeframe"),
+		getIntValue(updates, "candles"), // Note: frontend uses "candles" instead of "candle_count"
+		getStringValue(updates, "condition"),
+		getStringValue(updates, "status"),
+		request.TriggerID,
+	).Scan(&updatedID)
+
+	if err == sql.ErrNoRows {
+		log.Printf("Trigger not found: %d", request.TriggerID)
+		http.Error(w, "Trigger not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		log.Printf("Error updating trigger: %v", err)
+		http.Error(w, "Failed to update trigger", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "success",
+		"message": "Trigger updated successfully",
+	})
+}
+
+// Helper functions to safely extract values from the updates map
+func getStringValue(updates map[string]interface{}, key string) interface{} {
+	if val, ok := updates[key]; ok {
+		if str, ok := val.(string); ok {
+			return str
+		}
+	}
+	return nil
+}
+
+func getFloatValue(updates map[string]interface{}, key string) interface{} {
+	if val, ok := updates[key]; ok {
+		switch v := val.(type) {
+		case float64:
+			return v
+		case int:
+			return float64(v)
+		}
+	}
+	return nil
+}
+
+func getIntValue(updates map[string]interface{}, key string) interface{} {
+	if val, ok := updates[key]; ok {
+		switch v := val.(type) {
+		case float64:
+			return int(v)
+		case int:
+			return v
+		}
+	}
+	return nil
+}
+
+// Helper functions for handling null values
+func nullIfEmpty(s string) interface{} {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+
+func nullIfZero(f float64) interface{} {
+	if f == 0 {
+		return nil
+	}
+	return f
+}
+
 func deleteTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Delete Trigger")
 
@@ -289,7 +402,6 @@ func deleteTriggerHandler(w http.ResponseWriter, r *http.Request) {
 		"status":  "success",
 		"message": "Trigger deleted successfully",
 	})
-
 }
 
 func createTriggerHandler(w http.ResponseWriter, r *http.Request) {
