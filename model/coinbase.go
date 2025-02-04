@@ -935,6 +935,53 @@ type CoinbaseAccount struct {
 	Size             float64 `json:"size"` // Changed from string to float64
 }
 
+func (api *CoinbaseAPI) CancelOrder(orderID string) error {
+	log.Printf("Canceling order: %s", orderID)
+
+	timestamp := time.Now().Unix()
+	path := fmt.Sprintf("/api/v3/brokerage/orders/cancel")
+	method := "POST"
+
+	// Create request body
+	requestBody := struct {
+		OrderIDs []string `json:"order_ids"`
+	}{
+		OrderIDs: []string{orderID},
+	}
+
+	bodyBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		return fmt.Errorf("error marshaling request body: %w", err)
+	}
+
+	signature := GetCBSign(api.APISecret, timestamp, method, path, string(bodyBytes))
+
+	req, err := http.NewRequest(method, api.BaseURL+path, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	req.Header.Add("CB-ACCESS-SIGN", signature)
+	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
+	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
+	req.Header.Add("CB-VERSION", "2015-07-22")
+	req.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error executing request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("failed to cancel order: status=%d, body=%s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
 func (api *CoinbaseAPI) PlaceBracketOrder(trade_group Trade) error {
 	log.Println("Coinbase API Place Bracket Order", trade_group)
 	entryOrderBody := struct {

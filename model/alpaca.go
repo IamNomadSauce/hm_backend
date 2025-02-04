@@ -126,6 +126,10 @@ func (api *AlpacaAPI) PlaceOrder(orderBody interface{}) (string, error) {
 	return response.OrderID, nil
 }
 
+func (api *AlpacaAPI) CancelOrder(orderID string) error {
+	return nil
+}
+
 func (api *AlpacaAPI) GetOrder(orderID string) (*CoinbaseOrder, error) {
 	timestamp := time.Now().Unix()
 	path := fmt.Sprintf("/api/v3/brokerage/orders/get_order?order_id=%s", orderID)

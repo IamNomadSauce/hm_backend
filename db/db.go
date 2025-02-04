@@ -658,7 +658,7 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 		return exchange, fmt.Errorf("error getting triggers %v", err)
 	}
 
-	log.Printf("Exchange.Triggers:\n\n%+v", exchange.Triggers)
+	// log.Printf("Exchange.Triggers:\n\n%+v", exchange.Triggers)
 	switch exchange.Name {
 	case "Coinbase":
 		exchange.API = &model.CoinbaseAPI{
@@ -806,7 +806,10 @@ func Get_Orders(id int, db *sql.DB) ([]model.Order, error) {
 	}
 
 	return orders, nil
+}
 
+func Get_Order(id string, db *sql.DB) (model.Order, error) {
+	return model.Order{}, nil
 }
 
 func Get_Fills(xch_id int, database *sql.DB) ([]model.Fill, error) {

@@ -162,6 +162,7 @@ func main() {
 		http.HandleFunc("/create-trigger", createTriggerHandler)
 		http.HandleFunc("/delete-trigger", deleteTriggerHandler)
 		http.HandleFunc("/update-trigger", updateTriggerHandler)
+		http.HandleFunc("/cancel-trigger", cancelOrderHandler)
 
 		http.Handle("/trigger/stream", app.SSEManager)
 
@@ -246,6 +247,61 @@ func main() {
 		}
 	}()
 	select {}
+}
+
+func cancelOrderHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Cancel Order Handler")
+
+	if r.Method != http.MethodPost {
+		log.Println("Method Not Allowed")
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var request struct {
+		OrderID string `json:"order_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		log.Printf("Error decoding request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if request.OrderID == "" {
+		log.Println("Invalid Order ID")
+		http.Error(w, "Invalid order ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get the exchange from the order
+	order, err := db.GetOrder(app.DB, request.OrderID)
+	if err != nil {
+		log.Printf("Error getting order: %v", err)
+		http.Error(w, "Order not found", http.StatusNotFound)
+		return
+	}
+
+	exchange, err := db.Get_Exchange(order.XchID, app.DB)
+	if err != nil {
+		log.Printf("Error getting exchange: %v", err)
+		http.Error(w, "Exchange not found", http.StatusNotFound)
+		return
+	}
+
+	// Cancel the order using exchange API
+	err = exchange.API.CancelOrder(request.OrderID)
+	if err != nil {
+		log.Printf("Error canceling order: %v", err)
+		http.Error(w, "Failed to cancel order", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "success",
+		"message": "Order cancelled successfully",
+	})
 }
 
 func updateTriggerHandler(w http.ResponseWriter, r *http.Request) {
@@ -337,17 +393,25 @@ func getFloatValue(updates map[string]interface{}, key string) interface{} {
 	return nil
 }
 
+// Add/modify these helper functions in your backend
 func getIntValue(updates map[string]interface{}, key string) interface{} {
 	if val, ok := updates[key]; ok {
 		switch v := val.(type) {
 		case float64:
-			return int(v)
+			return int(v) // Convert float64 to int
+		case string:
+			if i, err := strconv.Atoi(v); err == nil {
+				return i
+			}
 		case int:
 			return v
 		}
 	}
 	return nil
 }
+
+// For debugging, add this before the SQL query
+// log.Printf("Updating candle_count with value: %v", getIntValue(updates, "candles"))
 
 // Helper functions for handling null values
 func nullIfEmpty(s string) interface{} {

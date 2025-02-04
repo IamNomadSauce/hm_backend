@@ -38,6 +38,7 @@ type ExchangeAPI interface {
 	FetchAvailableProducts() ([]Product, error)
 	PlaceBracketOrder(trade_group Trade) error
 	PlaceOrder(trade Trade) (string, error)
+	CancelOrder(orderID string) error
 	// ConnectWebSocket() error
 	ConnectUserWebsocket() error
 	ConnectMarketDataWebSocket() error
