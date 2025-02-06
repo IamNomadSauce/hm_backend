@@ -765,10 +765,6 @@ func (api *CoinbaseAPI) FetchCandles(productID string, timeframe Timeframe, star
 }
 
 func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end time.Time) ([]common.Candle, error) {
-	fmt.Println("\n-------------------------\nfetch_Coinbase_Candles \n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
-	apiKey := os.Getenv("CBAPIKEY")
-	apiSecret := os.Getenv("CBAPISECRET")
-
 	baseURL := "https://api.coinbase.com"
 	path := fmt.Sprintf("/api/v3/brokerage/products/%s/candles", productID)
 	method := "GET"
@@ -780,24 +776,26 @@ func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end ti
 
 	fullURL := fmt.Sprintf("%s%s?%s", baseURL, path, query.Encode())
 
-	timestamp := time.Now().Unix()
-	signature := GetCBSign(apiSecret, timestamp, "GET", path, "")
+	// Generate JWT token for REST API
+	uri := fmt.Sprintf("%s %s%s", method, "api.coinbase.com", path)
+	jwt, err := generateRestJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET")), uri)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate JWT: %v", err)
+	}
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, fullURL, nil)
 	if err != nil {
-		fmt.Println("Error with new Request")
-		return nil, fmt.Errorf("NewRequest: %v", err)
+		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", apiKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
+	// Use Bearer authentication
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Error DO: %v", err)
+		return nil, fmt.Errorf("error executing request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -1416,6 +1414,41 @@ func generateUserJWT(apiKeyName string, privateKeyBytes []byte) (string, error) 
 		"nbf": now,
 		"exp": now + 120,
 		"uri": "wss://advanced-trade-ws-user.coinbase.com",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token.Header["kid"] = apiKeyName
+	token.Header["nonce"] = generateNonce()
+
+	return token.SignedString(ecKey)
+}
+
+func generateRestJWT(apiKeyName string, privateKeyBytes []byte, uri string) (string, error) {
+	block, _ := pem.Decode(privateKeyBytes)
+	if block == nil {
+		return "", fmt.Errorf("invalid PEM block")
+	}
+
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		key, err = x509.ParseECPrivateKey(block.Bytes)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse private key: %v", err)
+		}
+	}
+
+	ecKey, ok := key.(*ecdsa.PrivateKey)
+	if !ok {
+		return "", fmt.Errorf("key is not an ECDSA private key")
+	}
+
+	now := time.Now().Unix()
+	claims := jwt.MapClaims{
+		"iss": "coinbase-cloud",
+		"sub": apiKeyName,
+		"nbf": now,
+		"exp": now + 120,
+		"uri": uri,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)

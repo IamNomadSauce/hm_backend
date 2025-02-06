@@ -275,27 +275,27 @@ func cancelOrderHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the exchange from the order
-	order, err := db.GetOrder(app.DB, request.OrderID)
-	if err != nil {
-		log.Printf("Error getting order: %v", err)
-		http.Error(w, "Order not found", http.StatusNotFound)
-		return
-	}
+	// order, err := db.Get_Order(request.OrderID, app.DB, )
+	// if err != nil {
+	//     log.Printf("Error getting order: %v", err)
+	//     http.Error(w, "Order not found", http.StatusNotFound)
+	//     return
+	// }
 
-	exchange, err := db.Get_Exchange(order.XchID, app.DB)
-	if err != nil {
-		log.Printf("Error getting exchange: %v", err)
-		http.Error(w, "Exchange not found", http.StatusNotFound)
-		return
-	}
+	// exchange, err := db.Get_Exchange(order.XchID, app.DB)
+	// if err != nil {
+	//     log.Printf("Error getting exchange: %v", err)
+	//     http.Error(w, "Exchange not found", http.StatusNotFound)
+	//     return
+	// }
 
 	// Cancel the order using exchange API
-	err = exchange.API.CancelOrder(request.OrderID)
-	if err != nil {
-		log.Printf("Error canceling order: %v", err)
-		http.Error(w, "Failed to cancel order", http.StatusInternalServerError)
-		return
-	}
+	// err = exchange.API.CancelOrder(request.OrderID)
+	// if err != nil {
+	//     log.Printf("Error canceling order: %v", err)
+	//     http.Error(w, "Failed to cancel order", http.StatusInternalServerError)
+	//     return
+	// }
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
