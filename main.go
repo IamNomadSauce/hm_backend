@@ -115,7 +115,7 @@ func main() {
 
 				err = api.Do_AvailableProducts(exchange, app.DB)
 				if err != nil {
-					log.Printf("error executing Do_AvailableProducts for %s\n%w\n", exchange, err)
+					log.Printf("error executing Do_AvailableProducts for %s\n%v\n", exchange.Name, err)
 				}
 
 				err = api.Do_Orders_and_Fills(exchange, app.DB)

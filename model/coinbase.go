@@ -24,13 +24,11 @@ import (
 	"net/url"
 	"os"
 	"reflect"
-	"sort"
 	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/websocket"
-	"github.com/joho/godotenv"
 )
 
 type CoinbaseAPI struct {
@@ -446,120 +444,6 @@ type CoinbaseOrderResponse struct {
 	TotalFees          string             `json:"total_fees"`
 }
 
-// Exchange operation
-func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-
-	apiKey := api.APIKey
-	apiSecret := api.APISecret
-
-	timestamp := time.Now().Unix()
-	baseURL := api.BaseURL
-	path := "/api/v3/brokerage/orders/historical/batch"
-	method := "GET"
-	body := ""
-
-	signature := GetCBSign(apiSecret, timestamp, method, path, body)
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, baseURL+path, nil)
-	if err != nil {
-		fmt.Println("NewRequest: ", err)
-		return nil, fmt.Errorf("Error making Coinbase orders request: %w", err)
-	}
-
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", apiKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Error DO: %w", err)
-	}
-	defer resp.Body.Close()
-
-	responseBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Readall Err: %w", err)
-	}
-
-	// Debug: Print raw response
-	// fmt.Printf("Raw response: %s\n", string(responseBody))
-
-	var response struct {
-		Orders []struct {
-			OrderID            string `json:"order_id"`
-			ProductID          string `json:"product_id"`
-			Side               string `json:"side"`
-			Status             string `json:"status"`
-			CreatedTime        string `json:"created_time"`
-			FilledSize         string `json:"filled_size"`
-			AverageFilledPrice string `json:"average_filled_price"`
-			TotalFees          string `json:"total_fees"`
-			OrderConfiguration struct {
-				MarketMarketIoc *struct {
-					QuoteSize string `json:"quote_size"`
-					BaseSize  string `json:"base_size"`
-				} `json:"market_market_ioc"`
-				LimitLimitGtc *struct {
-					BaseSize   string `json:"base_size"`
-					LimitPrice string `json:"limit_price"`
-					PostOnly   bool   `json:"post_only"`
-				} `json:"limit_limit_gtc"`
-			} `json:"order_configuration"`
-		} `json:"orders"`
-	}
-
-	err = json.Unmarshal(responseBody, &response)
-	if err != nil {
-		return nil, fmt.Errorf("Error unmarshalling JSON: %w", err)
-	}
-
-	var filteredOrders []Order
-	for _, cbOrder := range response.Orders {
-		if cbOrder.Status != "CANCELLED" && cbOrder.Status != "FILLED" {
-			// Parse size and price based on order configuration
-			var size, price float64
-			// log.Println(cbOrder)
-
-			if cbOrder.OrderConfiguration.MarketMarketIoc != nil {
-				size, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.MarketMarketIoc.BaseSize, 64)
-				// For market orders, use average filled price
-				price, _ = strconv.ParseFloat(cbOrder.AverageFilledPrice, 64)
-			} else if cbOrder.OrderConfiguration.LimitLimitGtc != nil {
-				size, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.LimitLimitGtc.BaseSize, 64)
-				price, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.LimitLimitGtc.LimitPrice, 64)
-			}
-
-			filledSize, _ := strconv.ParseFloat(cbOrder.FilledSize, 64)
-			totalFees, _ := strconv.ParseFloat(cbOrder.TotalFees, 64)
-
-			order := Order{
-				OrderID:        cbOrder.OrderID,
-				ProductID:      cbOrder.ProductID,
-				Side:           cbOrder.Side,
-				Status:         cbOrder.Status,
-				Price:          price,
-				Size:           size,
-				FilledSize:     filledSize,
-				TotalFees:      totalFees,
-				Timestamp:      cbOrder.CreatedTime,
-				MarketCategory: "crypto_spot",
-				XchID:          api.ExchangeID,
-			}
-
-			// log.Printf("Created order - Price: %v, Size: %v, Time: %v", order.Price, order.Size, order.Timestamp)
-			filteredOrders = append(filteredOrders, order)
-		}
-	}
-
-	return filteredOrders, nil
-}
-
 func ParseCoinbaseOrder(response CoinbaseOrderResponse) (Order, error) {
 	price, _ := strconv.ParseFloat(response.AverageFilledPrice, 64)
 	filledSize, _ := strconv.ParseFloat(response.FilledSize, 64)
@@ -632,92 +516,43 @@ func parseTimestamp(timeStr string) int64 {
 }
 
 func (api *CoinbaseAPI) FetchAvailableProducts() ([]Product, error) {
-	fmt.Println("Fetch Available Products")
-	if api == nil {
-		return nil, fmt.Errorf("CoinbaseAPI is not initialized")
-	}
-
 	path := "/api/v3/brokerage/products"
 	method := "GET"
-
-	// Construct the full URL
 	fullURL := fmt.Sprintf("%s%s", api.BaseURL, path)
 
-	// Create timestamp for authentication
-	timestamp := time.Now().Unix()
-	// secret := os.Getenv("CBAPISECRET")
-	signature := GetCBSign(api.APISecret, timestamp, method, path, "")
-
-	// fmt.Printf("SECRET: |%s|", api.APISecret)
-	// fmt.Printf("SECRET: |%s|", secret)
-
-	// Create new request
-	req, err := http.NewRequest(method, fullURL, nil)
+	// Generate JWT token for REST API
+	uri := fmt.Sprintf("%s %s%s", method, "api.coinbase.com", path)
+	jwt, err := generateRestJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET")), uri)
 	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
+		return nil, fmt.Errorf("failed to generate JWT: %v", err)
 	}
 
-	// Add headers
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
-
-	// Make the request
 	client := &http.Client{}
+	req, err := http.NewRequest(method, fullURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %v", err)
+	}
+
+	// Use Bearer authentication
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error making request: %w", err)
+		return nil, fmt.Errorf("error executing request: %v", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		// fmt.Println("Body:", resp)
-		return nil, fmt.Errorf("error response from Coinbase: %d - %s", resp.StatusCode, string(body))
-	}
-
-	// Read and parse the response
+	// Parse response and return products
 	var response struct {
-		Products []Product
+		Products []Product `json:"products"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("error decoding response: %w", err)
+		return nil, fmt.Errorf("error decoding response: %v", err)
 	}
 
-	// Convert to our Product type
-	var products []Product
-	for _, p := range response.Products {
-		if p.Status == "online" { // Only include active products
-			products = append(products, Product{
-				ID:         p.ID,    // Auto generated db id
-				XchID:      p.XchID, // Specific exchange id.
-				ProductID:  p.ProductID,
-				BaseName:   p.BaseName,
-				QuoteName:  p.QuoteName,
-				Status:     p.Status,
-				Price:      p.Price,
-				Volume_24h: p.Volume_24h,
-			})
-		}
-	}
-	// Sort products by 24h volume in descending order
-	sort.Slice(products, func(i, j int) bool {
-		// Convert volume strings to float64 for comparison
-		volI, _ := strconv.ParseFloat(products[i].Volume_24h, 64)
-		volJ, _ := strconv.ParseFloat(products[j].Volume_24h, 64)
-		return volI > volJ
-	})
-
-	// Take only the top 100 products (or less if fewer products exist)
-	maxProducts := 100
-	if len(products) > maxProducts {
-		products = products[:maxProducts]
-	}
-	fmt.Println("Products: ", len(products))
-
-	return products, nil
+	return response.Products, nil
 }
 
 // Exchange operation
@@ -824,46 +659,38 @@ func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end ti
 	return candleData.Candles, nil
 }
 
-// Exchange operation
 func (api *CoinbaseAPI) FetchFills() ([]Fill, error) {
 	var fills []Fill
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-
-	apiKey := os.Getenv("CBAPIKEY")
-	apiSecret := os.Getenv("CBAPISECRET")
-
-	timestamp := time.Now().Unix()
-	baseURL := "https://api.coinbase.com"
 	path := "/api/v3/brokerage/orders/historical/fills"
 	method := "GET"
-	body := ""
+	fullURL := fmt.Sprintf("%s%s", api.BaseURL, path)
 
-	signature := GetCBSign(apiSecret, timestamp, method, path, body)
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, baseURL+path, nil)
+	// Generate JWT token for REST API
+	uri := fmt.Sprintf("%s %s%s", method, "api.coinbase.com", path)
+	jwt, err := generateRestJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET")), uri)
 	if err != nil {
-		fmt.Println("NewRequest: ", err)
+		return nil, fmt.Errorf("failed to generate JWT: %v", err)
 	}
 
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", apiKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
+	client := &http.Client{}
+	req, err := http.NewRequest(method, fullURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %v", err)
+	}
+
+	// Use Bearer authentication
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error DO: ", err)
+		return nil, fmt.Errorf("error executing request: %v", err)
 	}
-
 	defer resp.Body.Close()
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Readall Err ", err)
+		return nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	type CBFill struct {
@@ -890,7 +717,7 @@ func (api *CoinbaseAPI) FetchFills() ([]Fill, error) {
 
 	err = json.Unmarshal(responseBody, &response)
 	if err != nil {
-		return nil, fmt.Errorf("Error unmarshalling JSON: %w", err)
+		return nil, fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
 
 	for _, fill := range response.Fills {
@@ -914,6 +741,105 @@ func (api *CoinbaseAPI) FetchFills() ([]Fill, error) {
 	}
 
 	return fills, nil
+}
+
+func (api *CoinbaseAPI) FetchOrdersFills() ([]Order, error) {
+	path := "/api/v3/brokerage/orders/historical/batch"
+	method := "GET"
+	fullURL := fmt.Sprintf("%s%s", api.BaseURL, path)
+
+	// Generate JWT token for REST API
+	uri := fmt.Sprintf("%s %s%s", method, "api.coinbase.com", path)
+	jwt, err := generateRestJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET")), uri)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate JWT: %v", err)
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, fullURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %v", err)
+	}
+
+	// Use Bearer authentication
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response: %v", err)
+	}
+
+	var response struct {
+		Orders []struct {
+			OrderID            string `json:"order_id"`
+			ProductID          string `json:"product_id"`
+			Side               string `json:"side"`
+			Status             string `json:"status"`
+			CreatedTime        string `json:"created_time"`
+			FilledSize         string `json:"filled_size"`
+			AverageFilledPrice string `json:"average_filled_price"`
+			TotalFees          string `json:"total_fees"`
+			OrderConfiguration struct {
+				MarketMarketIoc *struct {
+					QuoteSize string `json:"quote_size"`
+					BaseSize  string `json:"base_size"`
+				} `json:"market_market_ioc"`
+				LimitLimitGtc *struct {
+					BaseSize   string `json:"base_size"`
+					LimitPrice string `json:"limit_price"`
+					PostOnly   bool   `json:"post_only"`
+				} `json:"limit_limit_gtc"`
+			} `json:"order_configuration"`
+		} `json:"orders"`
+	}
+
+	err = json.Unmarshal(responseBody, &response)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling JSON: %w", err)
+	}
+
+	var filteredOrders []Order
+	for _, cbOrder := range response.Orders {
+		if cbOrder.Status != "CANCELLED" && cbOrder.Status != "FILLED" {
+			var size, price float64
+
+			if cbOrder.OrderConfiguration.MarketMarketIoc != nil {
+				size, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.MarketMarketIoc.BaseSize, 64)
+				price, _ = strconv.ParseFloat(cbOrder.AverageFilledPrice, 64)
+			} else if cbOrder.OrderConfiguration.LimitLimitGtc != nil {
+				size, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.LimitLimitGtc.BaseSize, 64)
+				price, _ = strconv.ParseFloat(cbOrder.OrderConfiguration.LimitLimitGtc.LimitPrice, 64)
+			}
+
+			filledSize, _ := strconv.ParseFloat(cbOrder.FilledSize, 64)
+			totalFees, _ := strconv.ParseFloat(cbOrder.TotalFees, 64)
+
+			order := Order{
+				OrderID:        cbOrder.OrderID,
+				ProductID:      cbOrder.ProductID,
+				Side:           cbOrder.Side,
+				Status:         cbOrder.Status,
+				Price:          price,
+				Size:           size,
+				FilledSize:     filledSize,
+				TotalFees:      totalFees,
+				Timestamp:      cbOrder.CreatedTime,
+				MarketCategory: "crypto_spot",
+				XchID:          api.ExchangeID,
+			}
+
+			filteredOrders = append(filteredOrders, order)
+		}
+	}
+
+	return filteredOrders, nil
 }
 
 type CoinbaseAccount struct {
@@ -1222,59 +1148,48 @@ func (api *CoinbaseAPI) GetOrder(orderID string) (*Order, error) {
 
 // Exchange operation
 func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
-	// log.Println("FetchPortfolio")
-	// var accounts []Asset
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-
-	apiKey := os.Getenv("CBAPIKEY")
-	apiSecret := os.Getenv("CBAPISECRET")
-
-	timestamp := time.Now().Unix()
-	baseURL := "https://api.coinbase.com"
 	path := "/api/v3/brokerage/accounts"
 	method := "GET"
-	body := ""
+	fullURL := fmt.Sprintf("%s%s", api.BaseURL, path)
 
-	signature := GetCBSign(apiSecret, timestamp, method, path, body)
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, baseURL+path, nil)
+	// Generate JWT token for REST API
+	uri := fmt.Sprintf("%s %s%s", method, "api.coinbase.com", path)
+	jwt, err := generateRestJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET")), uri)
 	if err != nil {
-		return nil, fmt.Errorf("Error Coinbase Portfolio New Request: %w", err)
+		return nil, fmt.Errorf("failed to generate JWT: %v", err)
 	}
 
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", apiKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
+	client := &http.Client{}
+	req, err := http.NewRequest(method, fullURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %v", err)
+	}
+
+	// Use Bearer authentication
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Fetch coinbase portfolio Error DO: %w", err)
+		return nil, fmt.Errorf("error executing request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Fetch coinbase portfolio Readall Err: %w", err)
+		return nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	var response struct {
 		Accounts []CoinbaseAccount `json:"accounts"`
 		HasNext  bool              `json:"has_next"`
 		Cursor   string            `json:"cursor"`
-		Size     float64           `json:"size"` // Changed from string to float64
+		Size     float64           `json:"size"`
 	}
-
-	// Print raw response for debugging
-	// fmt.Printf("Raw response: %s\n", string(responseBody))
 
 	err = json.Unmarshal(responseBody, &response)
 	if err != nil {
-		return nil, fmt.Errorf("Error unmarshaling JSON: %w", err)
+		return nil, fmt.Errorf("error unmarshaling JSON: %w", err)
 	}
 
 	var assets []Asset
@@ -1285,11 +1200,9 @@ func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 		if availableBalance > 0 || holdBalance > 0 {
 			var totalValue float64
 
-			// Handle USD and stablecoins
 			if account.Currency == "USD" || account.Currency == "USDT" || account.Currency == "USDC" {
 				totalValue = availableBalance + holdBalance
 			} else {
-				// Get price for other cryptocurrencies
 				price, err := GetPrice(account.Currency + "-USD")
 				if err != nil {
 					log.Printf("Error getting price for %s: %v", account.Currency, err)
@@ -1307,53 +1220,48 @@ func (api *CoinbaseAPI) FetchPortfolio() ([]Asset, error) {
 			}
 
 			assets = append(assets, asset)
-			// log.Printf("Added asset %s: Available=%v Hold=%v Value=%v", account.Currency, availableBalance, holdBalance, totalValue)
 		}
 	}
 
 	return assets, nil
 }
+
 func GetPrice(currency string) (float64, error) {
 	if currency == "USD" || currency == "USDT" || currency == "USDC" {
 		return 1.0, nil
 	}
 
-	apiKey := os.Getenv("CBAPIKEY")
-	apiSecret := os.Getenv("CBAPISECRET")
-
-	timestamp := time.Now().Unix()
-	baseURL := "https://api.coinbase.com"
 	path := fmt.Sprintf("/api/v3/brokerage/products/%s", currency)
 	method := "GET"
-	body := ""
+	fullURL := fmt.Sprintf("https://api.coinbase.com%s", path)
 
-	signature := GetCBSign(apiSecret, timestamp, method, path, body)
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, baseURL+path, nil)
+	// Generate JWT token for REST API
+	uri := fmt.Sprintf("%s %s%s", method, "api.coinbase.com", path)
+	jwt, err := generateRestJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET")), uri)
 	if err != nil {
-		return 0, fmt.Errorf("NewRequest: %v", err)
+		return 0, fmt.Errorf("failed to generate JWT: %v", err)
 	}
 
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", apiKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
+	client := &http.Client{}
+	req, err := http.NewRequest(method, fullURL, nil)
+	if err != nil {
+		return 0, fmt.Errorf("error creating request: %v", err)
+	}
+
+	// Use Bearer authentication
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("Error DO: %v", err)
+		return 0, fmt.Errorf("error executing request: %v", err)
 	}
 	defer resp.Body.Close()
 
-	// Read response body as []byte
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return 0, fmt.Errorf("Error reading response body: %v", err)
+		return 0, fmt.Errorf("error reading response body: %v", err)
 	}
-
-	// Log response for debugging
-	// log.Printf("Price response for %s: %s", currency, string(bodyBytes))
 
 	var productResponse struct {
 		Price          string `json:"price"`
@@ -1362,19 +1270,18 @@ func GetPrice(currency string) (float64, error) {
 		QuoteIncrement string `json:"quote_increment"`
 	}
 
-	// Use bodyBytes directly for unmarshaling
 	err = json.Unmarshal(bodyBytes, &productResponse)
 	if err != nil {
-		return 0, fmt.Errorf("Error decoding JSON: %v", err)
+		return 0, fmt.Errorf("error decoding JSON: %v", err)
 	}
 
 	if productResponse.Price == "" {
-		return 0, fmt.Errorf("No price available for %s", currency)
+		return 0, fmt.Errorf("no price available for %s", currency)
 	}
 
 	price, err := strconv.ParseFloat(productResponse.Price, 64)
 	if err != nil {
-		return 0, fmt.Errorf("Error parsing price: %v", err)
+		return 0, fmt.Errorf("error parsing price: %v", err)
 	}
 
 	return price, nil

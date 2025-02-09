@@ -98,7 +98,7 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 func Do_AvailableProducts(exchange model.Exchange, database *sql.DB) error {
 	available_products, err := Fetch_Available_Products(exchange)
 	if err != nil {
-		log.Printf("Error fetching available products for exchange: %s\n%w\n", exchange, err)
+		log.Printf("Error fetching available products for exchange: %s\n%v\n", exchange.Name, err)
 		return err
 	}
 
@@ -113,7 +113,7 @@ func Fetch_Available_Products(exchange model.Exchange) ([]model.Product, error) 
 
 	available_products, err := exchange.API.FetchAvailableProducts()
 	if err != nil {
-		log.Printf("Error getting available products from coinbase: %w", err)
+		log.Printf("Error getting available products from coinbase: %+v", err)
 		return nil, err
 	}
 	return available_products, nil
