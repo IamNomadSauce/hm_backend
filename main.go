@@ -162,7 +162,7 @@ func main() {
 		http.HandleFunc("/create-trigger", createTriggerHandler)
 		http.HandleFunc("/delete-trigger", deleteTriggerHandler)
 		http.HandleFunc("/update-trigger", updateTriggerHandler)
-		http.HandleFunc("/cancel-trigger", cancelOrderHandler)
+		http.HandleFunc("/cancel-order", cancelOrderHandler)
 
 		http.Handle("/trigger/stream", app.SSEManager)
 
@@ -268,6 +268,8 @@ func cancelOrderHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("OrderID", request.OrderID)
+
 	if request.OrderID == "" {
 		log.Println("Invalid Order ID")
 		http.Error(w, "Invalid order ID", http.StatusBadRequest)
@@ -275,27 +277,29 @@ func cancelOrderHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the exchange from the order
-	// order, err := db.Get_Order(request.OrderID, app.DB, )
-	// if err != nil {
-	//     log.Printf("Error getting order: %v", err)
-	//     http.Error(w, "Order not found", http.StatusNotFound)
-	//     return
-	// }
+	order, err := db.Get_Order(request.OrderID, app.DB)
+	if err != nil {
+		log.Printf("Error getting order: %v", err)
+		http.Error(w, "Order not found", http.StatusNotFound)
+		return
+	}
 
-	// exchange, err := db.Get_Exchange(order.XchID, app.DB)
-	// if err != nil {
-	//     log.Printf("Error getting exchange: %v", err)
-	//     http.Error(w, "Exchange not found", http.StatusNotFound)
-	//     return
-	// }
+	log.Printf("Order: %+v", order)
+
+	exchange, err := db.Get_Exchange(order.XchID, app.DB)
+	if err != nil {
+		log.Printf("Error getting exchange: %v", err)
+		http.Error(w, "Exchange not found", http.StatusNotFound)
+		return
+	}
 
 	// Cancel the order using exchange API
-	// err = exchange.API.CancelOrder(request.OrderID)
-	// if err != nil {
-	//     log.Printf("Error canceling order: %v", err)
-	//     http.Error(w, "Failed to cancel order", http.StatusInternalServerError)
-	//     return
-	// }
+	err = exchange.API.CancelOrder(request.OrderID)
+	if err != nil {
+		log.Printf("Error canceling order: %v", err)
+		http.Error(w, "Failed to cancel order", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{

@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"strings"
 
 	// _ "hm/alerts"
 	"io/ioutil"
@@ -862,11 +863,11 @@ type CoinbaseAccount struct {
 func (api *CoinbaseAPI) CancelOrder(orderID string) error {
 	log.Printf("Canceling order: %s", orderID)
 
-	timestamp := time.Now().Unix()
-	path := fmt.Sprintf("/api/v3/brokerage/orders/cancel")
+	path := "/api/v3/brokerage/orders/batch_cancel"
 	method := "POST"
+	fullURL := fmt.Sprintf("%s%s", api.BaseURL, path)
 
-	// Create request body
+	// Create request body with correct structure
 	requestBody := struct {
 		OrderIDs []string `json:"order_ids"`
 	}{
@@ -878,18 +879,20 @@ func (api *CoinbaseAPI) CancelOrder(orderID string) error {
 		return fmt.Errorf("error marshaling request body: %w", err)
 	}
 
-	signature := GetCBSign(api.APISecret, timestamp, method, path, string(bodyBytes))
+	// Generate JWT token for REST API
+	uri := fmt.Sprintf("%s %s%s", method, "api.coinbase.com", path)
+	jwt, err := generateRestJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET")), uri)
+	if err != nil {
+		return fmt.Errorf("failed to generate JWT: %v", err)
+	}
 
-	req, err := http.NewRequest(method, api.BaseURL+path, bytes.NewBuffer(bodyBytes))
+	req, err := http.NewRequest(method, fullURL, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
 
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -898,9 +901,11 @@ func (api *CoinbaseAPI) CancelOrder(orderID string) error {
 	}
 	defer resp.Body.Close()
 
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	log.Printf("Cancel order response: %s", string(respBody))
+
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("failed to cancel order: status=%d, body=%s", resp.StatusCode, string(body))
+		return fmt.Errorf("failed to cancel order: status=%d, body=%s", resp.StatusCode, string(respBody))
 	}
 
 	return nil
@@ -1003,10 +1008,9 @@ func (api *CoinbaseAPI) PlaceOrder(trade Trade) (string, error) {
 	}{
 		ClientOrderID: fmt.Sprintf("%d", time.Now().UnixNano()),
 		ProductID:     trade.ProductID,
-		Side:          trade.Side,
+		Side:          strings.ToUpper(trade.Side), // Convert side to uppercase
 	}
 
-	// Format size and price with proper precision (6 decimal places for XLM)
 	orderBody.OrderConfiguration.LimitLimitGtc.BaseSize = fmt.Sprintf("%.2f", trade.Size)
 	orderBody.OrderConfiguration.LimitLimitGtc.LimitPrice = fmt.Sprintf("%.6f", trade.EntryPrice)
 	orderBody.OrderConfiguration.LimitLimitGtc.PostOnly = false
@@ -1018,22 +1022,25 @@ func (api *CoinbaseAPI) PlaceOrder(trade Trade) (string, error) {
 
 	log.Printf("Request body: %s", string(bodyBytes))
 
-	timestamp := time.Now().Unix()
 	path := "/api/v3/brokerage/orders"
 	method := "POST"
+	fullURL := fmt.Sprintf("%s%s", api.BaseURL, path)
 
-	signature := GetCBSign(api.APISecret, timestamp, method, path, string(bodyBytes))
+	// Generate JWT token for REST API
+	uri := fmt.Sprintf("%s %s%s", method, "api.coinbase.com", path)
+	jwt, err := generateRestJWT(os.Getenv("CBAPIKEYNAME"), []byte(os.Getenv("CBAPIUSERSECRET")), uri)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate JWT: %v", err)
+	}
 
-	req, err := http.NewRequest(method, api.BaseURL+path, bytes.NewBuffer(bodyBytes))
+	req, err := http.NewRequest(method, fullURL, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return "", fmt.Errorf("error creating request: %w", err)
 	}
 
-	req.Header.Add("CB-ACCESS-SIGN", signature)
-	req.Header.Add("CB-ACCESS-TIMESTAMP", strconv.FormatInt(timestamp, 10))
-	req.Header.Add("CB-ACCESS-KEY", api.APIKey)
-	req.Header.Add("CB-VERSION", "2015-07-22")
-	req.Header.Add("Content-Type", "application/json")
+	// Use Bearer authentication
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

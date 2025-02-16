@@ -809,7 +809,31 @@ func Get_Orders(id int, db *sql.DB) ([]model.Order, error) {
 }
 
 func Get_Order(id string, db *sql.DB) (model.Order, error) {
-	return model.Order{}, nil
+	query := `
+        SELECT order_id, product_id, trade_type, side, price, size, xch_id, market_category, time, total_fees
+        FROM orders
+        WHERE order_id = $1
+    `
+
+	var order model.Order
+	err := db.QueryRow(query, id).Scan(
+		&order.OrderID,
+		&order.ProductID,
+		&order.TradeType,
+		&order.Side,
+		&order.Price,
+		&order.Size,
+		&order.XchID,
+		&order.MarketCategory,
+		&order.Timestamp,
+		&order.TotalFees,
+	)
+
+	if err != nil {
+		return order, fmt.Errorf("error retrieving order %s: %v", id, err)
+	}
+
+	return order, nil
 }
 
 func Get_Fills(xch_id int, database *sql.DB) ([]model.Fill, error) {
