@@ -159,6 +159,7 @@ func main() {
 		http.HandleFunc("/candles", handleCandlesRequest)
 		http.HandleFunc("/add-to-watchlist", addToWatchlistHandler)
 		http.HandleFunc("/new_trade", TradeBlockHandler)
+		http.HandleFunc("/delete-trade-group", deleteTradeBlockHandler)
 		http.HandleFunc("/create-trigger", createTriggerHandler)
 		http.HandleFunc("/delete-trigger", deleteTriggerHandler)
 		http.HandleFunc("/update-trigger", updateTriggerHandler)
@@ -585,6 +586,37 @@ func TradeBlockHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"status":  "success",
 		"message": "Bracket order placed successfully",
+	})
+}
+
+func deleteTradeBlockHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Delete Trade Block Handler")
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var request struct {
+		GroupID string `json:"group_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		log.Printf("Error decoding request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if err := db.DeleteTradeGroup(app.DB, request.GroupID); err != nil {
+		log.Printf("Error deleting trade group: %v", err)
+		http.Error(w, "Failed to delete trade group", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "success",
+		"message": "Trade group deleted successfully",
 	})
 }
 

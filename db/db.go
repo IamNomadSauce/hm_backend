@@ -1220,6 +1220,51 @@ func UpdateTradeStatus(db *sql.DB, groupID string, entryStatus, stopStatus, ptSt
 	return err
 }
 
+func DeleteTradeGroup(db *sql.DB, groupID string) error {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Delete all trades in the group
+	query := `
+        DELETE FROM trades 
+        WHERE group_id = $1 
+        RETURNING id, entry_order_id, stop_order_id, pt_order_id
+    `
+
+	rows, err := tx.Query(query, groupID)
+	if err != nil {
+		return fmt.Errorf("error deleting trades: %w", err)
+	}
+	defer rows.Close()
+
+	// Log deleted trades for debugging
+	for rows.Next() {
+		var (
+			id                                   int
+			entryOrderID, stopOrderID, ptOrderID sql.NullString
+		)
+		if err := rows.Scan(&id, &entryOrderID, &stopOrderID, &ptOrderID); err != nil {
+			return fmt.Errorf("error scanning deleted trade: %w", err)
+		}
+		log.Printf("Deleted trade ID: %d with orders: entry=%s, stop=%s, pt=%s",
+			id,
+			entryOrderID.String,
+			stopOrderID.String,
+			ptOrderID.String)
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+
+	return nil
+}
+
 // ------------------------------------------------------------------------
 // Triggers
 // ------------------------------------------------------------------------
