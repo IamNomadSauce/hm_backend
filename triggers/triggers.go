@@ -9,7 +9,10 @@ import (
 )
 
 func NewTriggerManager(db *sql.DB) *TriggerManager {
-	return &TriggerManager{db: db}
+	return &TriggerManager{
+		db:       db,
+		triggers: make(map[string][]common.Trigger),
+	}
 }
 
 // TriggerManager manages trigger-related operations

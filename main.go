@@ -52,7 +52,7 @@ func main() {
 	app.TradeManager = trademanager.NewTradeManager(app.DB)
 
 	if err := app.TradeManager.Initialize(); err != nil {
-		log.Fatalf("Error initializing TRadeManager: %v", err)
+		log.Fatalf("Error initializing TradeManager: %v", err)
 	}
 
 	initialProduct := "XLM-USD"

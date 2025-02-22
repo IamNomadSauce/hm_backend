@@ -64,7 +64,7 @@ func (tm *TradeManager) Initialize() error {
 		tm.trades[trade.GroupID].Trades = append(tm.trades[trade.GroupID].Trades, trade)
 	}
 
-	go tm.ListenForDBChanges("your_dsn", "global_changes")
+	// go tm.ListenForDBChanges("your_dsn", "global_changes")
 
 	go tm.processOrderUpdates()
 	go tm.processTradeUpdates()
