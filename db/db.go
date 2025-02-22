@@ -1100,6 +1100,59 @@ func GetAllTrades(db *sql.DB) ([]model.Trade, error) {
 	return trades, nil
 }
 
+func GetIncompleteTrades(db *sql.DB) ([]model.Trade, error) {
+	query := `
+        SELECT id, group_id, product_id, side, entry_price, stop_price, size,
+               entry_order_id, stop_order_id, entry_status, stop_status,
+               pt_price, pt_status, pt_order_id, pt_amount,
+               created_at, updated_at, xch_id, status
+        FROM trades
+        WHERE status != 'completed'`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying incomplete trades: %w", err)
+	}
+	defer rows.Close()
+
+	var trades []model.Trade
+	for rows.Next() {
+		var t model.Trade
+		err := rows.Scan(
+			&t.ID,
+			&t.GroupID,
+			&t.ProductID,
+			&t.Side,
+			&t.EntryPrice,
+			&t.StopPrice,
+			&t.Size,
+			&t.EntryOrderID,
+			&t.StopOrderID,
+			&t.EntryStatus,
+			&t.StopStatus,
+			&t.PTPrice,
+			&t.PTStatus,
+			&t.PTOrderID,
+			&t.PTAmount,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+			&t.XchID,
+			&t.Status,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning trade: %w", err)
+		}
+		trades = append(trades, t)
+	}
+
+	// Check for errors from iterating over rows
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over trade rows: %w", err)
+	}
+
+	return trades, nil
+}
+
 func GetTradesByExchange(db *sql.DB, exchange_id int) ([]model.Trade, error) {
 	query := `SELECT * FROM trades WHERE xch_id = $1`
 	rows, err := db.Query(query, exchange_id)
@@ -1510,4 +1563,34 @@ func CreateTriggersForExistingTables(db *sql.DB) error {
 	}
 
 	return nil
+}
+
+func UpdateTradeEntryStatus(db *sql.DB, tradeID int, entryStatus string) error {
+	query := `
+        UPDATE trades
+        SET entry_status = $1,
+            updated_at = $2
+        WHERE id = $3`
+	_, err := db.Exec(query, entryStatus, time.Now(), tradeID)
+	return err
+}
+
+func UpdateTradeStopStatus(db *sql.DB, tradeID int, stopStatus string) error {
+	query := `
+        UPDATE trades
+        SET stop_status = $1,
+            updated_at = $2
+        WHERE id = $3`
+	_, err := db.Exec(query, stopStatus, time.Now(), tradeID)
+	return err
+}
+
+func UpdateTradePTStatus(db *sql.DB, tradeID int, ptStatus string) error {
+	query := `
+        UPDATE trades
+        SET pt_status = $1,
+            updated_at = $2
+        WHERE id = $3`
+	_, err := db.Exec(query, ptStatus, time.Now(), tradeID)
+	return err
 }
