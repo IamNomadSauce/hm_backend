@@ -7,6 +7,7 @@ import (
 	"backend/model"
 	_ "backend/model"
 	"backend/sse"
+	"backend/trademanager"
 	"backend/triggers"
 	"database/sql"
 	"encoding/json"
@@ -26,6 +27,7 @@ type Application struct {
 	Exchanges      map[int]*model.Exchange
 	TriggerManager *triggers.TriggerManager
 	SSEManager     *sse.SSEManager
+	TradeManager   *trademanager.TradeManager
 }
 
 var app *Application
@@ -46,8 +48,12 @@ func main() {
 	// Initialize trigger manager
 	triggers_manager := triggers.NewTriggerManager(app.DB)
 	app.TriggerManager = triggers_manager
-
 	app.SSEManager = sse.NewSSEManager(triggers_manager)
+	app.TradeManager = trademanager.NewTradeManager(app.DB)
+
+	if err := app.TradeManager.Initialize(); err != nil {
+		log.Fatalf("Error initializing TRadeManager: %v", err)
+	}
 
 	initialProduct := "XLM-USD"
 
@@ -147,9 +153,8 @@ func main() {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	// Live database SSE events trigger
-
 	go app.SSEManager.ListenForDBChanges(dsn, "global_changes", initialProduct)
+	go app.TradeManager.ListenForDBChanges(dsn, "global_changes")
 
 	// Web Server
 	go func() {
@@ -175,78 +180,79 @@ func main() {
 		}
 	}()
 
-	// Trade Manager
-	go func() {
-		log.Println("startingTrade Manage goroutine")
-		for {
-			trades, err := db.GetAllTrades(app.DB)
-			if err != nil {
-				log.Printf("Error getting incomplete trades: %v", err)
-				continue
-			}
+	// Old Trade Manager
+	// go func() {
+	// 	log.Println("startingTrade Manage goroutine")
+	// 	for {
+	// 		trades, err := db.GetAllTrades(app.DB)
+	// 		if err != nil {
+	// 			log.Printf("Error getting incomplete trades: %v", err)
+	// 			continue
+	// 		}
 
-			tradeGroups := make(map[string][]model.Trade)
-			for _, trade := range trades {
-				tradeGroups[trade.GroupID] = append(tradeGroups[trade.GroupID], trade)
-			}
+	// 		tradeGroups := make(map[string][]model.Trade)
+	// 		for _, trade := range trades {
+	// 			tradeGroups[trade.GroupID] = append(tradeGroups[trade.GroupID], trade)
+	// 		}
 
-			// log.Println("Trade Blocks: ", len(tradeGroups))
-			for groupID, groupTrades := range tradeGroups {
-				// log.Printf("Processing trade group: %s", groupID)
+	// 		// log.Println("Trade Blocks: ", len(tradeGroups))
+	// 		for groupID, groupTrades := range tradeGroups {
+	// 			// log.Printf("Processing trade group: %s", groupID)
 
-				for _, trade := range groupTrades {
-					exchange, err := db.Get_Exchange(trade.XchID, database)
-					if err != nil {
-						log.Println("Error getting exchange: ", err)
-						continue
-					}
+	// 			for _, trade := range groupTrades {
+	// 				exchange, err := db.Get_Exchange(trade.XchID, database)
+	// 				if err != nil {
+	// 					log.Println("Error getting exchange: ", err)
+	// 					continue
+	// 				}
 
-					// Only place new orders if there's no entry order ID and status is empty
-					if trade.EntryOrderID == "" && trade.EntryStatus == "" {
-						log.Printf("Placing entry order for trade in group %s", groupID)
-						log.Printf("Entry: %f\nEntry: %f\nEntry: %f\n",
-							trade.EntryPrice, trade.StopPrice, trade.PTPrice)
+	// 				// Only place new orders if there's no entry order ID and status is empty
+	// 				if trade.EntryOrderID == "" && trade.EntryStatus == "" {
+	// 					log.Printf("Placing entry order for trade in group %s", groupID)
+	// 					log.Printf("Entry: %f\nEntry: %f\nEntry: %f\n",
+	// 						trade.EntryPrice, trade.StopPrice, trade.PTPrice)
 
-						orderID, err := exchange.API.PlaceOrder(trade)
-						if err != nil {
-							log.Printf("Error placing entry order: %v", err)
-							continue
-						}
+	// 					orderID, err := exchange.API.PlaceOrder(trade)
+	// 					if err != nil {
+	// 						log.Printf("Error placing entry order: %v", err)
+	// 						continue
+	// 					}
 
-						err = db.UpdateTradeEntry(database, trade.ID, orderID)
-						if err != nil {
-							log.Printf("Error updating trade entry order: %v", err)
-						}
-					} else if trade.EntryOrderID != "" {
-						// Check existing order status
-						order, err := exchange.API.GetOrder(trade.EntryOrderID)
-						if err != nil {
-							log.Printf("Error checking order status: %v", err)
-							continue
-						}
+	// 					err = db.UpdateTradeEntry(database, trade.ID, orderID)
+	// 					if err != nil {
+	// 						log.Printf("Error updating trade entry order: %v", err)
+	// 					}
+	// 				} else if trade.EntryOrderID != "" {
+	// 					// Check existing order status
+	// 					order, err := exchange.API.GetOrder(trade.EntryOrderID)
+	// 					if err != nil {
+	// 						log.Printf("Error checking order status: %v", err)
+	// 						continue
+	// 					}
 
-						if order.Status != trade.EntryStatus {
-							err = db.UpdateTradeStatus(database, trade.GroupID, order.Status, trade.StopStatus, trade.PTStatus)
-							if err != nil {
-								log.Printf("Error updating trade status: %v", err)
-							}
-						}
+	// 					if order.Status != trade.EntryStatus {
+	// 						err = db.UpdateTradeStatus(database, trade.GroupID, order.Status, trade.StopStatus, trade.PTStatus)
+	// 						if err != nil {
+	// 							log.Printf("Error updating trade status: %v", err)
+	// 						}
+	// 					}
 
-						// Place bracket orders only when entry is filled and no brackets exist
-						if order.Status == "FILLED" && trade.StopOrderID == "" && trade.PTOrderID == "" {
-							log.Printf("Placing bracket orders for filled entry in group %s", groupID)
-							err := exchange.API.PlaceBracketOrder(trade)
-							if err != nil {
-								log.Printf("Error placing bracket orders: %v", err)
-							}
-						}
-					}
-				}
-			}
+	// 					// Place bracket orders only when entry is filled and no brackets exist
+	// 					if order.Status == "FILLED" && trade.StopOrderID == "" && trade.PTOrderID == "" {
+	// 						log.Printf("Placing bracket orders for filled entry in group %s", groupID)
+	// 						err := exchange.API.PlaceBracketOrder(trade)
+	// 						if err != nil {
+	// 							log.Printf("Error placing bracket orders: %v", err)
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	// 		}
 
-			time.Sleep(1 * time.Minute)
-		}
-	}()
+	// 		time.Sleep(1 * time.Minute)
+	// 	}
+	// }()
+	// select {}
 	select {}
 }
 
@@ -566,7 +572,12 @@ func TradeBlockHandler(w http.ResponseWriter, r *http.Request) {
 		trades = append(trades, trade)
 	}
 
-	err = db.WriteTrades(app.DB, trades)
+	var triggerIDs []int
+	for _, trigger := range trade_group.Triggers {
+		triggerIDs = append(triggerIDs, trigger.ID)
+	}
+
+	err = db.WriteTrades(app.DB, trades, triggerIDs)
 	if err != nil {
 		log.Printf("Error writing to trades: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

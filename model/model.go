@@ -177,6 +177,7 @@ type Trade struct {
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	XchID        int       `json:"xch_id"`
+	Status       string    `json:"status"`
 }
 
 type TradeBlock struct {

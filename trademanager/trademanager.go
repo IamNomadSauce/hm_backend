@@ -148,10 +148,23 @@ func (tm *TradeManager) processTradeUpdates() {
 				}
 			}
 			tm.trades[groupID].Trades = append(tm.trades[groupID].Trades, trade)
-
-			if trade.EntryOrderID == "" && trade.EntryStatus == "" {
-				tm.placeEntryOrder(&trade)
+			allTriggered, err := db.AreAllTriggersTriggered(tm.db, trade.ID)
+			if err != nil {
+				log.Printf("Error checking triggers for trade %d: %v", trade.ID, err)
+				continue
 			}
+			if allTriggered {
+				tm.placeEntryOrder(&trade)
+			} else {
+				err = db.UpdateTradeStatusByID(tm.db, trade.ID, "waiting_for_triggers")
+				if err != nil {
+					log.Printf("Error udating trade status: %v", err)
+				}
+			}
+
+			// if trade.EntryOrderID == "" && trade.EntryStatus == "" {
+			// 	tm.placeEntryOrder(&trade)
+			// }
 		case "UPDATE":
 			if tradeState, exists := tm.trades[groupID]; exists {
 				for i, t := range tradeState.Trades {
@@ -198,16 +211,15 @@ func (tm *TradeManager) placeEntryOrder(trade *model.Trade) {
 }
 
 func (tm *TradeManager) processOrderUpdates() {
+
 	for update := range tm.orderUpdates {
 		tm.tradesMutex.RLock()
-
 		var targetTrade *model.Trade
-		var targetGroupID string
-		for groupID, tradeState := range tm.trades {
+
+		for _, tradeState := range tm.trades {
 			for _, trade := range tradeState.Trades {
 				if trade.EntryOrderID == update.OrderID || trade.StopOrderID == update.OrderID || trade.PTOrderID == update.OrderID {
 					targetTrade = &trade
-					targetGroupID = groupID
 					break
 				}
 			}
@@ -221,23 +233,39 @@ func (tm *TradeManager) processOrderUpdates() {
 			continue
 		}
 
+		// Handle updates based on the type of order
 		if targetTrade.EntryOrderID == update.OrderID {
-			err := db.UpdateTradeStatus(tm.db, targetTrade.GroupID, update.Status, targetTrade.StopStatus, targetTrade.PTStatus)
+			err := db.UpdateTradeEntryStatus(tm.db, targetTrade.ID, update.Status)
 			if err != nil {
-				log.Printf("TradeManager error updating trade status: %v", err)
+				log.Printf("TradeManager error updating trade entry status: %v", err)
 			}
-
 			if update.Status == "FILLED" && targetTrade.StopOrderID == "" && targetTrade.PTOrderID == "" {
 				exchange, err := db.Get_Exchange(targetTrade.XchID, tm.db)
 				if err != nil {
 					log.Printf("TradeManager error getting exchange: %v", err)
 					continue
 				}
-
 				err = exchange.API.PlaceBracketOrder(*targetTrade)
 				if err != nil {
 					log.Printf("TradeManager error placing bracket orders: %v", err)
 				}
+			}
+		} else if targetTrade.StopOrderID == update.OrderID {
+			err := db.UpdateTradeStopStatus(tm.db, targetTrade.ID, update.Status)
+			if err != nil {
+				log.Printf("TradeManager error updating trade stop status: %v", err)
+			}
+		} else if targetTrade.PTOrderID == update.OrderID {
+			err := db.UpdateTradePTStatus(tm.db, targetTrade.ID, update.Status)
+			if err != nil {
+				log.Printf("TradeManager error updating trade pt status: %v", err)
+			}
+		}
+
+		if targetTrade.EntryStatus == "FILLED" && (targetTrade.StopStatus == "FILLED" || targetTrade.PTStatus == "FILLED") {
+			err := db.UpdateTradeStatusByID(tm.db, targetTrade.ID, "completed")
+			if err != nil {
+				log.Printf("TradeManager error updating trade status for %d: %v", targetTrade.ID, err)
 			}
 		}
 	}

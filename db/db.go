@@ -225,12 +225,25 @@ func CreateTables(db *sql.DB) error {
 			pt_amount INT,
 			created_at TIMESTAMP,
 			updated_at TIMESTAMP,
-			xch_id INTEGER
+			xch_id INTEGER,
+			status VARCHAR(50) DEFAULT 'pending'
 		);
 
 	`)
 	if err != nil {
 		log.Printf("Failed to create trades: %v", err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS trade_triggers (
+			trade_id INT REFERENCES trades(id),
+			trigger_id INT REFERENCES triggers(id),
+			PRIMARY KEY (trade_id, trigger_id)
+		);
+	`)
+	if err != nil {
+		log.Println("Failed to create trade_triggers table: ", err)
+		return err
 	}
 
 	_, err = db.Exec(`
@@ -653,6 +666,7 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	if err != nil {
 		return exchange, fmt.Errorf("error getting trades: %v", err)
 	}
+
 	exchange.Triggers, err = triggers.GetTriggers(db, exchange.ID, "active")
 	if err != nil {
 		return exchange, fmt.Errorf("error getting triggers %v", err)
@@ -1017,7 +1031,7 @@ func Get_All_Candles(product, tf, xch string, db *sql.DB) ([]common.Candle, erro
 // --------------------------------------------------
 
 // all trades in a trade-block
-func WriteTrades(db *sql.DB, trades []model.Trade) error {
+func WriteTrades(db *sql.DB, trades []model.Trade, triggerIDs []int) error {
 	groupID := uuid.New().String()
 
 	for i, trade := range trades {
@@ -1029,8 +1043,8 @@ func WriteTrades(db *sql.DB, trades []model.Trade) error {
                 group_id, product_id, side, entry_price, stop_price, size,
                 entry_order_id, stop_order_id, entry_status, stop_status,
                 pt_price, pt_status, pt_order_id, pt_amount,
-                created_at, updated_at, xch_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+                created_at, updated_at, xch_id, status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
             RETURNING id`
 
 		err := db.QueryRow(
@@ -1052,17 +1066,30 @@ func WriteTrades(db *sql.DB, trades []model.Trade) error {
 			time.Now(),
 			time.Now(),
 			trade.XchID,
+			"pending",
 		).Scan(&trade.ID)
 
 		if err != nil {
 			return err
+		}
+
+		for _, triggerID := range triggerIDs {
+			_, err = db.Exec("INSERT INTO trade_triggers (trade_id, trigger_id) VALUES ($1, $2)", trade.ID, triggerID)
+			if err != nil {
+				return fmt.Errorf("Error associating trigger %d with trade %d: %w", triggerID, trade.ID, err)
+			}
 		}
 	}
 	return nil
 }
 
 func GetAllTrades(db *sql.DB) ([]model.Trade, error) {
-	query := `SELECT * FROM trades`
+	query := `
+		SELECT id, group_id, product_id, side, entry_price, stop_price, size, 
+			entry_order_id, stop_order_id, entry_status, stop_status, 
+			pt_price, pt_status, pt_order_id, pt_amount, 
+			created_at, updated_at, xch_id, status 
+		FROM trades`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -1091,6 +1118,7 @@ func GetAllTrades(db *sql.DB) ([]model.Trade, error) {
 			&t.CreatedAt,
 			&t.UpdatedAt,
 			&t.XchID,
+			&t.Status,
 		)
 		if err != nil {
 			return nil, err
@@ -1154,7 +1182,12 @@ func GetIncompleteTrades(db *sql.DB) ([]model.Trade, error) {
 }
 
 func GetTradesByExchange(db *sql.DB, exchange_id int) ([]model.Trade, error) {
-	query := `SELECT * FROM trades WHERE xch_id = $1`
+	query := `
+		SELECT id, group_id, product_id, side, entry_price, stop_price, size, 
+			entry_order_id, stop_order_id, entry_status, stop_status, 
+			pt_price, pt_status, pt_order_id, pt_amount, 
+			created_at, updated_at, xch_id, status 
+		FROM trades WHERE xch_id = $1`
 	rows, err := db.Query(query, exchange_id)
 	if err != nil {
 		return nil, err
@@ -1183,6 +1216,7 @@ func GetTradesByExchange(db *sql.DB, exchange_id int) ([]model.Trade, error) {
 			&t.CreatedAt,
 			&t.UpdatedAt,
 			&t.XchID,
+			&t.Status,
 		)
 		if err != nil {
 			return nil, err
@@ -1193,7 +1227,12 @@ func GetTradesByExchange(db *sql.DB, exchange_id int) ([]model.Trade, error) {
 }
 
 func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
-	query := `SELECT * FROM trades WHERE group_id = $1 ORDER BY pt_amount`
+	query := `
+		SELECT id, group_id, product_id, side, entry_price, stop_price, size,
+			entry_order_id, stop_order_id, entry_status, stop_status,
+			pt_price, pt_status, pt_order_id, pt_amount,
+			created_at, updated_at, xch_id, status
+		FROM trades WHERE group_id = $1 ORDER BY pt_amount`
 	rows, err := db.Query(query, groupID)
 	if err != nil {
 		return nil, err
@@ -1222,6 +1261,7 @@ func GetTradesByGroup(db *sql.DB, groupID string) ([]model.Trade, error) {
 			&t.CreatedAt,
 			&t.UpdatedAt,
 			&t.XchID,
+			&t.Status,
 		)
 		if err != nil {
 			return nil, err
@@ -1369,13 +1409,88 @@ func CreateTrigger(db *sql.DB, trigger *common.Trigger) (int, error) {
 	return triggerID, nil
 }
 
+func GetTriggersForTrade(db *sql.DB, tradeID int) ([]common.Trigger, error) {
+	query := `
+		SELECT t.id, t.product_id, t.type, t.price, t.timeframe, 
+			t.candle_count, t.condition, t.status, t.triggered_count, 
+			t.xch_id, t.created_at, t.updated_at
+		FROM triggers t
+		JOIN trade_triggers tt ON t.id = tt.trigger_id
+		WHERE tt.trade_id = $1`
+	rows, err := db.Query(query, tradeID)
+	if err != nil {
+		return nil, fmt.Errorf("error querying triggers for trade %d: %w", tradeID, err)
+	}
+	defer rows.Close()
+
+	var triggers []common.Trigger
+	for rows.Next() {
+		var t common.Trigger
+		err := rows.Scan(
+			&t.ID,
+			&t.ProductID,
+			&t.Type,
+			&t.Price,
+			&t.Timeframe,
+			&t.CandleCount,
+			&t.Condition,
+			&t.Status,
+			&t.TriggeredCount,
+			&t.XchID,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning trigger: %w", err)
+		}
+		triggers = append(triggers, t)
+	}
+
+	return triggers, nil
+}
+
+func AreAllTriggersTriggered(db *sql.DB, tradeID int) (bool, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM trade_triggers tt
+		JOIN triggers t ON tt.trigger_id = t.id
+		WHERE tt.trade_id = $1 AND t.status != 'triggered
+	`
+
+	var count int
+	err := db.QueryRow(query, tradeID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("error checking triggers for trade %d: %w", tradeID, err)
+	}
+	return count == 0, nil
+}
+
+func UpdateTradeStatusByID(db *sql.DB, tradeID int, status string) error {
+	query := `
+		UPDATE trades
+		SET status = $1,
+			updated_at = $2
+		WHERE id = $3
+		RETURNING id`
+	var updatedID int
+	err := db.QueryRow(query, status, time.Now(), tradeID).Scan(&updatedID)
+	if err == sql.ErrNoRows {
+		return fmt.Errorf("trade with ID %d not found", tradeID)
+	}
+	if err != nil {
+		return fmt.Errorf("error updating trade %d status to %s: %w", tradeID, status, err)
+	}
+	log.Printf("Updated trade %d status to %s", tradeID, status)
+	return nil
+}
+
 func UpdateTriggerStatus(db *sql.DB, triggerID int, status string) error {
 	query := `
 		UPDATE triggers
 		SET status = $1,
 			updated_at = CURRENT_TIMESTAMP
 		WHERE id = $2
-		RETURNINT id
+		RETURN INT id
 	`
 	var updatedID int
 	err := db.QueryRow(query, status, triggerID).Scan(&updatedID)
