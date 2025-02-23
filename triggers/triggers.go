@@ -8,6 +8,16 @@ import (
 	"sync"
 )
 
+type Trigger interface {
+	IsTriggered(candles []common.Candle) bool
+	GetTradeAction() TradeAction
+}
+
+type TradeAction struct {
+	ProductID string
+	Side      string
+}
+
 func NewTriggerManager(db *sql.DB) *TriggerManager {
 	return &TriggerManager{
 		db:       db,

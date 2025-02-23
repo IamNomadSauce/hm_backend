@@ -154,6 +154,14 @@ func (tm *TradeManager) processTradeUpdates() {
 				continue
 			}
 			if allTriggered {
+				// triggers, err := tm.GetTriggersForTrade(trade.ID)
+				// if err != nil {
+				// 	log.Printf("Error fetching triggers for trade %d: %v", trade.ID, err)
+				// 	continue
+				// }
+				// if len(triggers) == 0 {
+				// 	log.Printf("Trade%d has no triggers; placing entry order immediately", trade.ID)
+				// }
 				tm.placeEntryOrder(&trade)
 			} else {
 				err = db.UpdateTradeStatusByID(tm.db, trade.ID, "waiting_for_triggers")
