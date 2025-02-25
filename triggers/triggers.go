@@ -9,8 +9,10 @@ import (
 )
 
 type Trigger interface {
-	IsTriggered(candles []common.Candle) bool
-	GetTradeAction() TradeAction
+	// IsTriggered(candles []common.Candle) bool
+	// GetTradeAction() TradeAction
+	// GetID() int
+	// GetAction() string
 }
 
 type TradeAction struct {

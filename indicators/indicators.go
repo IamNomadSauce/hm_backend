@@ -2,6 +2,7 @@ package indicators
 
 import (
 	"backend/common"
+	"backend/sse"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -24,17 +25,29 @@ type Indicators struct {
 	assets     []string
 	timeframes []string
 	indicators map[string][]Indicator
+	// triggerMgr *triggers.TriggerManager
+	// tradeMgr   *trademanager.TradeManager
+	ssemanager *sse.SSEManager
 	mutex      sync.RWMutex
 }
 
-func NewIndicators(db *sql.DB, dsn string, assets, timeframes []string) *Indicators {
-	return &Indicators{
+// func NewIndicators(db *sql.DB, dsn string, assets, timeframes []string, triggerMgr *triggers.TriggerManager, tradeMgr *trademanager.TradeManager) *Indicators {
+func NewIndicatorManager(db *sql.DB, assets []string, timeframes []string, exchanges []int, sseManager *sse.SSEManager) *Indicators {
+	im := &Indicators{
 		db:         db,
-		dsn:        dsn,
 		assets:     assets,
 		timeframes: timeframes,
 		indicators: make(map[string][]Indicator),
+		ssemanager: sseManager,
+		// triggerMgr: triggerMgr,
+		// tradeMgr:   tradeMgr,
 	}
+
+	im.registerIndicators()
+	return im
+}
+
+func (i *Indicators) registerIndicators() {
 }
 
 func (i *Indicators) RegisterIndicator(asset, timeframe string, indicator Indicator) {

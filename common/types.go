@@ -28,6 +28,7 @@ type Trigger struct {
 	XchID          int     `json:"xch_id"`
 	CreatedAt      string  `json:"created_at"`
 	UpdatedAt      string  `json:"updated_at"`
+	Action         string  `json:"action"`
 }
 
 func (c *Candle) UnmarshalJSON(data []byte) error {

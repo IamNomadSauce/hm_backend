@@ -4,6 +4,7 @@ import (
 	"backend/api"
 	"backend/common"
 	"backend/db"
+	"backend/indicators"
 	"backend/model"
 	_ "backend/model"
 	"backend/sse"
@@ -22,12 +23,13 @@ import (
 )
 
 type Application struct {
-	DB             *sql.DB
-	mu             sync.Mutex
-	Exchanges      map[int]*model.Exchange
-	TriggerManager *triggers.TriggerManager
-	SSEManager     *sse.SSEManager
-	TradeManager   *trademanager.TradeManager
+	DB               *sql.DB
+	mu               sync.Mutex
+	Exchanges        map[int]*model.Exchange
+	TriggerManager   *triggers.TriggerManager
+	SSEManager       *sse.SSEManager
+	TradeManager     *trademanager.TradeManager
+	IndicatorManager *indicators.Indicators
 }
 
 var app *Application
@@ -50,6 +52,7 @@ func main() {
 	app.TriggerManager = triggers_manager
 	app.SSEManager = sse.NewSSEManager(triggers_manager)
 	app.TradeManager = trademanager.NewTradeManager(app.DB)
+	app.IndicatorManager = indicators.NewIndicatorManager(app.DB, []string{"XLM-USD"}, []string{"1m"}, []int{1}, app.SSEManager)
 
 	if err := app.TradeManager.Initialize(); err != nil {
 		log.Fatalf("Error initializing TradeManager: %v", err)
