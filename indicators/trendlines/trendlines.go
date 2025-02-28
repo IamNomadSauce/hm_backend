@@ -2,6 +2,7 @@ package trendlines
 
 import (
 	"backend/common"
+	"backend/sse"
 	"database/sql"
 	"fmt"
 	"log"
@@ -19,20 +20,25 @@ type Trendline struct {
 }
 
 type TrendlineIndicator struct {
-	db *sql.DB
+	db         *sql.DB
+	sseManager *sse.SSEManager
 }
 
-func NewTrendlineIndicator(db *sql.DB) *TrendlineIndicator {
-	return &TrendlineIndicator{db: db}
-}
-
-func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, candle common.Candle) error {
-	log.Printf("Processing trendline for %s %s: Time=%v, High=%f, Low=%f", asset, timeframe, candle.Timestamp, candle.High, candle.Low)
-
-	current, err := t.getCurrentTrendline(asset, timeframe, exchange)
-	if err != nil {
-		return fmt.Errorf("error fetching current trendline: %w", err)
+func NewTrendlineIndicator(db *sql.DB, sseManager *sse.SSEManager) *TrendlineIndicator {
+	return &TrendlineIndicator{
+		db:         db,
+		sseManager: sseManager,
 	}
+}
+
+func (t *TrendlineIndicator) ProcessCandle(asset, timeframe string, candle common.Candle) error {
+	log.Printf("Processing trendline Candle for %s %s: Time=%v, High=%f, Low=%f", asset, timeframe, candle.Timestamp, candle.High, candle.Low)
+
+	t.sseManager.BroadcastMessage(fmt.Sprintf("Processed candle for %s %s at %d", asset, timeframe, candle.Timestamp))
+	// current, err := t.getCurrentTrendline(asset, timeframe, exchange)
+	// if err != nil {
+	// 	return fmt.Errorf("error fetching current trendline: %w", err)
+	// }
 	// if current.StartTime.IsZero() {
 	// 	current = Trendline{
 	// 		StartTime:  candle.Timestamp,
@@ -44,27 +50,27 @@ func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, ca
 	// 	}
 	// }
 
-	if candle.High > current.EndPrice && current.Direction == "up" {
-		current.EndTime = candle.Timestamp
-		current.EndPrice = candle.High
-	} else if candle.Low < current.EndPrice && current.Direction == "up" {
-		current.Done = "done"
-		if err := t.insertTrendline(asset, timeframe, exchange, current); err != nil {
-			log.Printf("Error inserting trendline: %v", err)
-		}
-		current = Trendline{
-			StartTime:  candle.Timestamp,
-			StartPrice: candle.Low,
-			EndTime:    candle.Timestamp,
-			EndPrice:   candle.Low,
-			Direction:  "down",
-			Done:       "current",
-		}
-	}
+	// if candle.High > current.EndPrice && current.Direction == "up" {
+	// 	current.EndTime = candle.Timestamp
+	// 	current.EndPrice = candle.High
+	// } else if candle.Low < current.EndPrice && current.Direction == "up" {
+	// 	current.Done = "done"
+	// 	if err := t.insertTrendline(asset, timeframe, exchange, current); err != nil {
+	// 		log.Printf("Error inserting trendline: %v", err)
+	// 	}
+	// 	current = Trendline{
+	// 		StartTime:  candle.Timestamp,
+	// 		StartPrice: candle.Low,
+	// 		EndTime:    candle.Timestamp,
+	// 		EndPrice:   candle.Low,
+	// 		Direction:  "down",
+	// 		Done:       "current",
+	// 	}
+	// }
 
-	if err := t.updateCurrentTrendline(asset, timeframe, exchange, current); err != nil {
-		return fmt.Errorf("error updating current trendline: %w", err)
-	}
+	// if err := t.updateCurrentTrendline(asset, timeframe, exchange, current); err != nil {
+	// 	return fmt.Errorf("error updating current trendline: %w", err)
+	// }
 
 	return nil
 }

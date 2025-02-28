@@ -2,6 +2,7 @@ package indicators
 
 import (
 	"backend/common"
+	"backend/indicators/trendlines"
 	"backend/sse"
 	"database/sql"
 	"encoding/json"
@@ -33,6 +34,7 @@ type Indicators struct {
 
 // func NewIndicators(db *sql.DB, dsn string, assets, timeframes []string, triggerMgr *triggers.TriggerManager, tradeMgr *trademanager.TradeManager) *Indicators {
 func NewIndicatorManager(db *sql.DB, assets []string, timeframes []string, exchanges []int, sseManager *sse.SSEManager) *Indicators {
+	log.Println("\n---------------------\nNew Indicator Manager\n")
 	im := &Indicators{
 		db:         db,
 		assets:     assets,
@@ -48,19 +50,31 @@ func NewIndicatorManager(db *sql.DB, assets []string, timeframes []string, excha
 }
 
 func (i *Indicators) registerIndicators() {
+	for _, asset := range i.assets {
+		for _, tf := range i.timeframes {
+			indicator := trendlines.NewTrendlineIndicator(i.db, i.ssemanager)
+			i.RegisterIndicator(asset, tf, indicator)
+			i.ssemanager.BroadcastMessage(fmt.Sprintf("New Indicator %s %s", asset, tf))
+		}
+	}
+
 }
 
 func (i *Indicators) RegisterIndicator(asset, timeframe string, indicator Indicator) {
+	log.Println("Register Indicator", asset, timeframe)
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 	key := fmt.Sprintf("%s_%s", strings.ToLower(asset), timeframe)
+	log.Println("InidatorKey", key)
 	i.indicators[key] = append(i.indicators[key], indicator)
+	log.Printf("Indicators: %+v", i.indicators)
 }
 
 func (i *Indicators) Start() error {
-	if err := i.attachTriggersToCandlestickTables(); err != nil {
-		return fmt.Errorf("error attaching triggers: %w", err)
-	}
+	log.Println("Indicator.Start")
+	// if err := i.attachTriggersToCandlestickTables(); err != nil {
+	// 	return fmt.Errorf("error attaching triggers: %w", err)
+	// }
 
 	go i.listenForCandleUpdates()
 
@@ -156,6 +170,7 @@ func parseTableName(tableName string) (string, string, error) {
 }
 
 func (i *Indicators) processCandle(asset, timeframe string, candle common.Candle) {
+	log.Println("processCandle", asset, timeframe, candle)
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 

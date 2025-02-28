@@ -52,8 +52,6 @@ func main() {
 	app.TriggerManager = triggers_manager
 	app.SSEManager = sse.NewSSEManager(triggers_manager)
 	app.TradeManager = trademanager.NewTradeManager(app.DB)
-	app.IndicatorManager = indicators.NewIndicatorManager(app.DB, []string{"XLM-USD"}, []string{"1m"}, []int{1}, app.SSEManager)
-
 	if err := app.TradeManager.Initialize(); err != nil {
 		log.Fatalf("Error initializing TradeManager: %v", err)
 	}
@@ -159,6 +157,11 @@ func main() {
 	go app.SSEManager.ListenForDBChanges(dsn, "global_changes", initialProduct)
 	go app.TradeManager.ListenForDBChanges(dsn, "global_changes")
 
+	app.IndicatorManager = indicators.NewIndicatorManager(app.DB, []string{"XLM-USD"}, []string{"1m"}, []int{1}, app.SSEManager)
+	if err := app.IndicatorManager.Start(); err != nil {
+		log.Fatalf("Error starting IndicatorManager: %v", err)
+	}
+
 	// Web Server
 	go func() {
 		log.Println("Starting HTTP server goroutine")
@@ -256,6 +259,7 @@ func main() {
 	// 	}
 	// }()
 	// select {}
+
 	select {}
 }
 

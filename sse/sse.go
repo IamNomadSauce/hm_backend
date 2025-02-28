@@ -97,7 +97,7 @@ func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
 		log.Printf("Error marshaling price update: %v", err)
 		return
 	}
-	sse.broadcastMessage(string(message))
+	sse.BroadcastMessage(string(message))
 }
 
 func (sse *SSEManager) BroadcastCandle(candle common.Candle) {
@@ -110,11 +110,11 @@ func (sse *SSEManager) BroadcastCandle(candle common.Candle) {
 		return
 	}
 	// log.Println("Broadcasting Candle:", candle)
-	sse.broadcastMessage(string(message))
+	sse.BroadcastMessage(string(message))
 }
 
 // Base broadcast method for string messages
-func (sse *SSEManager) broadcastMessage(message string) {
+func (sse *SSEManager) BroadcastMessage(message string) {
 	sse.clientMux.RLock()
 	defer sse.clientMux.RUnlock()
 	for client := range sse.clients {
@@ -137,7 +137,7 @@ func (sse *SSEManager) BroadcastTrigger(trigger common.Trigger) {
 		log.Printf("Error marshaling trigger update: %v", err)
 		return
 	}
-	sse.broadcastMessage(string(message))
+	sse.BroadcastMessage(string(message))
 }
 
 func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedProduct string) {
