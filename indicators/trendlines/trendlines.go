@@ -31,7 +31,7 @@ func NewTrendlineIndicator(db *sql.DB, sseManager *sse.SSEManager) *TrendlineInd
 	}
 }
 
-func (t *TrendlineIndicator) ProcessCandle(asset, timeframe string, candle common.Candle) error {
+func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, candle common.Candle) error {
 	log.Printf("Processing trendline Candle for %s %s: Time=%v, High=%f, Low=%f", asset, timeframe, candle.Timestamp, candle.High, candle.Low)
 
 	t.sseManager.BroadcastMessage(fmt.Sprintf("Processed candle for %s %s at %d", asset, timeframe, candle.Timestamp))

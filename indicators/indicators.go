@@ -16,7 +16,7 @@ import (
 )
 
 type Indicator interface {
-	ProcessCandle(asset, timeframe string, candle common.Candle) error
+	ProcessCandle(asset, timeframe, exchange string, candle common.Candle) error
 	Start() error
 }
 
@@ -73,9 +73,9 @@ func (i *Indicators) RegisterIndicator(asset, timeframe string, indicator Indica
 
 func (i *Indicators) Start() error {
 	log.Println("Indicator.Start")
-	// if err := i.attachTriggersToCandlestickTables(); err != nil {
-	// 	return fmt.Errorf("error attaching triggers: %w", err)
-	// }
+	if err := i.attachTriggersToCandlestickTables(); err != nil {
+		return fmt.Errorf("error attaching triggers: %w", err)
+	}
 
 	go i.listenForCandleUpdates()
 
@@ -83,10 +83,12 @@ func (i *Indicators) Start() error {
 }
 
 func (i *Indicators) attachTriggersToCandlestickTables() error {
+	log.Println("Attach Triggers To Candlestick Tables")
 	for _, asset := range i.assets {
 		sanitizedAsset := strings.ReplaceAll(strings.ToLower(asset), "-", "_")
 		for _, tf := range i.timeframes {
-			tableName := fmt.Sprintf("%_%", sanitizedAsset, tf)
+			tableName := fmt.Sprintf("%s_%s_%s", sanitizedAsset, tf)
+			log.Println(tableName)
 			triggerName := fmt.Sprintf("notify_candle_update_%s", tableName)
 			query := fmt.Sprintf(`
 				DO $$
@@ -114,6 +116,7 @@ func (i *Indicators) attachTriggersToCandlestickTables() error {
 }
 
 func (i *Indicators) listenForCandleUpdates() {
+	log.Println("Indicators: Listen For Candle Updates")
 	listener := pq.NewListener(i.dsn, 10*time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
 		if err != nil {
 			log.Printf("Listener error: %v", err)
@@ -138,7 +141,7 @@ func (i *Indicators) listenForCandleUpdates() {
 					continue
 				}
 
-				asset, timeframe, err := parseTableName(payload.Table)
+				asset, timeframe, exchange, err := parseTableName(payload.Table)
 				if err != nil {
 					log.Printf("Invalid table name %s: %v", payload.Table, err)
 					continue
@@ -150,7 +153,7 @@ func (i *Indicators) listenForCandleUpdates() {
 					continue
 				}
 
-				i.processCandle(asset, timeframe, candle)
+				i.processCandle(asset, timeframe, exchange, candle)
 			}
 		case <-time.After(60 * time.Second):
 			if err := listener.Ping(); err != nil {
@@ -160,17 +163,20 @@ func (i *Indicators) listenForCandleUpdates() {
 	}
 }
 
-func parseTableName(tableName string) (string, string, error) {
+func parseTableName(tableName string) (string, string, string, error) {
+	log.Println("Parse Table Name", tableName)
 	parts := strings.Split(tableName, "_")
 	if len(parts) < 3 {
-		return "", "", fmt.Errorf("invalid table name format")
+		return "", "", "", fmt.Errorf("invalid table name format")
 	}
+	log.Println("Parts:", parts)
 	asset := strings.Join(parts[:len(parts)-1], "_")
-	timeframe := parts[len(parts)-1]
-	return strings.ToUpper(asset), timeframe, nil
+	timeframe := parts[len(parts)-2]
+	exchange := parts[len(parts)-1]
+	return strings.ToLower(asset), timeframe, strings.ToLower(exchange), nil
 }
 
-func (i *Indicators) processCandle(asset, timeframe string, candle common.Candle) {
+func (i *Indicators) processCandle(asset, timeframe, exchange string, candle common.Candle) {
 	log.Println("processCandle", asset, timeframe, candle)
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
@@ -178,7 +184,7 @@ func (i *Indicators) processCandle(asset, timeframe string, candle common.Candle
 	key := fmt.Sprintf("%s_%s", strings.ToLower(asset), timeframe)
 	if indicators, exists := i.indicators[key]; exists {
 		for _, ind := range indicators {
-			if err := ind.ProcessCandle(asset, timeframe, candle); err != nil {
+			if err := ind.ProcessCandle(asset, timeframe, exchange, candle); err != nil {
 				log.Printf("Error processing candle for %s %s: %v")
 			}
 		}
