@@ -33,10 +33,11 @@ type Indicators struct {
 }
 
 // func NewIndicators(db *sql.DB, dsn string, assets, timeframes []string, triggerMgr *triggers.TriggerManager, tradeMgr *trademanager.TradeManager) *Indicators {
-func NewIndicatorManager(db *sql.DB, assets []string, timeframes []string, exchanges []int, sseManager *sse.SSEManager) *Indicators {
+func NewIndicatorManager(db *sql.DB, dsn string, assets []string, timeframes []string, exchanges []int, sseManager *sse.SSEManager) *Indicators {
 	log.Println("\n---------------------\nNew Indicator Manager\n")
 	im := &Indicators{
 		db:         db,
+		dsn:        dsn,
 		assets:     assets,
 		timeframes: timeframes,
 		indicators: make(map[string][]Indicator),
