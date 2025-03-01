@@ -157,10 +157,10 @@ func main() {
 	go app.SSEManager.ListenForDBChanges(dsn, "global_changes", initialProduct)
 	go app.TradeManager.ListenForDBChanges(dsn, "global_changes")
 
-	// app.IndicatorManager = indicators.NewIndicatorManager(app.DB, dsn, []string{"XLM-USD"}, []string{"1m"}, []string{"coinbase"}, app.SSEManager)
-	// if err := app.IndicatorManager.Start(); err != nil {
-	// 	log.Fatalf("Error starting IndicatorManager: %v", err)
-	// }
+	app.IndicatorManager = indicators.NewIndicatorManager(app.DB, dsn, []string{"XLM-USD"}, []string{"1m"}, []string{"coinbase"}, app.SSEManager)
+	if err := app.IndicatorManager.Start(); err != nil {
+		log.Fatalf("Error starting IndicatorManager: %v", err)
+	}
 
 	// Web Server
 	go func() {

@@ -4,6 +4,7 @@ import (
 	"backend/common"
 	"backend/sse"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -32,9 +33,23 @@ func NewTrendlineIndicator(db *sql.DB, sseManager *sse.SSEManager) *TrendlineInd
 }
 
 func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, candle common.Candle) error {
-	log.Printf("Processing trendline Candle for %s %s: Time=%v, High=%f, Low=%f", asset, timeframe, candle.Timestamp, candle.High, candle.Low)
+	log.Printf("Processing trendline Candle for %s %s: Time=%v, High=%f, Low=%f", asset, timeframe, candle)
 
-	t.sseManager.BroadcastMessage(fmt.Sprintf("Processed candle for %s %s at %d", asset, timeframe, candle.Timestamp))
+	message := struct {
+		Event string        `json:"event"`
+		Data  common.Candle `json:"data"`
+	}{
+		Event: "trendline", // Match frontend switch case
+		Data:  candle,      // Send the full candle data
+	}
+
+	// Marshal to JSON
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to marshal candle message to JSON: %w", err)
+	}
+
+	t.sseManager.BroadcastMessage(string(jsonData))
 	// current, err := t.getCurrentTrendline(asset, timeframe, exchange)
 	// if err != nil {
 	// 	return fmt.Errorf("error fetching current trendline: %w", err)

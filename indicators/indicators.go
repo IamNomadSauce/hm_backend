@@ -54,9 +54,11 @@ func NewIndicatorManager(db *sql.DB, dsn string, assets []string, timeframes []s
 }
 
 func (i *Indicators) registerIndicators() {
+	log.Println("Register Indicators")
 	for _, asset := range i.assets {
 		for _, tf := range i.timeframes {
 			for _, exchange := range i.exchanges {
+				asset = strings.Replace(asset, "-", "_", -1)
 				indicator := trendlines.NewTrendlineIndicator(i.db, i.ssemanager)
 				i.RegisterIndicator(asset, tf, exchange, indicator)
 				i.ssemanager.BroadcastMessage(fmt.Sprintf("New Indicator %s %s", asset, tf, exchange))
@@ -69,7 +71,7 @@ func (i *Indicators) RegisterIndicator(asset, timeframe, exchange string, indica
 	log.Println("Register Indicator", asset, timeframe)
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
-	key := fmt.Sprintf("%s_%s", strings.ToLower(asset), timeframe)
+	key := fmt.Sprintf("%s_%s_%s", strings.ToLower(asset), timeframe, exchange)
 	log.Println("InidatorKey", key)
 	i.indicators[key] = append(i.indicators[key], indicator)
 	log.Printf("Indicators: %+v", i.indicators)
@@ -161,7 +163,6 @@ func (i *Indicators) attachTriggersToCandlestickTables() error {
 	}
 	return nil
 }
-
 func (i *Indicators) listenForCandleUpdates() {
 	log.Println("Indicators: Listen For Candle Updates")
 	listener := pq.NewListener(i.dsn, 10*time.Second, time.Minute, func(ev pq.ListenerEventType, err error) {
@@ -188,16 +189,48 @@ func (i *Indicators) listenForCandleUpdates() {
 					continue
 				}
 
+				// log.Printf("----------------\nPayload.Data\n-------------------")
+				// log.Printf("%s", payload.Data) // Log as string for readability
+				// log.Printf("-----------------------------------")
+
+				// Parse table name to get asset, timeframe, and exchange
 				asset, timeframe, exchange, err := parseTableName(payload.Table)
 				if err != nil {
 					log.Printf("Invalid table name %s: %v", payload.Table, err)
 					continue
 				}
 
-				var candle common.Candle
-				if err := json.Unmarshal(payload.Data, &candle); err != nil {
-					log.Printf("Error parsing candle data: %v", err)
+				// Temporary struct to match database JSON structure
+				type RawCandle struct {
+					Timestamp int64   `json:"timestamp"` // Assuming numeric timestamp
+					Open      float64 `json:"open"`      // Numeric fields from DB
+					High      float64 `json:"high"`
+					Low       float64 `json:"low"`
+					Close     float64 `json:"close"`
+					Volume    float64 `json:"volume"`
+					ProductID string  `json:"product_id,omitempty"` // Optional
+				}
+
+				var raw RawCandle
+				if err := json.Unmarshal(payload.Data, &raw); err != nil {
+					log.Printf("Error parsing raw candle data: %v", err)
 					continue
+				}
+
+				// Map RawCandle to common.Candle
+				candle := common.Candle{
+					ProductID: raw.ProductID,
+					Timestamp: raw.Timestamp,
+					Open:      raw.Open,
+					High:      raw.High,
+					Low:       raw.Low,
+					Close:     raw.Close,
+					Volume:    raw.Volume,
+				}
+
+				// If ProductID is not in the JSON, set it from asset
+				if candle.ProductID == "" {
+					candle.ProductID = strings.ToUpper(asset) // e.g., "XLM-USD"
 				}
 
 				i.processCandle(asset, timeframe, exchange, candle)
@@ -211,7 +244,7 @@ func (i *Indicators) listenForCandleUpdates() {
 }
 
 func parseTableName(tableName string) (string, string, string, error) {
-	log.Println("Parse Table Name", tableName)
+	// log.Println("Parse Table Name", tableName)
 	parts := strings.Split(tableName, "_")
 	if len(parts) < 3 {
 		return "", "", "", fmt.Errorf("invalid table name format")
@@ -224,12 +257,17 @@ func parseTableName(tableName string) (string, string, string, error) {
 }
 
 func (i *Indicators) processCandle(asset, timeframe, exchange string, candle common.Candle) {
-	log.Println("processCandle", asset, timeframe, candle)
+	log.Println("\n----------\nprocessCandle", asset, timeframe, candle)
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
-	key := fmt.Sprintf("%s_%s", strings.ToLower(asset), timeframe)
+	key := fmt.Sprintf("%s_%s", strings.ToLower(asset), exchange)
+	log.Println("Indicator Key", key)
+	log.Printf("Indicators %+v", i.indicators)
 	if indicators, exists := i.indicators[key]; exists {
+		log.Println("\n----------------------\nIndicator Exists\n------------------------\n")
+		// log.Printf("Indicator", i.indicators[key])
+		log.Printf("%+v", indicators)
 		for _, ind := range indicators {
 			if err := ind.ProcessCandle(asset, timeframe, exchange, candle); err != nil {
 				log.Printf("Error processing candle for %s %s: %v")
