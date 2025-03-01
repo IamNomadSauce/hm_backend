@@ -546,19 +546,20 @@ func convertEmptyToZero(value string) string {
 // ---------------------------------------------------------------
 
 func Write_Candles(candles []common.Candle, product, exchange, tf string, db *sql.DB) error {
-	// log.Println("\n------------------------------\n Write Candles \n------------------------------\n")
-	// log.Println(product, tf, exchange, len(candles))
-
+	// Start a transaction
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("Failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
+	// Sanitize product name
 	product = strings.Replace(product, "-", "_", -1)
+	tableName := fmt.Sprintf("%s_%s_%s", product, tf, exchange)
 
+	// Ensure the table exists
 	_, err = tx.Exec(fmt.Sprintf(`
-        CREATE TABLE IF NOT EXISTS %s_%s_%s (
+        CREATE TABLE IF NOT EXISTS %s (
             timestamp BIGINT PRIMARY KEY,
             open    FLOAT NOT NULL,
             high    FLOAT NOT NULL,
@@ -566,13 +567,14 @@ func Write_Candles(candles []common.Candle, product, exchange, tf string, db *sq
             close   FLOAT NOT NULL,
             volume  FLOAT NOT NULL
         );
-    `, product, tf, exchange))
+    `, tableName))
 	if err != nil {
 		return fmt.Errorf("Failed to create candles table: %w", err)
 	}
 
+	// Prepare the insert/update statement
 	stmt, err := tx.Prepare(fmt.Sprintf(`
-        INSERT INTO %s_%s_%s (timestamp, open, high, low, close, volume)
+        INSERT INTO %s (timestamp, open, high, low, close, volume)
         VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (timestamp) DO UPDATE SET
             open = EXCLUDED.open,
@@ -580,26 +582,46 @@ func Write_Candles(candles []common.Candle, product, exchange, tf string, db *sq
             low = EXCLUDED.low,
             close = EXCLUDED.close,
             volume = EXCLUDED.volume
-    `, product, tf, exchange))
+        WHERE
+            %s.open != EXCLUDED.open OR
+            %s.high != EXCLUDED.high OR
+            %s.low != EXCLUDED.low OR
+            %s.close != EXCLUDED.close OR
+            %s.volume != EXCLUDED.volume
+    `, tableName, tableName, tableName, tableName, tableName, tableName))
 	if err != nil {
 		return fmt.Errorf("Failed to prepare statement: %w", err)
 	}
 	defer stmt.Close()
 
-	successCount := 0
+	// Counter for actual inserts or updates
+	insertedOrUpdated := 0
+
+	// Process each candle
 	for _, candle := range candles {
-		_, err := stmt.Exec(candle.Timestamp, candle.Open, candle.High, candle.Low, candle.Close, candle.Volume)
+		result, err := stmt.Exec(candle.Timestamp, candle.Open, candle.High, candle.Low, candle.Close, candle.Volume)
 		if err != nil {
 			return fmt.Errorf("Failed to insert candle: %w", err)
 		}
-		successCount++
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			log.Printf("Error getting rows affected: %v", err)
+			continue
+		}
+
+		if rowsAffected == 1 {
+			insertedOrUpdated++
+		}
 	}
 
+	// Commit the transaction
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("Failed to commit transaction: %w", err)
 	}
 
-	// log.Printf("Total candles inserted or updated: %d\n", successCount)
+	// Log the actual number of changes
+	// log.Printf("%s Total candles inserted or updated: %d", tableName, insertedOrUpdated)
 	return nil
 }
 
