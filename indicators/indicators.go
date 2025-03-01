@@ -25,6 +25,7 @@ type Indicators struct {
 	dsn        string
 	assets     []string
 	timeframes []string
+	exchanges  []string
 	indicators map[string][]Indicator
 	// triggerMgr *triggers.TriggerManager
 	// tradeMgr   *trademanager.TradeManager
@@ -33,13 +34,15 @@ type Indicators struct {
 }
 
 // func NewIndicators(db *sql.DB, dsn string, assets, timeframes []string, triggerMgr *triggers.TriggerManager, tradeMgr *trademanager.TradeManager) *Indicators {
-func NewIndicatorManager(db *sql.DB, dsn string, assets []string, timeframes []string, exchanges []int, sseManager *sse.SSEManager) *Indicators {
+func NewIndicatorManager(db *sql.DB, dsn string, assets []string, timeframes []string, exchanges []string, sseManager *sse.SSEManager) *Indicators {
 	log.Println("\n---------------------\nNew Indicator Manager\n")
+
 	im := &Indicators{
 		db:         db,
 		dsn:        dsn,
 		assets:     assets,
 		timeframes: timeframes,
+		exchanges:  exchanges,
 		indicators: make(map[string][]Indicator),
 		ssemanager: sseManager,
 		// triggerMgr: triggerMgr,
@@ -53,15 +56,16 @@ func NewIndicatorManager(db *sql.DB, dsn string, assets []string, timeframes []s
 func (i *Indicators) registerIndicators() {
 	for _, asset := range i.assets {
 		for _, tf := range i.timeframes {
-			indicator := trendlines.NewTrendlineIndicator(i.db, i.ssemanager)
-			i.RegisterIndicator(asset, tf, indicator)
-			i.ssemanager.BroadcastMessage(fmt.Sprintf("New Indicator %s %s", asset, tf))
+			for _, exchange := range i.exchanges {
+				indicator := trendlines.NewTrendlineIndicator(i.db, i.ssemanager)
+				i.RegisterIndicator(asset, tf, exchange, indicator)
+				i.ssemanager.BroadcastMessage(fmt.Sprintf("New Indicator %s %s", asset, tf, exchange))
+			}
 		}
 	}
-
 }
 
-func (i *Indicators) RegisterIndicator(asset, timeframe string, indicator Indicator) {
+func (i *Indicators) RegisterIndicator(asset, timeframe, exchange string, indicator Indicator) {
 	log.Println("Register Indicator", asset, timeframe)
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -73,6 +77,11 @@ func (i *Indicators) RegisterIndicator(asset, timeframe string, indicator Indica
 
 func (i *Indicators) Start() error {
 	log.Println("Indicator.Start")
+
+	if err := i.ensureNotifyFunctionExists(); err != nil {
+		return fmt.Errorf("error ensuring notify function exists: %w", err)
+	}
+
 	if err := i.attachTriggersToCandlestickTables(); err != nil {
 		return fmt.Errorf("error attaching triggers: %w", err)
 	}
@@ -81,35 +90,73 @@ func (i *Indicators) Start() error {
 
 	return nil
 }
+func (i *Indicators) ensureNotifyFunctionExists() error {
+	var exists bool
+	query := `
+        SELECT EXISTS (
+            SELECT 1
+            FROM pg_proc
+            WHERE proname = 'notify_candle_update'
+        )`
+	err := i.db.QueryRow(query).Scan(&exists)
+	if err != nil {
+		return fmt.Errorf("failed to check for notify_candle_update function: %w", err)
+	}
+
+	if !exists {
+		createFunctionQuery := `
+            CREATE OR REPLACE FUNCTION notify_candle_update() RETURNS trigger AS $$
+            BEGIN
+                PERFORM pg_notify('candle_updates', json_build_object(
+                    'table', TG_TABLE_NAME,
+                    'operation', TG_OP,
+                    'data', row_to_json(NEW)
+                )::text);
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;`
+		_, err := i.db.Exec(createFunctionQuery)
+		if err != nil {
+			return fmt.Errorf("failed to create notify_candle_update function: %w", err)
+		}
+		log.Println("Created notify_candle_update function")
+	} else {
+		log.Println("notify_candle_update function already exists")
+	}
+
+	return nil
+}
 
 func (i *Indicators) attachTriggersToCandlestickTables() error {
 	log.Println("Attach Triggers To Candlestick Tables")
-	for _, asset := range i.assets {
-		sanitizedAsset := strings.ReplaceAll(strings.ToLower(asset), "-", "_")
-		for _, tf := range i.timeframes {
-			tableName := fmt.Sprintf("%s_%s_%s", sanitizedAsset, tf)
-			log.Println(tableName)
-			triggerName := fmt.Sprintf("notify_candle_update_%s", tableName)
-			query := fmt.Sprintf(`
-				DO $$
-				BEGIN
-					IF NOT EXISTS (
-						SELECT 1
-						FROM information_schema.triggers
-						WHERE event_object_table = '%s'
-						AND trigger_name = '%s'
-					) THEN
-						CREATE TRIGGER %s
-						AFTER INSERT OR UPDATE ON %s
-						FOR EACH ROW EXECUTE FUNCTION notify_candle_update();
-					END IF;
-				END;
-				$$;`, tableName, triggerName, triggerName, tableName)
-			_, err := i.db.Exec(query)
-			if err != nil {
-				return fmt.Errorf("failed to create trigger for %s: %w", tableName, err)
+	for _, exchange := range i.exchanges {
+		for _, asset := range i.assets {
+			sanitizedAsset := strings.ReplaceAll(strings.ToLower(asset), "-", "_")
+			for _, tf := range i.timeframes {
+				tableName := fmt.Sprintf("%s_%s_%s", sanitizedAsset, tf, exchange)
+				log.Println("TableName", tableName)
+				triggerName := fmt.Sprintf("notify_candle_update_%s", tableName)
+				query := fmt.Sprintf(`
+					DO $$
+					BEGIN
+						IF NOT EXISTS (
+							SELECT 1
+							FROM information_schema.triggers
+							WHERE event_object_table = '%s'
+							AND trigger_name = '%s'
+						) THEN
+							CREATE TRIGGER %s
+							AFTER INSERT OR UPDATE ON %s
+							FOR EACH ROW EXECUTE FUNCTION notify_candle_update();
+						END IF;
+					END;
+					$$;`, tableName, triggerName, triggerName, tableName)
+				_, err := i.db.Exec(query)
+				if err != nil {
+					return fmt.Errorf("failed to create trigger for %s: %w", tableName, err)
+				}
+				log.Printf("Attached trigger to %s", tableName)
 			}
-			log.Printf("Attached trigger to %s", tableName)
 		}
 	}
 	return nil
