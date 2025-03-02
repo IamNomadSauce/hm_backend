@@ -32,6 +32,9 @@ func NewTrendlineIndicator(db *sql.DB, sseManager *sse.SSEManager, asset, timefr
 	return &TrendlineIndicator{
 		db:         db,
 		sseManager: sseManager,
+		asset:      asset,
+		timeframe:  timeframe,
+		exchange:   exchange,
 	}
 }
 
@@ -172,7 +175,7 @@ func (t *TrendlineIndicator) Start() error {
 
 func (t *TrendlineIndicator) fetchHistoricalCandles(asset, timeframe, exchange string) ([]common.Candle, error) {
 	tableName := fmt.Sprintf("%s_%s_%s", strings.ReplaceAll(strings.ToLower(asset), "-", "_"), timeframe, exchange)
-	query := fmt.Sprintf("SELECT timestamp, open, high, lowe, close, volume FROM %s ORDER BY timestamp ASC", tableName)
+	query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp ASC", tableName)
 	rows, err := t.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error querying candles from %s: %w", tableName, err)
