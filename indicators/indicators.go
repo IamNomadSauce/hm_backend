@@ -35,7 +35,7 @@ type Indicators struct {
 
 // func NewIndicators(db *sql.DB, dsn string, assets, timeframes []string, triggerMgr *triggers.TriggerManager, tradeMgr *trademanager.TradeManager) *Indicators {
 func NewIndicatorManager(db *sql.DB, dsn string, assets []string, timeframes []string, exchanges []string, sseManager *sse.SSEManager) *Indicators {
-	log.Println("\n---------------------\nNew Indicator Manager\n")
+	log.Println("\n---------------------\nNew Indicator Manager")
 
 	im := &Indicators{
 		db:         db,
@@ -59,9 +59,9 @@ func (i *Indicators) registerIndicators() {
 		for _, tf := range i.timeframes {
 			for _, exchange := range i.exchanges {
 				asset = strings.Replace(asset, "-", "_", -1)
-				indicator := trendlines.NewTrendlineIndicator(i.db, i.ssemanager)
+				indicator := trendlines.NewTrendlineIndicator(i.db, i.ssemanager, asset, tf, exchange)
 				i.RegisterIndicator(asset, tf, exchange, indicator)
-				i.ssemanager.BroadcastMessage(fmt.Sprintf("New Indicator %s %s", asset, tf, exchange))
+				i.ssemanager.BroadcastMessage(fmt.Sprintf("New Indicator %s %s %s", asset, tf, exchange))
 			}
 		}
 	}
@@ -75,6 +75,10 @@ func (i *Indicators) RegisterIndicator(asset, timeframe, exchange string, indica
 	log.Println("InidatorKey", key)
 	i.indicators[key] = append(i.indicators[key], indicator)
 	log.Printf("Indicators: %+v", i.indicators)
+
+	if err := indicator.Start(); err != nil {
+		log.Printf("Error starting indicator for %s %s %s: %v", asset, timeframe, exchange, err)
+	}
 }
 
 func (i *Indicators) Start() error {
@@ -261,16 +265,16 @@ func (i *Indicators) processCandle(asset, timeframe, exchange string, candle com
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
-	key := fmt.Sprintf("%s_%s", strings.ToLower(asset), exchange)
+	key := fmt.Sprintf("%s_%s_%s", strings.ToLower(asset), timeframe, exchange)
 	log.Println("Indicator Key", key)
 	log.Printf("Indicators %+v", i.indicators)
 	if indicators, exists := i.indicators[key]; exists {
-		log.Println("\n----------------------\nIndicator Exists\n------------------------\n")
+		log.Println("\n----------------------\nIndicator Exists\n------------------------")
 		// log.Printf("Indicator", i.indicators[key])
 		log.Printf("%+v", indicators)
 		for _, ind := range indicators {
 			if err := ind.ProcessCandle(asset, timeframe, exchange, candle); err != nil {
-				log.Printf("Error processing candle for %s %s: %v")
+				log.Printf("Error processing candle for %s %s %s: %v", asset, timeframe, exchange, err)
 			}
 		}
 	}
