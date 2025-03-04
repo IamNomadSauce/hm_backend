@@ -10,16 +10,6 @@ import (
 	"strings"
 )
 
-type Trendline struct {
-	ID         int
-	StartTime  int64
-	StartPrice float64
-	EndTime    int64
-	EndPrice   float64
-	Direction  string
-	Done       string
-}
-
 type TrendlineIndicator struct {
 	db         *sql.DB
 	sseManager *sse.SSEManager
@@ -46,7 +36,7 @@ func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, ca
 		return fmt.Errorf("error fetching current trendline: %w", err)
 	}
 	if current.StartTime == 0 {
-		current = Trendline{
+		current = common.Trendline{
 			StartTime:  candle.Timestamp,
 			StartPrice: candle.High,
 			EndTime:    candle.Timestamp,
@@ -64,7 +54,7 @@ func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, ca
 				if err := t.insertTrendline(asset, timeframe, exchange, current); err != nil {
 					log.Printf("Error inserting trendline: %v", err)
 				}
-				current = Trendline{
+				current = common.Trendline{
 					StartTime:  candle.Timestamp,
 					StartPrice: candle.Low,
 					EndTime:    candle.Timestamp,
@@ -82,7 +72,7 @@ func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, ca
 				if err := t.insertTrendline(asset, timeframe, exchange, current); err != nil {
 					log.Printf("Error inserting trendline: %v", err)
 				}
-				current = Trendline{
+				current = common.Trendline{
 					StartTime:  candle.Timestamp,
 					StartPrice: candle.High,
 					EndTime:    candle.Timestamp,
@@ -142,7 +132,7 @@ func (t *TrendlineIndicator) Start() error {
 				end_price FLOAT,
 				direction VARCHAR(10),
 				done VARCHAR(10),
-				dupdated_ap TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)`, tableName))
 		if err != nil {
 			return fmt.Errorf("error creating trendlines table %s: %w", tableName, err)
@@ -198,18 +188,18 @@ func (t *TrendlineIndicator) fetchHistoricalCandles(asset, timeframe, exchange s
 	return candles, nil
 }
 
-func (t *TrendlineIndicator) getCurrentTrendline(asset, timeframe, exchange string) (Trendline, error) {
+func (t *TrendlineIndicator) getCurrentTrendline(asset, timeframe, exchange string) (common.Trendline, error) {
 	tableName := fmt.Sprintf("trendlines_%s_%s_%s", strings.ReplaceAll(strings.ToLower(asset), "-", "_"), timeframe, exchange)
-	var tr Trendline
+	var tr common.Trendline
 	query := fmt.Sprintf("SELECT id, start_time, start_price, end_time, end_price, direction, done FROM %s WHERE done = 'current' LIMIT 1", tableName)
 	err := t.db.QueryRow(query).Scan(&tr.ID, &tr.StartTime, &tr.StartPrice, &tr.EndTime, &tr.EndPrice, &tr.Direction, &tr.Done)
 	if err == sql.ErrNoRows {
-		return Trendline{}, nil
+		return common.Trendline{}, nil
 	}
 	return tr, err
 }
 
-func (t *TrendlineIndicator) insertTrendline(asset, timeframe, exchange string, tr Trendline) error {
+func (t *TrendlineIndicator) insertTrendline(asset, timeframe, exchange string, tr common.Trendline) error {
 	tableName := fmt.Sprintf("trendlines_%s_%s_%s", strings.ReplaceAll(strings.ToLower(asset), "-", "_"), timeframe, exchange)
 	query := fmt.Sprintf(`
 		INSERT INTO %s(start_time, start_price, end_time, end_price, direction, done)
@@ -218,7 +208,7 @@ func (t *TrendlineIndicator) insertTrendline(asset, timeframe, exchange string, 
 	return err
 }
 
-func (t *TrendlineIndicator) updateCurrentTrendline(asset, timeframe, exchange string, tr Trendline) error {
+func (t *TrendlineIndicator) updateCurrentTrendline(asset, timeframe, exchange string, tr common.Trendline) error {
 	tableName := fmt.Sprintf("trendlines_%s_%s_%s", strings.ReplaceAll(strings.ToLower(asset), "-", "_"), timeframe, exchange)
 	var id int
 	query := fmt.Sprintf("SELECT id FROM %s WHERE done = 'current' LIMIT 1", tableName)

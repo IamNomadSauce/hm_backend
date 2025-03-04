@@ -253,7 +253,7 @@ func parseTableName(tableName string) (string, string, string, error) {
 	if len(parts) < 3 {
 		return "", "", "", fmt.Errorf("invalid table name format")
 	}
-	log.Println("Parts:", parts)
+	// log.Println("Parts:", parts)
 	asset := strings.Join(parts[:len(parts)-1], "_")
 	timeframe := parts[len(parts)-2]
 	exchange := parts[len(parts)-1]
@@ -261,17 +261,17 @@ func parseTableName(tableName string) (string, string, string, error) {
 }
 
 func (i *Indicators) processCandle(asset, timeframe, exchange string, candle common.Candle) {
-	log.Println("\n----------\nprocessCandle", asset, timeframe, candle)
+	// log.Println("\n----------\nprocessCandle", asset, timeframe, candle)
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
 	key := fmt.Sprintf("%s_%s_%s", strings.ToLower(asset), timeframe, exchange)
-	log.Println("Indicator Key", key)
-	log.Printf("Indicators %+v", i.indicators)
+	// log.Println("Indicator Key", key)
+	// log.Printf("Indicators %+v", i.indicators)
 	if indicators, exists := i.indicators[key]; exists {
 		log.Println("\n----------------------\nIndicator Exists\n------------------------")
 		// log.Printf("Indicator", i.indicators[key])
-		log.Printf("%+v", indicators)
+		// log.Printf("%+v", indicators)
 		for _, ind := range indicators {
 			if err := ind.ProcessCandle(asset, timeframe, exchange, candle); err != nil {
 				log.Printf("Error processing candle for %s %s %s: %v", asset, timeframe, exchange, err)

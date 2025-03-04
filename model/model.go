@@ -28,6 +28,7 @@ type Exchange struct {
 	Portfolio         []Asset
 	Trades            []Trade
 	Triggers          []common.Trigger
+	Trendlines        map[string][]common.Trendline
 }
 
 type ExchangeAPI interface {

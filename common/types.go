@@ -31,6 +31,16 @@ type Trigger struct {
 	Action         string  `json:"action"`
 }
 
+type Trendline struct {
+	ID         int
+	StartTime  int64
+	StartPrice float64
+	EndTime    int64
+	EndPrice   float64
+	Direction  string
+	Done       string
+}
+
 func (c *Candle) UnmarshalJSON(data []byte) error {
 	var temp struct {
 		Timestamp string `json:"start"`

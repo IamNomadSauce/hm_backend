@@ -694,6 +694,12 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 		return exchange, fmt.Errorf("error getting triggers %v", err)
 	}
 
+	// exchange.Indicators, err = indicators.Indicator.Get
+	exchange.Trendlines, err = fetchTrendlinesForExchange(db, exchange)
+	if err != nil {
+		return exchange, fmt.Errorf("error getting trendlines %s %v", exchange.Name, err)
+	}
+
 	// log.Printf("Exchange.Triggers:\n\n%+v", exchange.Triggers)
 	switch exchange.Name {
 	case "Coinbase":
@@ -709,6 +715,48 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	}
 
 	return exchange, nil
+}
+
+func fetchTrendlinesForExchange(db *sql.DB, exchange model.Exchange) (map[string][]common.Trendline, error) {
+	trendlinesMap := make(map[string][]common.Trendline)
+
+	for _, product := range exchange.Watchlist {
+		for _, tf := range exchange.Timeframes {
+			tableName := fmt.Sprintf("trendlines_%s_%s_%s",
+				strings.ToLower(strings.ReplaceAll(product.ProductID, "-", "_")),
+				strings.ToLower(tf.TF),
+				strings.ToLower(exchange.Name))
+
+			query := fmt.Sprintf("SELECT id, start_time, start_price, end_time, end_price, direction, done FROM %s", tableName)
+			rows, err := db.Query(query)
+			if err != nil {
+				log.Println("Error getting trendlines", err)
+				continue
+			}
+
+			defer rows.Close()
+
+			var trendlines []common.Trendline
+			for rows.Next() {
+				var tl common.Trendline
+				if err := rows.Scan(
+					&tl.ID,
+					&tl.StartTime,
+					&tl.StartPrice,
+					&tl.EndTime,
+					&tl.EndPrice,
+					&tl.Direction,
+					&tl.Done,
+				); err != nil {
+					return nil, fmt.Errorf("error scanning trendline: %w", err)
+				}
+				trendlines = append(trendlines, tl)
+			}
+			key := fmt.Sprintf("%s_%s_%s", product.ProductID, tf.TF, exchange.Name)
+			trendlinesMap[key] = trendlines
+		}
+	}
+	return trendlinesMap, nil
 }
 
 func Get_Exchanges(db *sql.DB) ([]model.Exchange, error) {
