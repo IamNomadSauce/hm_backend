@@ -31,14 +31,32 @@ type Trigger struct {
 	Action         string  `json:"action"`
 }
 
+// type Trendline struct {
+// 	ID         int
+// 	StartTime  int64
+// 	StartPrice float64
+// 	StartInv float64
+// 	EndTime    int64
+// 	EndPrice   float64
+// 	EndInv float64
+// 	Direction  string
+// 	Done       string
+// }
+
+// Trendline represents a trendline with start and end points, type, and status.
 type Trendline struct {
-	ID         int
-	StartTime  int64
-	StartPrice float64
-	EndTime    int64
-	EndPrice   float64
-	Direction  string
-	Done       string
+	Start  Point  `json:"start"`
+	End    Point  `json:"end"`
+	Type   string `json:"type"`   // "up" or "down"
+	Status string `json:"status"` // "current" or "done"
+}
+
+// Point represents a point in the trendline with time, price, inverse price, and trend start price.
+type Point struct {
+	Time       int64   `json:"time"`
+	Point      float64 `json:"point"`
+	Inv        float64 `json:"inv"`
+	TrendStart float64 `json:"trendStart"`
 }
 
 func (c *Candle) UnmarshalJSON(data []byte) error {
