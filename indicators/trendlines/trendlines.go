@@ -33,10 +33,10 @@ func NewTrendlineIndicator(db *sql.DB, sseManager *sse.SSEManager, asset, timefr
 func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, candle common.Candle) error {
 	log.Printf("Processing trendline Candle for %s %s: Time=%v, High=%f, Low=%f", asset, timeframe, candle.Timestamp, candle.High, candle.Low)
 
-	current, err := t.getCurrentTrendline(asset, timeframe, exchange)
-	if err != nil {
-		return fmt.Errorf("error fetching current trendline: %w", err)
-	}
+	// current, err := t.getCurrentTrendline(asset, timeframe, exchange)
+	// if err != nil {
+	// 	return fmt.Errorf("error fetching current trendline: %w", err)
+	// }
 	// if current.StartTime == 0 {
 	// 	current = common.Trendline{
 	// 		StartTime:  candle.Timestamp,
@@ -308,20 +308,53 @@ func (t *TrendlineIndicator) fetchHistoricalCandles(asset, timeframe, exchange s
 func (t *TrendlineIndicator) getCurrentTrendline(asset, timeframe, exchange string) (common.Trendline, error) {
 	tableName := fmt.Sprintf("trendlines_%s_%s_%s", strings.ReplaceAll(strings.ToLower(asset), "-", "_"), timeframe, exchange)
 	var tr common.Trendline
-	query := fmt.Sprintf("SELECT id, start_time, start_price, end_time, end_price, direction, done FROM %s WHERE done = 'current' LIMIT 1", tableName)
-	err := t.db.QueryRow(query).Scan(&tr.ID, &tr.StartTime, &tr.StartPrice, &tr.EndTime, &tr.EndPrice, &tr.Direction, &tr.Done)
+	var startTime, endTime int64
+	var startPoint, startInv, startTrendStart, endPoint, endInv, endTrendStart float64
+	var direction, status string
+
+	query := fmt.Sprintf(`
+		SELECT start_time, start_point, start_inv, start_trendstart, end_time, end_point, end_inv, end_trendstart, direction, status
+		FROM %s 
+		WHERE status = 'current' 
+		LIMIT 1
+	`, tableName)
+	err := t.db.QueryRow(query).Scan(&startTime, &startPoint, &startInv, &startTrendStart, &endTime, &endPoint, &endInv, &endTrendStart, &direction, &status)
 	if err == sql.ErrNoRows {
+		log.Println("No results found for trendlines")
+		return common.Trendline{}, nil
+	} else if err != nil {
+		log.Println("Error doing trendlines %v", err)
 		return common.Trendline{}, nil
 	}
+
+	tr = common.Trendline{
+		Start: common.Point{
+			Time:       startTime,
+			Point:      startPoint,
+			Inv:        startInv,
+			TrendStart: startTrendStart,
+		},
+		End: common.Point{
+			Time:       endTime,
+			Point:      endPoint,
+			Inv:        endInv,
+			TrendStart: endTrendStart,
+		},
+		Direction: direction,
+		Status:    status,
+	}
+
 	return tr, err
 }
 
 func (t *TrendlineIndicator) insertTrendline(asset, timeframe, exchange string, tr common.Trendline) error {
 	tableName := fmt.Sprintf("trendlines_%s_%s_%s", strings.ReplaceAll(strings.ToLower(asset), "-", "_"), timeframe, exchange)
 	query := fmt.Sprintf(`
-		INSERT INTO %s(start_time, start_price, end_time, end_price, direction, done)
-		VALUES ($1, $2, $3, $4, $5, $6)`, tableName)
-	_, err := t.db.Exec(query, tr.StartTime, tr.StartPrice, tr.EndTime, tr.EndPrice, tr.Direction, tr.Done)
+		INSERT INTO %s (start_time, start_point, start_inv, start_trendstart, end_time, end_point, end_inv, end_trendstart, direction, done)
+		VALUES ($1, $2, $3, $4, $5,$6, $7, $8, $9, $10)
+	`, tableName)
+	_, err := t.db.Exec(query, tr.Start.Time, tr.Start.Point, tr.Start.Inv, tr.Start.TrendStart, tr.End.Time, tr.End.Point, tr.End.Inv, tr.End.TrendStart, tr.Direction, tr.Status)
+
 	return err
 }
 
@@ -337,13 +370,19 @@ func (t *TrendlineIndicator) updateCurrentTrendline(asset, timeframe, exchange s
 	}
 
 	updateQuery := fmt.Sprintf(`
-		UPDATE %s SET 
-			start_time = $1, start_price = $2,
-			end_time = $3, end_price = $4,
-			direction = $5, done = $6,
-			updated_at = CURRENT_TIMESTAMP
-		WHERE id = $7`, tableName)
-	_, err = t.db.Exec(updateQuery, tr.StartTime, tr.StartPrice, tr.EndTime, tr.EndPrice, tr.Direction, tr.Done, id)
-
+		UPDATE %s SET
+			start_time = $1,
+			start_point = $2, 
+			start_inv = $3,
+			start_trendstart = $4,
+			end_time = $5,
+			end_point = $6,
+			end_inv = $7,
+			end_trendstart = $8,
+			direction = $9,
+			status = $10
+		WHERE id = $11
+	`, tableName)
+	_, err = t.db.Exec(updateQuery, tr.Start.Time, tr.Start.Point, tr.Start.Inv, tr.Start.TrendStart, tr.End.Time, tr.End.Point, tr.End.Inv, tr.End.TrendStart, tr.Direction, tr.Status, id)
 	return err
 }

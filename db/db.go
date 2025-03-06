@@ -727,7 +727,7 @@ func fetchTrendlinesForExchange(db *sql.DB, exchange model.Exchange) (map[string
 				strings.ToLower(tf.TF),
 				strings.ToLower(exchange.Name))
 
-			query := fmt.Sprintf("SELECT id, start_time, start_price, end_time, end_price, direction, done FROM %s", tableName)
+			query := fmt.Sprintf("SELECT start_time, start_point, start_inv, start_trendstart, end_time, end_point, end_inv, end_trendstart, direction, status FROM %s", tableName)
 			rows, err := db.Query(query)
 			if err != nil {
 				log.Println("Error getting trendlines", err)
@@ -740,13 +740,16 @@ func fetchTrendlinesForExchange(db *sql.DB, exchange model.Exchange) (map[string
 			for rows.Next() {
 				var tl common.Trendline
 				if err := rows.Scan(
-					&tl.ID,
-					&tl.StartTime,
-					&tl.StartPrice,
-					&tl.EndTime,
-					&tl.EndPrice,
+					&tl.Start.Time,
+					&tl.Start.Point,
+					&tl.Start.Inv,
+					&tl.Start.TrendStart,
+					&tl.End.Time,
+					&tl.End.Point,
+					&tl.End.Inv,
+					&tl.End.TrendStart,
 					&tl.Direction,
-					&tl.Done,
+					&tl.Status,
 				); err != nil {
 					return nil, fmt.Errorf("error scanning trendline: %w", err)
 				}
