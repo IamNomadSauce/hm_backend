@@ -45,10 +45,10 @@ type Trigger struct {
 
 // Trendline represents a trendline with start and end points, type, and status.
 type Trendline struct {
-	Start  Point  `json:"start"`
-	End    Point  `json:"end"`
-	Type   string `json:"type"`   // "up" or "down"
-	Status string `json:"status"` // "current" or "done"
+	Start     Point  `json:"start"`
+	End       Point  `json:"end"`
+	Direction string `json:"type"`   // "up" or "down"
+	Status    string `json:"status"` // "current" or "done"
 }
 
 // Point represents a point in the trendline with time, price, inverse price, and trend start price.

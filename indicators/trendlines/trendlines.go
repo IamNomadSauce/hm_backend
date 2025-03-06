@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"strings"
+	"time"
 )
 
 type TrendlineIndicator struct {
@@ -35,58 +37,58 @@ func (t *TrendlineIndicator) ProcessCandle(asset, timeframe, exchange string, ca
 	if err != nil {
 		return fmt.Errorf("error fetching current trendline: %w", err)
 	}
-	if current.StartTime == 0 {
-		current = common.Trendline{
-			StartTime:  candle.Timestamp,
-			StartPrice: candle.High,
-			EndTime:    candle.Timestamp,
-			EndPrice:   candle.High,
-			Direction:  "up",
-			Done:       "current",
-		}
-	} else {
-		if current.Direction == "up" {
-			if candle.High > current.EndPrice {
-				current.EndTime = candle.Timestamp
-				current.EndPrice = candle.High
-			} else if candle.Low < current.EndPrice {
-				current.Done = "done"
-				if err := t.insertTrendline(asset, timeframe, exchange, current); err != nil {
-					log.Printf("Error inserting trendline: %v", err)
-				}
-				current = common.Trendline{
-					StartTime:  candle.Timestamp,
-					StartPrice: candle.Low,
-					EndTime:    candle.Timestamp,
-					EndPrice:   candle.Low,
-					Direction:  "down",
-					Done:       "current",
-				}
-			}
-		} else {
-			if candle.Low < current.EndPrice {
-				current.EndTime = candle.Timestamp
-				current.EndPrice = candle.Low
-			} else if candle.High > current.EndPrice {
-				current.Done = "done"
-				if err := t.insertTrendline(asset, timeframe, exchange, current); err != nil {
-					log.Printf("Error inserting trendline: %v", err)
-				}
-				current = common.Trendline{
-					StartTime:  candle.Timestamp,
-					StartPrice: candle.High,
-					EndTime:    candle.Timestamp,
-					EndPrice:   candle.High,
-					Direction:  "up",
-					Done:       "current",
-				}
-			}
-		}
-	}
+	// if current.StartTime == 0 {
+	// 	current = common.Trendline{
+	// 		StartTime:  candle.Timestamp,
+	// 		StartPrice: candle.High,
+	// 		EndTime:    candle.Timestamp,
+	// 		EndPrice:   candle.High,
+	// 		Direction:  "up",
+	// 		Done:       "current",
+	// 	}
+	// } else {
+	// 	if current.Type == "up" {
+	// 		if candle.High > current.End.Point {
+	// 			current.End.Time = candle.Timestamp
+	// 			current.End.Point = candle.High
+	// 		} else if candle.Low < current.End.Point {
+	// 			current.Type = "done"
+	// 			if err := t.insertTrendline(asset, timeframe, exchange, current); err != nil {
+	// 				log.Printf("Error inserting trendline: %v", err)
+	// 			}
+	// 			current = common.Trendline{
+	// 				StartTime:  candle.Timestamp,
+	// 				StartPrice: candle.Low,
+	// 				EndTime:    candle.Timestamp,
+	// 				EndPrice:   candle.Low,
+	// 				Direction:  "down",
+	// 				Done:       "current",
+	// 			}
+	// 		}
+	// 	} else {
+	// 		if candle.Low < current.End.Point {
+	// 			current.End.Time = candle.Timestamp
+	// 			current.End.Point = candle.Low
+	// 		} else if candle.High > current.End.Point {
+	// 			current.Status = "done"
+	// 			if err := t.insertTrendline(asset, timeframe, exchange, current); err != nil {
+	// 				log.Printf("Error inserting trendline: %v", err)
+	// 			}
+	// 			current = common.Trendline{
+	// 				StartTime:  candle.Timestamp,
+	// 				StartPrice: candle.High,
+	// 				EndTime:    candle.Timestamp,
+	// 				EndPrice:   candle.High,
+	// 				Direction:  "up",
+	// 				Done:       "current",
+	// 			}
+	// 		}
+	// }
+	// }
 
-	if err := t.updateCurrentTrendline(asset, timeframe, exchange, current); err != nil {
-		return fmt.Errorf("error updating current trendline: %w", err)
-	}
+	// if err := t.updateCurrentTrendline(asset, timeframe, exchange, current); err != nil {
+	// 	return fmt.Errorf("error updating current trendline: %w", err)
+	// }
 
 	message := struct {
 		Event string        `json:"event"`
@@ -166,155 +168,6 @@ func (t *TrendlineIndicator) Start() error {
 	return nil
 }
 
-func (t *TrendlineIndicator) processTrendlines(asset, timeframe, exchange string, candles []common.Candle) ([]common.Trendline, error) {
-
-	// If there are no trendlines, start from scratch
-	// If there are trendlines, use the current trend from the table
-
-	var current common.Trendline
-	var trendlines []common.Trendline
-	var counter int
-
-	for index, candle := range candles {
-		if current.Direction == "up" {
-
-			// Lower Low in uptrend (new trend)
-			if candle.Low < current.EndInv || (index > 0 && candle.Low < candles[index-1].Low) {
-
-				counter++
-
-				if counter >= 1 {
-					// fmt.Println(current)
-					current.Done = "done"
-					// fmt.Println(current)
-					// fmt.Println(len(trendlines))
-					if current.StartTime == candle.Timestamp {
-						fmt.Println("DUPLICATE!", current.StartTime)
-					}
-					// if candle.High > current.End {
-					// 	current.End = candle.High
-					// 	current.EndTime = candle.Time
-					// 	current.EndInv = candle.Low
-					// 	current.EndTS = candle.Open
-					// }
-					trendlines = append(trendlines, current)
-					temp := current
-
-					current = common.Trendline{
-						StartPrice: temp.EndPrice,
-						StartTime:  temp.EndTime,
-						StartInv:   temp.EndInv,
-						// StartTS:   temp.EndTS,
-						EndPrice: candle.Low,
-						EndTime:  candle.Timestamp,
-						EndInv:   candle.High,
-						// EndTS:     candle.Close,
-						Direction: "down",
-						Done:      "current",
-					}
-					// fmt.Println(current)
-					// fmt.Println("Time:", current.Time)
-
-					counter = 0
-				}
-				continue
-
-			}
-
-			// Higher High in uptrend  (continuation)
-			if candle.High > current.EndPrice {
-				current = common.Trendline{
-					StartTime:  current.StartTime,
-					StartPrice: current.StartPrice,
-					StartInv:   current.StartInv,
-					// StartTS:   current.StartTS,
-					EndTime:  candle.Timestamp,
-					EndPrice: candle.High,
-					EndInv:   candle.Low,
-					// EndTS:     candle.Open,
-					Direction: "up",
-					Done:      "current",
-				}
-				// fmt.Println("Time:", current.Time)
-
-				counter = 0
-				continue
-			}
-
-		} else if current.Direction == "down" {
-
-			// Higher High in downtrend  (new trend)
-			if candle.High > current.EndInv || (index > 0 && candle.High > candles[index-1].High) {
-				counter++
-
-				if counter >= 1 {
-					current.Done = "done"
-
-					if current.StartTime == candle.Timestamp {
-						fmt.Println("DUPLICATE!", current.StartTime)
-					}
-					// if candle.High > current.EndInv {
-
-					// }
-					// if candle.Low < current.End {
-					// 	current.End = candle.Low
-					// 	current.EndTime = candle.Time
-					// 	current.EndInv = candle.High
-					// 	current.EndTS = candle.Close
-					// }
-
-					trendlines = append(trendlines, current)
-					temp := current
-
-					current = common.Trendline{
-						StartPrice: temp.EndPrice,
-						StartTime:  temp.EndTime,
-						StartInv:   temp.EndInv,
-						// StartTS:   temp.EndTS,
-						EndPrice: candle.High,
-						EndTime:  candle.Timestamp,
-						EndInv:   candle.Low,
-						// EndTS:     candle.Open,
-						Direction: "up",
-						Done:      "current",
-					}
-					counter = 0
-				}
-
-				continue
-
-			}
-
-			// Lower Low in downtrend  (continuation)
-			if candle.Low < current.EndPrice {
-				current = common.Trendline{
-					StartPrice: current.StartPrice,
-					StartTime:  current.StartTime,
-					StartInv:   current.StartInv,
-					// StartTS:   current.StartTS,
-					EndPrice: candle.Low,
-					EndTime:  candle.Timestamp,
-					EndInv:   candle.High,
-					// EndTS:     candle.Close,
-					Direction: "down",
-					Done:      "current",
-				}
-				// fmt.Println("Time:", current.Time)
-
-				counter = 0
-
-				continue
-
-			}
-
-		}
-		// if current.StartTime == current.EndTime {
-		// 	current.StartTime = current.StartTime - 1
-		// }
-	}
-	return trendlines, nil
-}
-
 // MakeTrendlines generates trendlines based on the given candles.
 func MakeTrendlines(candles []common.Candle) []common.Trendline {
 	var trendlines []common.Trendline
@@ -323,6 +176,9 @@ func MakeTrendlines(candles []common.Candle) []common.Trendline {
 	if len(candles) == 0 {
 		return trendlines
 	}
+
+	counter := 0
+	startT := time.Now()
 
 	// Initialize start and end points from the first candle
 	start := common.Point{
@@ -338,52 +194,25 @@ func MakeTrendlines(candles []common.Candle) []common.Trendline {
 		Inv:        candles[0].Close,
 	}
 	current := common.Trendline{
-		Start:  start,
-		End:    end,
-		Type:   "up",
-		Status: "current",
+		Start:     start,
+		End:       end,
+		Direction: "up",
+		Status:    "current",
 	}
 
-	// Process each candle
 	for i, candle := range candles {
-		if current.Type == "up" {
-			// Higher High in uptrend (continuation)
-			if candle.High > current.End.Point {
-				current.End = common.Point{
-					Time:       candle.Timestamp,
-					Point:      candle.High,
-					Inv:        candle.Low,
-					TrendStart: max(candle.Close, candle.Open),
-				}
+		// Condition 1: Higher high in uptrend (continuation)
+		if candle.High > current.End.Point && current.Direction == "up" {
+			current.End = common.Point{
+				Time:       candle.Timestamp,
+				Point:      candle.High,
+				Inv:        candle.Low,
+				TrendStart: math.Max(candle.Close, candle.Open), // (close > open) ? close : open
 			}
-			// Lower Low in uptrend (new trend)
-			if (candle.Low < current.End.Inv) || (i > 0 && candle.Low < candles[i-1].Low) {
-				current.Status = "done"
-				trendlines = append(trendlines, current)
-				current = common.Trendline{
-					Start: current.End,
-					End: common.Point{
-						Time:       candle.Timestamp,
-						Point:      candle.Low,
-						Inv:        candle.High,
-						TrendStart: min(candle.Close, candle.Open),
-					},
-					Type:   "down",
-					Status: "current",
-				}
-			}
-		} else if current.Type == "down" {
-			// Lower Low in downtrend (continuation)
-			if candle.Low < current.End.Point {
-				current.End = common.Point{
-					Time:       candle.Timestamp,
-					Point:      candle.Low,
-					Inv:        candle.High,
-					TrendStart: min(candle.Close, candle.Open),
-				}
-			}
-			// Higher High in downtrend (new trend)
-			if (candle.High > current.End.Inv) || (i > 0 && candle.High > candles[i-1].High) {
+			counter = 0
+		} else if (candle.High > current.End.Inv || (i > 0 && candle.High > candles[i-1].High)) && current.Direction == "down" { // Condition 2: Higher high in downtrend (new uptrend)
+			counter++
+			if counter >= 3 { // Confirm reversal after 3 higher highs
 				current.Status = "done"
 				trendlines = append(trendlines, current)
 				current = common.Trendline{
@@ -392,17 +221,46 @@ func MakeTrendlines(candles []common.Candle) []common.Trendline {
 						Time:       candle.Timestamp,
 						Point:      candle.High,
 						Inv:        candle.Low,
-						TrendStart: max(candle.Close, candle.Open),
+						TrendStart: math.Max(candle.Close, candle.Open),
 					},
-					Type:   "up",
-					Status: "current",
+					Direction: "up",
+					Status:    "current",
 				}
+				counter = 0
 			}
+		} else if (candle.Low < current.End.Inv || (i > 0 && candle.Low < candles[i-1].Low)) && current.Direction == "up" { // Condition 3: Lower low in uptrend (new downtrend)
+			counter++
+			if counter >= 3 { // Confirm reversal after 3 lower lows
+				current.Status = "done"
+				trendlines = append(trendlines, current)
+				current = common.Trendline{
+					Start: current.End,
+					End: common.Point{
+						Time:       candle.Timestamp,
+						Point:      candle.Low,
+						Inv:        candle.High,
+						TrendStart: math.Min(candle.Close, candle.Open), // (close > open) ? open : close
+					},
+					Direction: "down",
+					Status:    "current",
+				}
+				counter = 0
+			}
+		} else if candle.Low < current.End.Point && current.Direction == "down" { // Condition 4: Lower low in downtrend (continuation)
+			current.End = common.Point{
+				Time:       candle.Timestamp,
+				Point:      candle.Low,
+				Inv:        candle.High,
+				TrendStart: math.Min(candle.Close, candle.Open),
+			}
+			counter = 0
 		}
 	}
 
-	// Append the last current trendline
-	trendlines = append(trendlines, current)
+	stopT := time.Since(startT)
+	log.Printf("Trendlines Time: %.3f seconds\n", stopT.Seconds())
+	log.Println("Trendlines:", trendlines)
+
 	return trendlines
 }
 
