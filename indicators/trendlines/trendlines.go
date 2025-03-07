@@ -9,7 +9,8 @@ import (
 	"log"
 	"math"
 	"strings"
-	"time"
+
+	"github.com/lib/pq"
 )
 
 type TrendlineIndicator struct {
@@ -127,28 +128,72 @@ func (t *TrendlineIndicator) Start() error {
 	if !exists {
 		_, err = t.db.Exec(fmt.Sprintf(`
 			CREATE TABLE %s (
-				id SERIAL PRIMARY KEY,
 				start_time BIGINT,
-				start_price FLOAT,
+				start_point FLOAT,
+				start_inv FLOAT,
+				start_trendstart FLOAT,
 				end_time BIGINT,
-				end_price FLOAT,
+				end_point FLOAT,
+				end_inv FLOAT,
+				end_trendstart FLOAT,
 				direction VARCHAR(10),
-				done VARCHAR(10),
-				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+				status VARCHAR(10)
 			)`, tableName))
 		if err != nil {
 			return fmt.Errorf("error creating trendlines table %s: %w", tableName, err)
 		}
 		log.Printf("Created table %s", tableName)
+		candles, err := t.fetchHistoricalCandles(t.asset, t.timeframe, t.exchange)
+		if err != nil {
+			log.Printf("Error fetching historical candles for %s: %v", tableName, err)
+			return fmt.Errorf("error fetching historical candles %v", err)
+		}
+		trendlines, err := MakeTrendlines(candles)
+		if err != nil {
+			log.Printf("Error making trendlines for %s: %v", tableName, err)
+			return fmt.Errorf("error making trendlines for %s: %v", tableName, err)
+		}
+		log.Println("Trendlines:", tableName, len(trendlines))
 	}
 
-	log.Println("Generate trendlines for all of the candles")
-	current, err := t.getCurrentTrendline(t.asset, t.timeframe, t.exchange)
+	log.Println("TABLE NAME", tableName)
+	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s", pq.QuoteIdentifier(tableName))
+	var count int
+	err = t.db.QueryRow(stmt).Scan(&count)
 	if err != nil {
+		log.Printf("Error getting count for trendline table %s: %v", tableName, err)
+	}
+
+	log.Println("Trendline Count", count)
+	if count == 0 {
+		log.Printf("trendlines empty for %s", tableName)
+		log.Println("Generate trendlines for all of the candles")
+		candles, err := t.fetchHistoricalCandles(t.asset, t.timeframe, t.exchange)
+		if err != nil {
+			log.Printf("Error getting all candles for %s: %v", tableName, err)
+			return fmt.Errorf("error getting all candles for %s: %v", tableName, err)
+		}
+		log.Println("Candles:", len(candles))
+		trendlines, err := MakeTrendlines(candles)
+		if err != nil {
+			log.Printf("error making trendlines for %s: %v", tableName, err)
+			return fmt.Errorf("error making trendlines for %s: %v", tableName, err)
+		}
+		log.Println("Trendlines:", len(trendlines))
+		for _, trend := range trendlines {
+			t.insertTrendline(t.asset, t.timeframe, t.exchange, trend)
+		}
+		log.Printf("wrote trends to db table for %s", tableName)
+
+	}
+
+	current, err := t.getCurrentTrendline(t.asset, t.timeframe, t.exchange)
+	if err == sql.ErrNoRows {
+	} else if err != nil {
 		return fmt.Errorf("error fetching current trendline: %w", err)
 	}
 
-	log.Println("current", current)
+	log.Printf("current %+v", current.Start.Time)
 
 	// if current.StartTime == 0 {
 	// 	candles, err := t.fetchHistoricalCandles(t.asset, t.timeframe, t.exchange)
@@ -169,16 +214,16 @@ func (t *TrendlineIndicator) Start() error {
 }
 
 // MakeTrendlines generates trendlines based on the given candles.
-func MakeTrendlines(candles []common.Candle) []common.Trendline {
+func MakeTrendlines(candles []common.Candle) ([]common.Trendline, error) {
 	var trendlines []common.Trendline
 
 	// Return empty slice if no candles are provided
 	if len(candles) == 0 {
-		return trendlines
+		return trendlines, fmt.Errorf("No candles given to makeTrendlines")
 	}
 
 	counter := 0
-	startT := time.Now()
+	// startT := time.Now()
 
 	// Initialize start and end points from the first candle
 	start := common.Point{
@@ -257,11 +302,11 @@ func MakeTrendlines(candles []common.Candle) []common.Trendline {
 		}
 	}
 
-	stopT := time.Since(startT)
-	log.Printf("Trendlines Time: %.3f seconds\n", stopT.Seconds())
-	log.Println("Trendlines:", trendlines)
+	// stopT := time.Since(startT)
+	// log.Printf("Trendlines Time: %.3f seconds\n", stopT.Seconds())
+	// log.Println("Trendlines:", trendlines)
 
-	return trendlines
+	return trendlines, nil
 }
 
 // max returns the maximum of two float64 values
@@ -281,6 +326,7 @@ func min(a, b float64) float64 {
 }
 
 func (t *TrendlineIndicator) fetchHistoricalCandles(asset, timeframe, exchange string) ([]common.Candle, error) {
+	log.Println("FetchHistoricalCandles")
 	tableName := fmt.Sprintf("%s_%s_%s", strings.ReplaceAll(strings.ToLower(asset), "-", "_"), timeframe, exchange)
 	query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp ASC", tableName)
 	rows, err := t.db.Query(query)
@@ -321,10 +367,10 @@ func (t *TrendlineIndicator) getCurrentTrendline(asset, timeframe, exchange stri
 	err := t.db.QueryRow(query).Scan(&startTime, &startPoint, &startInv, &startTrendStart, &endTime, &endPoint, &endInv, &endTrendStart, &direction, &status)
 	if err == sql.ErrNoRows {
 		log.Println("No results found for trendlines")
-		return common.Trendline{}, nil
+		return common.Trendline{}, fmt.Errorf(err.Error())
 	} else if err != nil {
 		log.Println("Error doing trendlines %v", err)
-		return common.Trendline{}, nil
+		return common.Trendline{}, fmt.Errorf("Error getting current trendline: %v", err)
 	}
 
 	tr = common.Trendline{
@@ -348,12 +394,19 @@ func (t *TrendlineIndicator) getCurrentTrendline(asset, timeframe, exchange stri
 }
 
 func (t *TrendlineIndicator) insertTrendline(asset, timeframe, exchange string, tr common.Trendline) error {
+	// log.Println("insertTrendlines:", asset, timeframe, exchange)
 	tableName := fmt.Sprintf("trendlines_%s_%s_%s", strings.ReplaceAll(strings.ToLower(asset), "-", "_"), timeframe, exchange)
+	// log.Println(tableName)
 	query := fmt.Sprintf(`
-		INSERT INTO %s (start_time, start_point, start_inv, start_trendstart, end_time, end_point, end_inv, end_trendstart, direction, done)
+		INSERT INTO %s (start_time, start_point, start_inv, start_trendstart, end_time, end_point, end_inv, end_trendstart, direction, status)
 		VALUES ($1, $2, $3, $4, $5,$6, $7, $8, $9, $10)
 	`, tableName)
 	_, err := t.db.Exec(query, tr.Start.Time, tr.Start.Point, tr.Start.Inv, tr.Start.TrendStart, tr.End.Time, tr.End.Point, tr.End.Inv, tr.End.TrendStart, tr.Direction, tr.Status)
+	if err != nil {
+		log.Printf("Error inserting trendline: %v", err)
+		return err
+	}
+	log.Printf("Trendline inserted successfully")
 
 	return err
 }
