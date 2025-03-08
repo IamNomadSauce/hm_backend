@@ -700,6 +700,8 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 		return exchange, fmt.Errorf("error getting trendlines %s %v", exchange.Name, err)
 	}
 
+	log.Printf("\n-----------------------------------------------\n %d TRENDLINES for %s", len(exchange.Trendlines), exchange.Name)
+
 	// log.Printf("Exchange.Triggers:\n\n%+v", exchange.Triggers)
 	switch exchange.Name {
 	case "Coinbase":

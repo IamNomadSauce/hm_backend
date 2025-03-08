@@ -406,7 +406,7 @@ func (t *TrendlineIndicator) insertTrendline(asset, timeframe, exchange string, 
 		log.Printf("Error inserting trendline: %v", err)
 		return err
 	}
-	log.Printf("Trendline inserted successfully")
+	// log.Printf("Trendline inserted successfully")
 
 	return err
 }
