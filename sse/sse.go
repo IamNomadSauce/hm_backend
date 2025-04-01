@@ -58,7 +58,7 @@ func (sse *SSEManager) UpdateSelectedProduct(tableName, productID string) {
 }
 
 func (sse *SSEManager) handlePriceUpdates() {
-	// log.Println("SSE:Handle Price Updates", sse.priceUpdates)
+	log.Println("SSE:Handle Price Updates", sse.priceUpdates)
 	for update := range sse.priceUpdates {
 		// log.Println("Price_Update:", update)
 		// Process triggers
@@ -76,7 +76,20 @@ func (sse *SSEManager) handlePriceUpdates() {
 func (sse *SSEManager) handleCandleUpdates() {
 	log.Println("SSE.HandleCandleUpdates")
 	for candle := range sse.candleUpdates {
-		log.Printf("Handle Candle Updates %+v", candle)
+		// log.Printf("Handle Candle Updates %+v", candle)
+		parts := strings.Split(candle.ProductID, "_")
+		if len(parts) < 3 {
+			log.Printf("Invalid table name: %s", candle.ProductID)
+			continue
+		}
+		product := parts[0] + "_" + parts[1]
+		timeframe := parts[2]
+
+		if triggeredTriggers := sse.triggerManager.ProcessCandleUpdate(product, timeframe, candle); len(triggeredTriggers) > 0 {
+			for _, trigger := range triggeredTriggers {
+				sse.BroadcastTrigger(trigger)
+			}
+		}
 		sse.BroadcastCandle(candle)
 	}
 }
@@ -89,6 +102,7 @@ func (sse *SSEManager) handleActiveConns() {
 }
 
 func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
+	// log.Println("BroadcastPrice")
 	message, err := json.Marshal(map[string]interface{}{
 		"event": "price",
 		"data":  update,
@@ -101,6 +115,7 @@ func (sse *SSEManager) BroadcastPrice(update PriceUpdate) {
 }
 
 func (sse *SSEManager) BroadcastCandle(candle common.Candle) {
+	// log.Println("BroadcastCandle")
 	message, err := json.Marshal(map[string]interface{}{
 		"event": "candle",
 		"data":  candle,
@@ -230,6 +245,14 @@ func (sse *SSEManager) ListenForDBChanges(dsn string, channel string, selectedPr
 				Volume:    rawCandle.Volume, // Fixed: was using Open instead of Volume
 			}
 
+			select {
+			case sse.candleUpdates <- candle:
+				// log.Println("\n---------------------SUCCESSFULLY SENT CANDLE UPDATE-------------------------\n")
+
+			default:
+				log.Println("Candle updates channel is full, dropping candle")
+
+			}
 			// log.Printf("Candle update for %s: %v", table, candle)
 			sse.BroadcastCandle(candle)
 		}

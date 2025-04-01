@@ -157,7 +157,7 @@ func main() {
 	go app.SSEManager.ListenForDBChanges(dsn, "global_changes", initialProduct)
 	go app.TradeManager.ListenForDBChanges(dsn, "global_changes")
 
-	app.IndicatorManager = indicators.NewIndicatorManager(app.DB, dsn, []string{"XLM-USD"}, []string{"1d"}, []string{"coinbase"}, app.SSEManager)
+	app.IndicatorManager = indicators.NewIndicatorManager(app.DB, dsn, []string{"XLM-USD", "BTC-USD"}, []string{"1d", "1h"}, []string{"coinbase"}, app.SSEManager)
 	if err := app.IndicatorManager.Start(); err != nil {
 		log.Fatalf("Error starting IndicatorManager: %v", err)
 	}
@@ -667,6 +667,8 @@ func handleCandlesRequest(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error getting candles handleCandlesRequest %v", err)
 		return
 	}
+
+	// trendlines, err := MakeTrendlines(candles)
 
 	jsonData, err := json.Marshal(candles)
 	if err != nil {

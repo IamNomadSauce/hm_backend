@@ -222,6 +222,10 @@ func MakeTrendlines(candles []common.Candle) ([]common.Trendline, error) {
 		return trendlines, fmt.Errorf("No candles given to makeTrendlines")
 	}
 
+	// for i, j := 0, len(candles)-1; i < j; i, j = i+1, j-1 {
+	// 	candles[i], candles[j] = candles[j], candles[i]
+	// }
+
 	counter := 0
 	// startT := time.Now()
 
@@ -246,6 +250,7 @@ func MakeTrendlines(candles []common.Candle) ([]common.Trendline, error) {
 	}
 
 	for i, candle := range candles {
+		// log.Println("Processing candle time: ", candle.Timestamp)
 		// Condition 1: Higher high in uptrend (continuation)
 		if candle.High > current.End.Point && current.Direction == "up" {
 			current.End = common.Point{
@@ -257,7 +262,7 @@ func MakeTrendlines(candles []common.Candle) ([]common.Trendline, error) {
 			counter = 0
 		} else if (candle.High > current.End.Inv || (i > 0 && candle.High > candles[i-1].High)) && current.Direction == "down" { // Condition 2: Higher high in downtrend (new uptrend)
 			counter++
-			if counter >= 3 { // Confirm reversal after 3 higher highs
+			if counter >= 0 { // Confirm reversal after 3 higher highs
 				current.Status = "done"
 				trendlines = append(trendlines, current)
 				current = common.Trendline{
@@ -275,7 +280,7 @@ func MakeTrendlines(candles []common.Candle) ([]common.Trendline, error) {
 			}
 		} else if (candle.Low < current.End.Inv || (i > 0 && candle.Low < candles[i-1].Low)) && current.Direction == "up" { // Condition 3: Lower low in uptrend (new downtrend)
 			counter++
-			if counter >= 3 { // Confirm reversal after 3 lower lows
+			if counter >= 0 { // Confirm reversal after 3 lower lows
 				current.Status = "done"
 				trendlines = append(trendlines, current)
 				current = common.Trendline{
