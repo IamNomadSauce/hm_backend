@@ -559,10 +559,10 @@ func (api *CoinbaseAPI) FetchAvailableProducts() ([]Product, error) {
 // Exchange operation
 func (api *CoinbaseAPI) FetchCandles(productID string, timeframe Timeframe, start, end time.Time) ([]common.Candle, error) {
 	var candles []common.Candle
-	fmt.Println("\n-------------------------\nCoinbaseAPI.FetchCandles\n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
-	fmt.Println("APIKEY", api.BaseURL)
+	// fmt.Println("\n-------------------------\nCoinbaseAPI.FetchCandles\n", productID, "\n", timeframe.Endpoint, "\n", start, "\n", end, "\n")
+	// fmt.Println("APIKEY", api.BaseURL)
 
-	fmt.Println(api.CandleLimit)
+	// fmt.Println(api.CandleLimit)
 
 	// Maximum number of candles per request
 	const maxCandles = 350
@@ -656,7 +656,7 @@ func fetch_Coinbase_Candles(productID string, timeframe Timeframe, start, end ti
 		fmt.Println("Error unmarshalling into candleData")
 		return nil, fmt.Errorf("Error decoding JSON: %v", err)
 	}
-	fmt.Println("Candles: \n", len(candleData.Candles))
+	// fmt.Println("Candles: \n", len(candleData.Candles))
 	return candleData.Candles, nil
 }
 

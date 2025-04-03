@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 )
 
@@ -154,6 +155,7 @@ func (tm *TriggerManager) UpdateTradeStatusByID(tradeID int, status string) erro
 
 // ProcessCandleUpdate processes candle updates and returns triggered triggers
 func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string, candle common.Candle) []common.Trigger {
+	// log.Printf("Process Candle Update: %s %s %+v", productID, timeframe, candle)
 	tm.triggerMutex.RLock()
 	defer tm.triggerMutex.RUnlock()
 
@@ -166,10 +168,32 @@ func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string
 		tm.candleHistory[key] = tm.candleHistory[key][1:]
 	}
 
+	productID = strings.ToUpper(productID)
+	productID = strings.ReplaceAll(productID, "_", "-")
+	// for i, _ := range tm.triggers {
+	// 	log.Printf("productID: %s\ntriggerID: %s", productID, i)
+	// 	if productID == i {
+	// 		log.Println("Matched")
+
+	// 	}
+	// }
+
 	var triggeredTriggers []common.Trigger
 	if triggers, exists := tm.triggers[productID]; exists {
+		log.Println("Trigger Exists", productID)
 		for i, trigger := range triggers {
+			// log.Printf("Trigger: %+v\n", trigger)
+			if trigger.Status == "active" {
+				fmt.Println("\n========================================\n")
+				fmt.Printf("Trigger: %s", trigger.ProductID)
+				fmt.Printf("\t%s", trigger.Type)
+				fmt.Printf("\t%s", trigger.Status)
+				fmt.Printf("\t%s", trigger.Timeframe)
+				fmt.Printf("\t%s", trigger.TriggeredCount)
+				fmt.Println("\n========================================\n")
+			}
 			if trigger.Status != "active" || trigger.Timeframe != timeframe {
+				fmt.Printf("TRIGGER:============> %s %s", trigger, productID)
 				continue
 			}
 
@@ -204,11 +228,14 @@ func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string
 			}
 		}
 		tm.triggers[productID] = triggers
+	} else {
+		// log.Printf("No triggers available for %s", productID)
 	}
 	return triggeredTriggers
 }
 
 func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKey string) bool {
+	log.Printf("Check Candle Condition %+v", trigger)
 	history, ok := tm.candleHistory[historyKey]
 	if !ok || len(history) < trigger.CandleCount {
 		return false

@@ -88,7 +88,7 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 					log.Printf("Error writing candles for %s %s: %v", product.ProductID, timeframe.TF, err)
 					continue
 				}
-				fmt.Printf("Wrote %d candles for %s %s\n", len(candles), product.ProductID, timeframe.TF)
+				// fmt.Printf("Wrote %d candles for %s %s\n", len(candles), product.ProductID, timeframe.TF)
 			}
 		}
 	}

@@ -79,7 +79,7 @@ func (sse *SSEManager) handleCandleUpdates() {
 		// log.Printf("Handle Candle Updates %+v", candle)
 		parts := strings.Split(candle.ProductID, "_")
 		if len(parts) < 3 {
-			log.Printf("Invalid table name: %s", candle.ProductID)
+			// log.Printf("Invalid table name: %s", candle.ProductID)
 			continue
 		}
 		product := parts[0] + "_" + parts[1]
