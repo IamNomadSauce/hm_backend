@@ -57,9 +57,9 @@ func Get_Candles(product, timeframe, exchange string, database *sql.DB) ([]commo
 
 }
 func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full bool) error {
-	fmt.Println("Fetch And Store Candles", exchange.Name)
-	fmt.Println(len(exchange.Watchlist))
-	fmt.Println(len(exchange.Timeframes))
+	// fmt.Println("Fetch And Store Candles", exchange.Name)
+	// fmt.Println(len(exchange.Watchlist))
+	// fmt.Println(len(exchange.Timeframes))
 
 	watchlist := exchange.Watchlist
 	timeframes := exchange.Timeframes
@@ -75,7 +75,7 @@ func Fetch_And_Store_Candles(exchange model.Exchange, database *sql.DB, full boo
 				start = end.Add(-time.Duration(exchange.CandleLimit*timeframe.Minutes) * time.Minute)
 			}
 
-			fmt.Println("\n---------------------\n", exchange.CandleLimit, "\n", timeframe.Minutes, "\n", start, "\n", end, "\n---------------------\n")
+			// fmt.Println("\n---------------------\n", exchange.CandleLimit, "\n", timeframe.Minutes, "\n", start, "\n", end, "\n---------------------\n")
 			candles, err := exchange.API.FetchCandles(product.ProductID, timeframe, start, end)
 			if err != nil {
 				log.Printf("Error fetching candles %s %s: %v", product.ProductID, timeframe.TF, err)

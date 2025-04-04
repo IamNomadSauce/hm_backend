@@ -184,16 +184,16 @@ func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string
 		for i, trigger := range triggers {
 			// log.Printf("Trigger: %+v\n", trigger)
 			if trigger.Status == "active" {
-				fmt.Println("\n========================================\n")
-				fmt.Printf("Trigger: %s", trigger.ProductID)
-				fmt.Printf("\t%s", trigger.Type)
-				fmt.Printf("\t%s", trigger.Status)
-				fmt.Printf("\t%s", trigger.Timeframe)
-				fmt.Printf("\t%s", trigger.TriggeredCount)
-				fmt.Println("\n========================================\n")
+				// fmt.Println("\n========================================\n")
+				// fmt.Printf("Trigger: %s", trigger.ProductID)
+				// fmt.Printf("\t%s", trigger.Type)
+				// fmt.Printf("\t%s", trigger.Status)
+				// fmt.Printf("\t%s", trigger.Timeframe)
+				// fmt.Printf("\t%s", trigger.TriggeredCount)
+				// fmt.Println("\n========================================\n")
 			}
 			if trigger.Status != "active" || trigger.Timeframe != timeframe {
-				fmt.Printf("TRIGGER:============> %s %s", trigger, productID)
+				// fmt.Printf("TRIGGER:============> %s %s", trigger, productID)
 				continue
 			}
 

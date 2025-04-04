@@ -694,6 +694,21 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 		return exchange, fmt.Errorf("error getting triggers %v", err)
 	}
 
+	fmt.Printf("\n------------------------------\n%s Active Triggers: %d\n", exchange.Name, len(exchange.Triggers))
+	fmt.Printf("%s", time.Now())
+	fmt.Printf("\n------------------------------\n")
+	for _, trigger := range exchange.Triggers {
+		fmt.Printf("%s\n", trigger.ProductID)
+		fmt.Printf("%s ", trigger.Type)
+		fmt.Printf("%f\n", trigger.Price)
+		fmt.Printf("Timeframe: %s\n", trigger.Timeframe)
+		fmt.Printf("Candle Count: %d\n", trigger.CandleCount)
+		fmt.Printf("Condition: %s\n", trigger.Condition)
+		fmt.Printf("%s\n", trigger.Status)
+		fmt.Printf("Count: %d\n", trigger.TriggeredCount)
+		fmt.Printf("============================\n")
+	}
+
 	// exchange.Indicators, err = indicators.Indicator.Get
 	exchange.Trendlines, err = fetchTrendlinesForExchange(db, exchange)
 	if err != nil {
