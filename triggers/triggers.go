@@ -180,52 +180,45 @@ func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string
 
 	var triggeredTriggers []common.Trigger
 	if triggers, exists := tm.triggers[productID]; exists {
-		log.Println("Trigger Exists", productID)
+		fmt.Printf("\n---------------------------\nTrigger Exists: %s\n", productID)
 		for i, trigger := range triggers {
 			// log.Printf("Trigger: %+v\n", trigger)
 			if trigger.Status == "active" {
-				// fmt.Println("\n========================================\n")
-				// fmt.Printf("Trigger: %s", trigger.ProductID)
-				// fmt.Printf("\t%s", trigger.Type)
-				// fmt.Printf("\t%s", trigger.Status)
-				// fmt.Printf("\t%s", trigger.Timeframe)
-				// fmt.Printf("\t%s", trigger.TriggeredCount)
-				// fmt.Println("\n========================================\n")
+				if tm.checkCandleCondition(trigger, key) {
+					log.Println("\n--------------TRIGGERED--------", trigger, key)
+					trigger.Status = "triggered"
+					trigger.TriggeredCount = trigger.CandleCount
+					if err := tm.updateTriggerStatus(trigger.ID, "triggerd"); err != nil {
+						log.Printf("Error updating trigger status: %v", err)
+						continue
+					}
+					triggeredTriggers = append(triggeredTriggers, trigger)
+
+					trades, err := tm.GetTriggersForTrade(trigger.ID)
+					if err != nil {
+						log.Printf("Error getting triggers for trade: %v", err)
+						continue
+					}
+					for _, trade := range trades {
+						allTriggered, err := tm.AreAllTriggersTriggered(trade.ID)
+						if err != nil {
+							log.Printf("Error checking triggers for trade %d: %v", trade.ID, err)
+							continue
+						}
+						if allTriggered {
+							if err := tm.UpdateTradeStatusByID(trade.ID, "ready_for_entry"); err != nil {
+								log.Printf("Error updating trade status: %v", err)
+							}
+						}
+					}
+					triggers[i] = trigger
+				}
 			}
 			if trigger.Status != "active" || trigger.Timeframe != timeframe {
 				// fmt.Printf("TRIGGER:============> %s %s", trigger, productID)
 				continue
 			}
 
-			if tm.checkCandleCondition(trigger, key) {
-				log.Println("\n--------------TRIGGERED--------", trigger, key)
-				trigger.Status = "triggered"
-				trigger.TriggeredCount = trigger.CandleCount
-				if err := tm.updateTriggerStatus(trigger.ID, "triggerd"); err != nil {
-					log.Printf("Error updating trigger status: %v", err)
-					continue
-				}
-				triggeredTriggers = append(triggeredTriggers, trigger)
-
-				trades, err := tm.GetTriggersForTrade(trigger.ID)
-				if err != nil {
-					log.Printf("Error getting triggers for trade: %v", err)
-					continue
-				}
-				for _, trade := range trades {
-					allTriggered, err := tm.AreAllTriggersTriggered(trade.ID)
-					if err != nil {
-						log.Printf("Error checking triggers for trade %d: %v", trade.ID, err)
-						continue
-					}
-					if allTriggered {
-						if err := tm.UpdateTradeStatusByID(trade.ID, "ready_for_entry"); err != nil {
-							log.Printf("Error updating trade status: %v", err)
-						}
-					}
-				}
-				triggers[i] = trigger
-			}
 		}
 		tm.triggers[productID] = triggers
 	} else {
@@ -235,7 +228,17 @@ func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string
 }
 
 func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKey string) bool {
-	log.Printf("Check Candle Condition %+v", trigger)
+	fmt.Printf("Check Candle Condition for Trigger: %v\n", trigger.ID)
+	fmt.Printf("%s: ", trigger.Timeframe)
+	fmt.Printf("%s: ", trigger.Status)
+	fmt.Printf("Trigger: %s", trigger.ProductID)
+	fmt.Printf("\t%s", trigger.Type)
+	fmt.Printf(" %f", trigger.Price)
+	fmt.Printf("\t%s", trigger.Timeframe)
+	fmt.Printf("\nCandle_Count %d", trigger.CandleCount)
+	fmt.Printf("\tTrigger_Count %d", trigger.TriggeredCount)
+	fmt.Println("\n========================================\n")
+
 	history, ok := tm.candleHistory[historyKey]
 	if !ok || len(history) < trigger.CandleCount {
 		return false
@@ -244,38 +247,47 @@ func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKe
 	lastNCandles := history[len(history)-trigger.CandleCount:]
 
 	switch trigger.Condition {
-	case "CLOSES_ABOVE":
+	case "closes_above":
+		fmt.Println("CLOSES_ABOVE")
 		for _, c := range lastNCandles {
 			if c.Close <= trigger.Price {
 				return false
 			}
 		}
+		fmt.Printf("\n------------------------------------\n")
 		return true
-	case "CLOSES_BELOW":
+	case "closes_below":
+		fmt.Println("CLOSES_BELOW")
 		for _, c := range lastNCandles {
 			if c.Close >= trigger.Price {
 				return false
 			}
 		}
+		fmt.Printf("\n------------------------------------\n")
 		return true
-	case "WICKS_ABOVE":
+	case "price_above":
+		fmt.Println("PRICE_ABOVE")
 		for _, c := range lastNCandles {
 			if c.High <= trigger.Price {
 				return false
 			}
 		}
+		fmt.Printf("\n------------------------------------\n")
 		return true
-	case "WICKS_BELOW":
+	case "price_below":
+		fmt.Println("PRICE_BELOW")
 		for _, c := range lastNCandles {
 			if c.Close >= trigger.Price {
 				return false
 			}
 		}
+		fmt.Printf("\n------------------------------------\n")
 		return true
 	default:
-		log.Printf("Unsupported trigger condition: %s", trigger.Condition)
+		// log.Printf("Unsupported trigger condition: %s", trigger)
 		return false
 	}
+
 }
 
 // ProcessPriceUpdate processes price updates and returns triggered triggers
