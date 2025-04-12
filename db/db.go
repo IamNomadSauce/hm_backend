@@ -1034,14 +1034,9 @@ func Get_Timeframes(id int, db *sql.DB) ([]model.Timeframe, error) {
 func Get_Candles(product, tf, xch string, db *sql.DB) ([]common.Candle, error) {
 	log.Printf("DB:Get Candles %s_%s_%s", product, tf, xch)
 
-	//product = strings.Trim("-", "_")
 	var candles []common.Candle
-	log.Printf("DB:Get Candles2 %s_%s_%s", product, tf, xch)
-
 	// Construct the table name
 	tableName := fmt.Sprintf("%s_%s_%s", product, tf, xch)
-
-	// Use parameterized query to prevent SQL injection
 	query := fmt.Sprintf("SELECT timestamp, open, high, low, close, volume FROM %s ORDER BY timestamp DESC LIMIT 1000", tableName)
 
 	candle_rows, err := db.Query(query)
@@ -1497,6 +1492,59 @@ func CreateTrigger(db *sql.DB, trigger *common.Trigger) (int, error) {
 	}
 
 	return triggerID, nil
+}
+
+func GetTriggers(db *sql.DB, exchangeID int, status string) ([]common.Trigger, error) {
+	query := `
+		SELECT id, product_id, type, price, timeframe, candle_count, condition, status, triggered_count, xch_id, created_at, updated_at
+		FROM triggers
+		WHERE xch_id = $1 AND status = $2
+	`
+	rows, err := db.Query(query, exchangeID, status)
+	if err != nil {
+		return nil, fmt.Errorf("error querying triggers: %w", err)
+	}
+	defer rows.Close()
+
+	var triggers []common.Trigger
+	for rows.Next() {
+		var t common.Trigger
+		err := rows.Scan(
+			&t.ID, &t.ProductID, &t.Type, &t.Price, &t.Timeframe, &t.CandleCount, &t.Condition, &t.Status, &t.TriggeredCount, &t.XchID, &t.CreatedAt, &t.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning trigger: %w", err)
+		}
+		triggers = append(triggers, t)
+	}
+	return triggers, nil
+}
+
+func GetActiveTriggers(db *sql.DB) ([]common.Trigger, error) {
+	query := `
+		SELECT id, product_id, type, price, timeframe, candle_count, condition, status, triggered_count, xch_id, created_at, updated_at
+		FROM triggers
+		WHERE status = 'active'
+		`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying active triggers: %w", err)
+	}
+	defer rows.Close()
+
+	var triggers []common.Trigger
+	for rows.Next() {
+		var t common.Trigger
+		err := rows.Scan(
+			&t.ID, &t.ProductID, &t.Type, &t.Price, &t.Timeframe, &t.CandleCount, &t.Condition, &t.Status, &t.TriggeredCount, &t.XchID, &t.CreatedAt, &t.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning trigger: %w", err)
+		}
+		triggers = append(triggers, t)
+	}
+	return triggers, nil
+
 }
 
 func GetTriggersForTrade(db *sql.DB, tradeID int) ([]common.Trigger, error) {

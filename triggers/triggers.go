@@ -237,52 +237,53 @@ func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKe
 	fmt.Printf("\t%s", trigger.Timeframe)
 	fmt.Printf("\nCandle_Count %d", trigger.CandleCount)
 	fmt.Printf("\tTrigger_Count %d", trigger.TriggeredCount)
-	fmt.Println("\n========================================\n")
+	// fmt.Println("\n========================================\n")
 
-	history, ok := tm.candleHistory[historyKey]
-	if !ok || len(history) < trigger.CandleCount {
-		return false
-	}
+	// history, ok := tm.candleHistory[historyKey]
+	// if !ok || len(history) < trigger.CandleCount {
+	// 	return false
+	// }
 
-	lastNCandles := history[len(history)-trigger.CandleCount:]
+	// lastNCandles := history[len(history)-trigger.CandleCount:]
 
-	switch trigger.Condition {
+	fmt.Printf("\n\nTRIGGER_CONDITION: |%s|\n", trigger.Type)
+	switch trigger.Type {
 	case "closes_above":
-		fmt.Println("CLOSES_ABOVE")
-		for _, c := range lastNCandles {
-			if c.Close <= trigger.Price {
-				return false
-			}
-		}
+		fmt.Println("CLOSES_ABOVE\n")
+		// for _, c := range lastNCandles {
+		// 	if c.Close <= trigger.Price {
+		// 		return false
+		// 	}
+		// }
 		fmt.Printf("\n------------------------------------\n")
-		return true
+		return false
 	case "closes_below":
-		fmt.Println("CLOSES_BELOW")
-		for _, c := range lastNCandles {
-			if c.Close >= trigger.Price {
-				return false
-			}
-		}
+		fmt.Println("CLOSES_BELOW\n")
+		// for _, c := range lastNCandles {
+		// 	if c.Close >= trigger.Price {
+		// 		return false
+		// 	}
+		// }
 		fmt.Printf("\n------------------------------------\n")
-		return true
+		return false
 	case "price_above":
-		fmt.Println("PRICE_ABOVE")
-		for _, c := range lastNCandles {
-			if c.High <= trigger.Price {
-				return false
-			}
-		}
+		fmt.Println("PRICE_ABOVE\n")
+		// for _, c := range lastNCandles {
+		// 	if c.High <= trigger.Price {
+		// 		return false
+		// 	}
+		// }
 		fmt.Printf("\n------------------------------------\n")
-		return true
+		return false
 	case "price_below":
-		fmt.Println("PRICE_BELOW")
-		for _, c := range lastNCandles {
-			if c.Close >= trigger.Price {
-				return false
-			}
-		}
+		fmt.Println("PRICE_BELOW\n")
+		// for _, c := range lastNCandles {
+		// 	if c.Close >= trigger.Price {
+		// 		return false
+		// 	}
+		// }
 		fmt.Printf("\n------------------------------------\n")
-		return true
+		return false
 	default:
 		// log.Printf("Unsupported trigger condition: %s", trigger)
 		return false

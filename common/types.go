@@ -112,3 +112,19 @@ func (c *Candle) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+type TriggerManagerInterface interface {
+	ProcessPriceUpdate(productID string, price float64) []Trigger
+	ProcessCandleUpdate(productID string, timeframe string, candle Candle) []Trigger
+	InitializeTriggersFromExchange(exchangeID int) error
+}
+
+type SSEManagerInterface interface {
+	BroadcastPrice(update PriceUpdate)
+	BroadcastCandle(candle Candle)
+}
+type PriceUpdate struct {
+	ProductID string  `json:"product_id"`
+	Price     float64 `json:"price"`
+	Timestamp int64   `json:"timestamp"`
+}
