@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 )
 
@@ -57,32 +56,32 @@ func (tm *TriggerManager) InitializeTriggersFromExchange(exchangeID int) error {
 }
 
 // GetTriggersForTrade retrieves triggers associated with a trade
-func (tm *TriggerManager) GetTriggersForTrade(tradeID int) ([]common.Trigger, error) {
-	query := `
-        SELECT t.id, t.product_id, t.type, t.price, t.timeframe, 
-               t.candle_count, t.condition, t.status, t.triggered_count, 
-               t.xch_id, t.created_at, t.updated_at
-        FROM triggers t
-        JOIN trade_triggers tt ON t.id = tt.trigger_id
-        WHERE tt.trade_id = $1`
-	rows, err := tm.db.Query(query, tradeID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+// func (tm *TriggerManager) GetTriggersForTrade(tradeID int) ([]common.Trigger, error) {
+// 	query := `
+//         SELECT t.id, t.product_id, t.type, t.price, t.timeframe,
+//                t.candle_count, t.condition, t.status, t.triggered_count,
+//                t.xch_id, t.created_at, t.updated_at
+//         FROM triggers t
+//         JOIN trade_triggers tt ON t.id = tt.trigger_id
+//         WHERE tt.trade_id = $1`
+// 	rows, err := tm.db.Query(query, tradeID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer rows.Close()
 
-	var triggers []common.Trigger
-	for rows.Next() {
-		var t common.Trigger
-		if err := rows.Scan(&t.ID, &t.ProductID, &t.Type, &t.Price, &t.Timeframe,
-			&t.CandleCount, &t.Condition, &t.Status, &t.TriggeredCount,
-			&t.XchID, &t.CreatedAt, &t.UpdatedAt); err != nil {
-			return nil, err
-		}
-		triggers = append(triggers, t)
-	}
-	return triggers, nil
-}
+// 	var triggers []common.Trigger
+// 	for rows.Next() {
+// 		var t common.Trigger
+// 		if err := rows.Scan(&t.ID, &t.ProductID, &t.Type, &t.Price, &t.Timeframe,
+// 			&t.CandleCount, &t.Condition, &t.Status, &t.TriggeredCount,
+// 			&t.XchID, &t.CreatedAt, &t.UpdatedAt); err != nil {
+// 			return nil, err
+// 		}
+// 		triggers = append(triggers, t)
+// 	}
+// 	return triggers, nil
+// }
 
 func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error) {
 	query := `
@@ -132,100 +131,121 @@ func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error
 }
 
 // AreAllTriggersTriggered checks if all triggers for a trade are triggered
-func (tm *TriggerManager) AreAllTriggersTriggered(tradeID int) (bool, error) {
-	query := `
-        SELECT COUNT(*)
-        FROM trade_triggers tt
-        JOIN triggers t ON tt.trigger_id = t.id
-        WHERE tt.trade_id = $1 AND t.status != 'triggered'`
-	var count int
-	err := tm.db.QueryRow(query, tradeID).Scan(&count)
-	if err != nil {
-		return false, err
-	}
-	return count == 0, nil
-}
+// func (tm *TriggerManager) AreAllTriggersTriggered(tradeID int) (bool, error) {
+// 	query := `
+//         SELECT COUNT(*)
+//         FROM trade_triggers tt
+//         JOIN triggers t ON tt.trigger_id = t.id
+//         WHERE tt.trade_id = $1 AND t.status != 'triggered'`
+// 	var count int
+// 	err := tm.db.QueryRow(query, tradeID).Scan(&count)
+// 	if err != nil {
+// 		return false, err
+// 	}
+// 	return count == 0, nil
+// }
 
 // UpdateTradeStatusByID updates the status of a trade
-func (tm *TriggerManager) UpdateTradeStatusByID(tradeID int, status string) error {
-	query := `UPDATE trades SET status = $1 WHERE id = $2`
-	_, err := tm.db.Exec(query, status, tradeID)
-	return err
+// func (tm *TriggerManager) UpdateTradeStatusByID(tradeID int, status string) error {
+// 	query := `UPDATE trades SET status = $1 WHERE id = $2`
+// 	_, err := tm.db.Exec(query, status, tradeID)
+// 	return err
+// }
+
+func (tm *TriggerManager) ProcessCandleUpdate(product, timeframe string, candle common.Candle) []common.Trigger {
+	tm.triggerMutex.Lock()
+	defer tm.triggerMutex.Unlock()
+	productID := product + "_" + timeframe
+	var triggered []common.Trigger
+	triggers, exists := tm.triggers[productID]
+	if !exists {
+		return triggered
+	}
+	for i, trigger := range triggers {
+		if tm.isCandleConditionMet(trigger, candle) && !trigger.Triggered {
+			trigger.Triggered = true
+			triggers[i] = trigger
+			triggered = append(triggered, trigger)
+			tm.db.UpdateTriggerStatus(trigger.ID, true)
+		}
+	}
+	tm.triggers[productID] = triggers
+	return triggered
 }
 
 // ProcessCandleUpdate processes candle updates and returns triggered triggers
-func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string, candle common.Candle) []common.Trigger {
-	// log.Printf("Process Candle Update: %s %s %+v", productID, timeframe, candle)
-	tm.triggerMutex.RLock()
-	defer tm.triggerMutex.RUnlock()
+// func (tm *TriggerManager) ProcessCandleUpdate(productID string, timeframe string, candle common.Candle) []common.Trigger {
+// 	// log.Printf("Process Candle Update: %s %s %+v", productID, timeframe, candle)
+// 	tm.triggerMutex.RLock()
+// 	defer tm.triggerMutex.RUnlock()
 
-	key := productID + "_" + timeframe
-	if _, ok := tm.candleHistory[key]; !ok {
-		tm.candleHistory[key] = []common.Candle{}
-	}
-	tm.candleHistory[key] = append(tm.candleHistory[key], candle)
-	if len(tm.candleHistory[key]) > tm.maxHistory {
-		tm.candleHistory[key] = tm.candleHistory[key][1:]
-	}
+// 	key := productID + "_" + timeframe
+// 	if _, ok := tm.candleHistory[key]; !ok {
+// 		tm.candleHistory[key] = []common.Candle{}
+// 	}
+// 	tm.candleHistory[key] = append(tm.candleHistory[key], candle)
+// 	if len(tm.candleHistory[key]) > tm.maxHistory {
+// 		tm.candleHistory[key] = tm.candleHistory[key][1:]
+// 	}
 
-	productID = strings.ToUpper(productID)
-	productID = strings.ReplaceAll(productID, "_", "-")
-	// for i, _ := range tm.triggers {
-	// 	log.Printf("productID: %s\ntriggerID: %s", productID, i)
-	// 	if productID == i {
-	// 		log.Println("Matched")
+// 	productID = strings.ToUpper(productID)
+// 	productID = strings.ReplaceAll(productID, "_", "-")
+// 	// for i, _ := range tm.triggers {
+// 	// 	log.Printf("productID: %s\ntriggerID: %s", productID, i)
+// 	// 	if productID == i {
+// 	// 		log.Println("Matched")
 
-	// 	}
-	// }
+// 	// 	}
+// 	// }
 
-	var triggeredTriggers []common.Trigger
-	if triggers, exists := tm.triggers[productID]; exists {
-		fmt.Printf("\n---------------------------\nTrigger Exists: %s\n", productID)
-		for i, trigger := range triggers {
-			// log.Printf("Trigger: %+v\n", trigger)
-			if trigger.Status == "active" {
-				if tm.checkCandleCondition(trigger, key) {
-					log.Println("\n--------------TRIGGERED--------", trigger, key)
-					trigger.Status = "triggered"
-					trigger.TriggeredCount = trigger.CandleCount
-					if err := tm.updateTriggerStatus(trigger.ID, "triggerd"); err != nil {
-						log.Printf("Error updating trigger status: %v", err)
-						continue
-					}
-					triggeredTriggers = append(triggeredTriggers, trigger)
+// 	var triggeredTriggers []common.Trigger
+// 	if triggers, exists := tm.triggers[productID]; exists {
+// 		fmt.Printf("\n---------------------------\nTrigger Exists: %s\n", productID)
+// 		for i, trigger := range triggers {
+// 			// log.Printf("Trigger: %+v\n", trigger)
+// 			if trigger.Status == "active" {
+// 				if tm.checkCandleCondition(trigger, key) {
+// 					log.Println("\n--------------TRIGGERED--------", trigger, key)
+// 					trigger.Status = "triggered"
+// 					trigger.TriggeredCount = trigger.CandleCount
+// 					if err := tm.updateTriggerStatus(trigger.ID, "triggerd"); err != nil {
+// 						log.Printf("Error updating trigger status: %v", err)
+// 						continue
+// 					}
+// 					triggeredTriggers = append(triggeredTriggers, trigger)
 
-					trades, err := tm.GetTriggersForTrade(trigger.ID)
-					if err != nil {
-						log.Printf("Error getting triggers for trade: %v", err)
-						continue
-					}
-					for _, trade := range trades {
-						allTriggered, err := tm.AreAllTriggersTriggered(trade.ID)
-						if err != nil {
-							log.Printf("Error checking triggers for trade %d: %v", trade.ID, err)
-							continue
-						}
-						if allTriggered {
-							if err := tm.UpdateTradeStatusByID(trade.ID, "ready_for_entry"); err != nil {
-								log.Printf("Error updating trade status: %v", err)
-							}
-						}
-					}
-					triggers[i] = trigger
-				}
-			}
-			if trigger.Status != "active" || trigger.Timeframe != timeframe {
-				// fmt.Printf("TRIGGER:============> %s %s", trigger, productID)
-				continue
-			}
+// 					trades, err := tm.GetTriggersForTrade(trigger.ID)
+// 					if err != nil {
+// 						log.Printf("Error getting triggers for trade: %v", err)
+// 						continue
+// 					}
+// 					for _, trade := range trades {
+// 						allTriggered, err := tm.AreAllTriggersTriggered(trade.ID)
+// 						if err != nil {
+// 							log.Printf("Error checking triggers for trade %d: %v", trade.ID, err)
+// 							continue
+// 						}
+// 						if allTriggered {
+// 							if err := tm.UpdateTradeStatusByID(trade.ID, "ready_for_entry"); err != nil {
+// 								log.Printf("Error updating trade status: %v", err)
+// 							}
+// 						}
+// 					}
+// 					triggers[i] = trigger
+// 				}
+// 			}
+// 			if trigger.Status != "active" || trigger.Timeframe != timeframe {
+// 				// fmt.Printf("TRIGGER:============> %s %s", trigger, productID)
+// 				continue
+// 			}
 
-		}
-		tm.triggers[productID] = triggers
-	} else {
-		// log.Printf("No triggers available for %s", productID)
-	}
-	return triggeredTriggers
-}
+// 		}
+// 		tm.triggers[productID] = triggers
+// 	} else {
+// 		// log.Printf("No triggers available for %s", productID)
+// 	}
+// 	return triggeredTriggers
+// }
 
 func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKey string) bool {
 	fmt.Printf("Check Candle Condition for Trigger: %v\n", trigger.ID)

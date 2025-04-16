@@ -3,7 +3,6 @@ package db
 import (
 	"backend/common"
 	"backend/model"
-	"backend/triggers"
 	"context"
 	"database/sql"
 	"fmt"
@@ -689,7 +688,7 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 		return exchange, fmt.Errorf("error getting trades: %v", err)
 	}
 
-	exchange.Triggers, err = triggers.GetTriggers(db, exchange.ID, "active")
+	exchange.Triggers, err = GetTriggers(db, exchange.ID, "active")
 	if err != nil {
 		return exchange, fmt.Errorf("error getting triggers %v", err)
 	}
