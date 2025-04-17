@@ -1,7 +1,7 @@
 package triggers
 
 import (
-	"backend/common" // Adjust import path as needed
+	"backend/common"
 	"database/sql"
 	"fmt"
 	"log"
@@ -155,21 +155,66 @@ func GetTriggers(db *sql.DB, xch_id int, status string) ([]common.Trigger, error
 func (tm *TriggerManager) ProcessCandleUpdate(product, timeframe string, candle common.Candle) []common.Trigger {
 	tm.triggerMutex.Lock()
 	defer tm.triggerMutex.Unlock()
-	productID := product + "_" + timeframe
+
+	key := product + "_" + timeframe
+
+	// Update candle history
+	if _, ok := tm.candleHistory[key]; !ok {
+		tm.candleHistory[key] = []common.Candle{}
+	}
+	tm.candleHistory[key] = append(tm.candleHistory[key], candle)
+	if len(tm.candleHistory[key]) > tm.maxHistory {
+		tm.candleHistory[key] = tm.candleHistory[key][1:]
+	}
+
 	var triggered []common.Trigger
-	triggers, exists := tm.triggers[productID]
+	triggers, exists := tm.triggers[product]
 	if !exists {
 		return triggered
 	}
+
 	for i, trigger := range triggers {
-		if tm.isCandleConditionMet(trigger, candle) && !trigger.Triggered {
-			trigger.Triggered = true
+		if trigger.Timeframe != timeframe || trigger.Status != "active" {
+			continue
+		}
+		if tm.checkCandleCondition(trigger, key) {
+			trigger.Status = "triggered"
 			triggers[i] = trigger
 			triggered = append(triggered, trigger)
-			tm.db.UpdateTriggerStatus(trigger.ID, true)
+			if err := tm.db.UpdateTriggerStatus(tm.db, trigger.ID, "triggered"); err != nil {
+				log.Printf("Error updating trigger %d status: %v", trigger.ID, err)
+				continue
+			}
+
+			// Check associated trades
+			query := `SELECT trade_id FROM trade_triggers WHERE trigger_id = $1`
+			rows, err := tm.db.Query(query, trigger.ID)
+			if err != nil {
+				log.Printf("Error querying trades for trigger %d: %v", trigger.ID, err)
+				continue
+			}
+			defer rows.Close()
+
+			for rows.Next() {
+				var tradeID int
+				if err := rows.Scan(&tradeID); err != nil {
+					log.Printf("Error scanning trade ID: %v", err)
+					continue
+				}
+				allTriggered, err := tm.db.AreAllTriggersTriggered(tm.db, tradeID)
+				if err != nil {
+					log.Printf("Error checking triggers for trade %d: %v", tradeID, err)
+					continue
+				}
+				if allTriggered {
+					if err := tm.db.UpdateTradeStatusByID(tm.db, tradeID, "ready_for_entry"); err != nil {
+						log.Printf("Error updating trade %d status: %v", tradeID, err)
+					}
+				}
+			}
 		}
 	}
-	tm.triggers[productID] = triggers
+	tm.triggers[product] = triggers
 	return triggered
 }
 
@@ -259,53 +304,53 @@ func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKe
 	fmt.Printf("\tTrigger_Count %d", trigger.TriggeredCount)
 	// fmt.Println("\n========================================\n")
 
-	// history, ok := tm.candleHistory[historyKey]
-	// if !ok || len(history) < trigger.CandleCount {
-	// 	return false
-	// }
+	history, ok := tm.candleHistory[historyKey]
+	if !ok || len(history) < trigger.CandleCount {
+		return false
+	}
 
-	// lastNCandles := history[len(history)-trigger.CandleCount:]
+	lastNCandles := history[len(history)-trigger.CandleCount:]
 
 	fmt.Printf("\n\nTRIGGER_CONDITION: |%s|\n", trigger.Type)
 	switch trigger.Type {
 	case "closes_above":
 		fmt.Println("CLOSES_ABOVE\n")
-		// for _, c := range lastNCandles {
-		// 	if c.Close <= trigger.Price {
-		// 		return false
-		// 	}
-		// }
+		for _, c := range lastNCandles {
+			if c.Close <= trigger.Price {
+				return false
+			}
+		}
 		fmt.Printf("\n------------------------------------\n")
 		return false
 	case "closes_below":
 		fmt.Println("CLOSES_BELOW\n")
-		// for _, c := range lastNCandles {
-		// 	if c.Close >= trigger.Price {
-		// 		return false
-		// 	}
-		// }
+		for _, c := range lastNCandles {
+			if c.Close >= trigger.Price {
+				return false
+			}
+		}
 		fmt.Printf("\n------------------------------------\n")
 		return false
 	case "price_above":
 		fmt.Println("PRICE_ABOVE\n")
-		// for _, c := range lastNCandles {
-		// 	if c.High <= trigger.Price {
-		// 		return false
-		// 	}
-		// }
+		for _, c := range lastNCandles {
+			if c.High <= trigger.Price {
+				return false
+			}
+		}
 		fmt.Printf("\n------------------------------------\n")
 		return false
 	case "price_below":
 		fmt.Println("PRICE_BELOW\n")
-		// for _, c := range lastNCandles {
-		// 	if c.Close >= trigger.Price {
-		// 		return false
-		// 	}
-		// }
+		for _, c := range lastNCandles {
+			if c.Close >= trigger.Price {
+				return false
+			}
+		}
 		fmt.Printf("\n------------------------------------\n")
 		return false
 	default:
-		// log.Printf("Unsupported trigger condition: %s", trigger)
+		log.Printf("Unsupported trigger condition: %s", trigger)
 		return false
 	}
 
