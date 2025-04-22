@@ -51,15 +51,12 @@ func main() {
 	triggers_manager := triggers.NewTriggerManager(app.DB)
 	app.TriggerManager = triggers_manager
 	app.SSEManager = sse.NewSSEManager(triggers_manager)
-	app.TradeManager = trademanager.NewTradeManager(app.DB)
-	if err := app.TradeManager.Initialize(); err != nil {
-		log.Fatalf("Error initializing TradeManager: %v", err)
-	}
 
 	initialProduct := "XLM-USD"
 
 	// Now you can safely get exchanges using app.DB
 	db_exchanges, err := db.Get_Exchanges(app.DB)
+	exchangesMap := make(map[int]model.ExchangeAPI)
 	if err != nil {
 		log.Printf("Error getting initial exchanges: %v", err)
 	} else {
@@ -87,6 +84,11 @@ func main() {
 
 		}
 		log.Println("Websockets Initialized")
+	}
+
+	app.TradeManager = trademanager.NewTradeManager(app.DB, exchangesMap)
+	if err := app.TradeManager.Initialize(); err != nil {
+		log.Fatalf("Error initializing TradeManager: %v", err)
 	}
 
 	defer app.DB.Close()

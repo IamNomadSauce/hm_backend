@@ -155,30 +155,24 @@ func (tm *TradeManager) checkAndExecuteTrade(tradeID int) {
 		return
 	}
 
+	exchangeAPI, ok := tm.exchanges[trade.XchID]
+	if !ok {
+		log.Printf("No exchange API found for xch_id %d", trade.XchID)
+		return
+	}
+
 	triggers, err := db.GetTriggersForTrade(tm.db, tradeID)
 	if err != nil {
 		log.Printf("Error getting triggers for trade %d: %v", tradeID, err)
 		return
 	}
 
-	if len(triggers) == 0 {
-		tm.placeEntryOrder(trade)
-		return
-	}
-
-	allTriggered, err := db.AreAllTriggersTriggered(tm.db, tradeID)
+	are_all_triggered, err := db.AreAllTriggersTriggered(tm.db, tradeID)
 	if err != nil {
-		log.Printf("Error checking triggers for trade %d: %v", tradeID, err)
-		return
+		log.Printf("error getting triggers for trade %d: %v", tradeID, err)
 	}
-
-	if allTriggered {
-		tm.placeEntryOrder(trade)
-	} else {
-		err = db.UpdateTradeStatusByID(tm.db, tradeID, "waiting_for_triggers")
-		if err != nil {
-			log.Printf("Error updating trade status: %v", err)
-		}
+	if len(triggers) == 0 || are_all_triggered {
+		tm.placeEntryOrder(trade, exchangeAPI)
 	}
 }
 
@@ -202,8 +196,8 @@ func (tm *TradeManager) processTradeUpdates() {
 	}
 }
 
-func (tm *TradeManager) placeEntryOrder(trade *model.Trade) {
-	orderID, err := tm.exchangeAPI.PlaceOrder(*trade)
+func (tm *TradeManager) placeEntryOrder(trade *model.Trade, exchangeAPI model.ExchangeAPI) {
+	orderID, err := exchangeAPI.PlaceOrder(*trade)
 	if err != nil {
 		log.Printf("TradeManager error placing entry order: %v", err)
 		return
@@ -233,13 +227,20 @@ func (tm *TradeManager) processOrderUpdates() {
 			continue
 		}
 
+		// Look up the exchange API for the trade's XchID
+		exchangeAPI, ok := tm.exchanges[targetTrade.XchID]
+		if !ok {
+			log.Printf("No exchange API found for xch_id %d", targetTrade.XchID)
+			continue
+		}
+
 		if targetTrade.EntryOrderID == update.OrderID {
 			err := db.UpdateTradeEntryStatus(tm.db, targetTrade.ID, update.Status)
 			if err != nil {
 				log.Printf("TradeManager error updating trade entry status: %v", err)
 			}
 			if update.Status == "FILLED" && targetTrade.StopOrderID == "" && targetTrade.PTOrderID == "" {
-				err = tm.exchangeAPI.PlaceBracketOrder(*targetTrade)
+				err = exchangeAPI.PlaceBracketOrder(*targetTrade)
 				if err != nil {
 					log.Printf("TradeManager error placing bracket orders: %v", err)
 				}

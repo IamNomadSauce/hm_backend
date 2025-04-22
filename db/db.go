@@ -1846,3 +1846,32 @@ func UpdateTradePTStatus(db *sql.DB, tradeID int, ptStatus string) error {
 	_, err := db.Exec(query, ptStatus, time.Now(), tradeID)
 	return err
 }
+
+func GetTradeIDsForTrigger(db *sql.DB, triggerID int) ([]int, error) {
+	query := `
+        SELECT trade_id
+        FROM trade_triggers
+        WHERE trigger_id = $1
+    `
+
+	rows, err := db.Query(query, triggerID)
+	if err != nil {
+		return nil, fmt.Errorf("error querying trade IDs for trigger %d: %w", triggerID, err)
+	}
+	defer rows.Close()
+
+	var tradeIDs []int
+	for rows.Next() {
+		var tradeID int
+		if err := rows.Scan(&tradeID); err != nil {
+			return nil, fmt.Errorf("error scanning trade ID: %w", err)
+		}
+		tradeIDs = append(tradeIDs, tradeID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating trade IDs: %w", err)
+	}
+
+	return tradeIDs, nil
+}
