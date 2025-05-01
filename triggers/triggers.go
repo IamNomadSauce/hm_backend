@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 	"sync"
+	"fmt"
 )
 
 // TriggerManager manages trigger-related operations
@@ -89,6 +90,7 @@ func GetTriggers(db *sql.DB, xchID int, status string) ([]common.Trigger, error)
 
 // ProcessCandleUpdate processes candle updates and returns triggered triggers
 func (tm *TriggerManager) ProcessCandleUpdate(product, timeframe string, candle common.Candle) []common.Trigger {
+	fmt.Printf("Process Candle Update, %s %s\n", product, timeframe)
 	tm.triggerMutex.Lock()
 	defer tm.triggerMutex.Unlock()
 
@@ -114,6 +116,7 @@ func (tm *TriggerManager) ProcessCandleUpdate(product, timeframe string, candle 
 			continue
 		}
 		if tm.checkCandleCondition(trigger, key) {
+			fmt.Printf("Candle Condition Met %+v %s", trigger, key)
 			trigger.Status = "triggered"
 			triggers[i] = trigger
 			triggered = append(triggered, trigger)
@@ -166,6 +169,7 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 
 // checkCandleCondition checks if a trigger condition is met based on candle data
 func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKey string) bool {
+	fmt.Printf("Check Candle Condition %s", historyKey)
 	history, ok := tm.candleHistory[historyKey]
 	if !ok || len(history) < trigger.CandleCount {
 		return false
