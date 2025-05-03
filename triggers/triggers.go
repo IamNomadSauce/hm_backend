@@ -181,8 +181,10 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 // checkCandleCondition checks if a trigger condition is met based on candle data
 func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKey string) bool {
 	fmt.Printf("Check Candle Condition %s\n", historyKey)
+	fmt.Printf("candleHistory %d\n", len(tm.candleHistory))
 	history, ok := tm.candleHistory[historyKey]
 	if !ok || len(history) < trigger.CandleCount {
+		fmt.Printf("ln history failure")
 		return false
 	}
 
@@ -190,29 +192,37 @@ func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKe
 
 	switch trigger.Type {
 	case "closes_above":
+		fmt.Printf("closes_above |%f|", trigger.Price)
 		for _, c := range lastNCandles {
 			if c.Close <= trigger.Price {
+				fmt.Println("_FALSE_")
 				return false
 			}
 		}
 		return true
 	case "closes_below":
+		fmt.Printf("closes_below |%f|", trigger.Price)
 		for _, c := range lastNCandles {
 			if c.Close >= trigger.Price {
+				fmt.Println("_FALSE_")
 				return false
 			}
 		}
 		return true
 	case "price_above":
+		fmt.Printf("price_above |%f|", trigger.Price)
 		for _, c := range lastNCandles {
 			if c.High <= trigger.Price {
+				fmt.Println("_FALSE_")
 				return false
 			}
 		}
 		return true
 	case "price_below":
+		fmt.Printf("price_below |%f|", trigger.Price)
 		for _, c := range lastNCandles {
 			if c.Low >= trigger.Price {
+				fmt.Println("_FALSE_")
 				return false
 			}
 		}
