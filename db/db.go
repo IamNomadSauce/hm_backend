@@ -696,7 +696,8 @@ func Get_Exchange(id int, db *sql.DB) (model.Exchange, error) {
 	fmt.Printf("\n------------------------------\n%s Active Triggers: %d\n", exchange.Name, len(exchange.Triggers))
 	fmt.Printf("%s", time.Now())
 	fmt.Printf("\n------------------------------\n")
-	for _, trigger := range exchange.Triggers {
+	for i, trigger := range exchange.Triggers {
+		fmt.Printf("Trigger: %d\n", i)
 		fmt.Printf("%s\n", trigger.ProductID)
 		fmt.Printf("%s ", trigger.Type)
 		fmt.Printf("%f\n", trigger.Price)

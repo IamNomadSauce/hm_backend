@@ -82,7 +82,7 @@ func (sse *SSEManager) handleCandleUpdates() {
 			// log.Printf("Invalid table name: %s", candle.ProductID)
 			continue
 		}
-		product := parts[0] + "_" + parts[1]
+		product := strings.ToUpper(parts[0] + "-" + parts[1])
 		timeframe := parts[2]
 
 		if triggeredTriggers := sse.triggerManager.ProcessCandleUpdate(product, timeframe, candle); len(triggeredTriggers) > 0 {

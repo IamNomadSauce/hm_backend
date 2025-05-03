@@ -90,7 +90,7 @@ func GetTriggers(db *sql.DB, xchID int, status string) ([]common.Trigger, error)
 
 // ProcessCandleUpdate processes candle updates and returns triggered triggers
 func (tm *TriggerManager) ProcessCandleUpdate(product, timeframe string, candle common.Candle) []common.Trigger {
-	fmt.Printf("Process Candle Update, %s %s\n", product, timeframe)
+	//fmt.Printf("Process Candle Update, %s %s\n", product, timeframe)
 	tm.triggerMutex.Lock()
 	defer tm.triggerMutex.Unlock()
 
@@ -106,15 +106,26 @@ func (tm *TriggerManager) ProcessCandleUpdate(product, timeframe string, candle 
 	}
 
 	var triggered []common.Trigger
+	//for i, trigger := range tm.triggers {
+	//	fmt.Printf("_trigger_ %s |%s|\n%+v\n", i, product, trigger)
+	//}
 	triggers, exists := tm.triggers[product]
 	if !exists {
 		return triggered
 	}
 
 	for i, trigger := range triggers {
-		if trigger.Timeframe != timeframe || trigger.Status != "active" {
+		//fmt.Printf("TRIGGER: %d %v\n", i, trigger)
+		if trigger.Timeframe == "" {
+			trigger.Timeframe = "any"
+		}
+		if (trigger.Timeframe != timeframe && trigger.Timeframe != "any") || trigger.Status != "active" {
+			//log.Printf("Trigger Failed |%s| %s\n", trigger.Timeframe, product )
 			continue
 		}
+
+
+		fmt.Printf("Checking Trigger: %d %v\n", i, trigger)
 		if tm.checkCandleCondition(trigger, key) {
 			fmt.Printf("Candle Condition Met %+v %s", trigger, key)
 			trigger.Status = "triggered"
@@ -169,7 +180,7 @@ func (tm *TriggerManager) ProcessPriceUpdate(productID string, price float64) []
 
 // checkCandleCondition checks if a trigger condition is met based on candle data
 func (tm *TriggerManager) checkCandleCondition(trigger common.Trigger, historyKey string) bool {
-	fmt.Printf("Check Candle Condition %s", historyKey)
+	fmt.Printf("Check Candle Condition %s\n", historyKey)
 	history, ok := tm.candleHistory[historyKey]
 	if !ok || len(history) < trigger.CandleCount {
 		return false
