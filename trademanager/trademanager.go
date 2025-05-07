@@ -6,6 +6,7 @@ import (
 	"backend/model"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -49,9 +50,16 @@ func NewTradeManager(db *sql.DB, exchanges map[int]model.ExchangeAPI) *TradeMana
 }
 
 func (tm *TradeManager) Initialize() error {
+	fmt.Println("TradeManager Initialize")
 	trades, err := db.GetIncompleteTrades(tm.db)
 	if err != nil {
 		return err
+	}
+	fmt.Printf("Incomplete Trades |%d|\n", len(trades))
+
+	for _, trade := range trades {
+		fmt.Printf("\n---------------\n%s|%s|%f|%f|%f|\n", trade.GroupID, trade.ProductID, trade.StopPrice, trade.EntryPrice, trade.PTPrice)
+		fmt.Printf("%s|%s|%s|%s|%s|\n", trade.GroupID, trade.ProductID, trade.StopStatus, trade.EntryStatus, trade.PTStatus)
 	}
 
 	tm.tradesMutex.Lock()
