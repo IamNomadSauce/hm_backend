@@ -50,10 +50,10 @@ func NewTradeManager(db *sql.DB, exchanges map[int]model.ExchangeAPI) *TradeMana
 }
 
 func (tm *TradeManager) Initialize() error {
-	fmt.Println("TradeManager Initialize")
+	fmt.Println("\n-------------------------------------\nTradeManager Initialize\n-------------------------------------\n")
 	trades, err := db.GetIncompleteTrades(tm.db)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get incomplete trades: %w", err)
 	}
 	fmt.Printf("Incomplete Trades |%d|\n", len(trades))
 
@@ -63,8 +63,28 @@ func (tm *TradeManager) Initialize() error {
 	}
 
 	tm.tradesMutex.Lock()
-	for _, trade := range trades {
-		tm.trades[trade.ID] = &trade
+	for i := range trades {
+		fmt.Printf("TRADE: %d\n", i)
+		trade := &trades[i]
+		tm.trades[trade.ID] = trade
+
+		if trade.EntryOrderID == "" && trade.EntryStatus != "FILLED" {
+			fmt.Println("Checking Conditions")
+			allTriggered, err := db.AreAllTriggersTriggered(tm.db, trade.ID)
+			if err != nil {
+				fmt.Println("Error checking triggers for trade %d: %v", trade.ID, err)
+				continue
+			}
+			fmt.Println("Are all conditions met?", allTriggered)
+			if allTriggered {
+				exchangeAPI, ok := tm.exchanges[trade.XchID]
+				if !ok {
+					fmt.Println("No exchange API for xch_id ", trade.XchID)
+					continue
+				}
+				tm.placeEntryOrder(trade, exchangeAPI)
+			}
+		}
 	}
 	tm.tradesMutex.Unlock()
 
@@ -116,7 +136,7 @@ func (tm *TradeManager) ListenForDBChanges(dsn string, channel string) {
 		case "trades":
 			var trade model.Trade
 			if err := json.Unmarshal(payload.Data, &trade); err != nil {
-				log.Printf("TradeManager error parsing trade data: %v", err)
+				log.Printf("TradeManager error parsing trade data:\n%+v\n %v", payload.Data, err)
 				continue
 			}
 			tm.tradeUpdates <- TradeUpdate{
@@ -156,6 +176,7 @@ func (tm *TradeManager) handleTriggerUpdate(trigger common.Trigger) {
 }
 
 func (tm *TradeManager) checkAndExecuteTrade(tradeID int) {
+	fmt.Println("Check and Execute Trade", tradeID)
 	tm.tradesMutex.RLock()
 	trade, exists := tm.trades[tradeID]
 	tm.tradesMutex.RUnlock()
@@ -205,6 +226,7 @@ func (tm *TradeManager) processTradeUpdates() {
 }
 
 func (tm *TradeManager) placeEntryOrder(trade *model.Trade, exchangeAPI model.ExchangeAPI) {
+	fmt.Println("Place Entry Order\n========\n")
 	orderID, err := exchangeAPI.PlaceOrder(*trade)
 	if err != nil {
 		log.Printf("TradeManager error placing entry order: %v", err)
@@ -220,6 +242,7 @@ func (tm *TradeManager) placeEntryOrder(trade *model.Trade, exchangeAPI model.Ex
 }
 
 func (tm *TradeManager) processOrderUpdates() {
+	fmt.Println("Process Order Updates")
 	for update := range tm.orderUpdates {
 		tm.tradesMutex.RLock()
 		var targetTrade *model.Trade

@@ -1589,11 +1589,11 @@ func GetTriggersForTrade(db *sql.DB, tradeID int) ([]common.Trigger, error) {
 
 func AreAllTriggersTriggered(db *sql.DB, tradeID int) (bool, error) {
 	query := `
-		SELECT COUNT(*)
-		FROM trade_triggers tt
-		JOIN triggers t ON tt.trigger_id = t.id
-		WHERE tt.trade_id = $1 AND t.status != 'triggered
-	`
+        SELECT COUNT(*)
+        FROM trade_triggers tt
+        JOIN triggers t ON tt.trigger_id = t.id
+        WHERE tt.trade_id = $1 AND t.status != 'triggered'
+    `
 
 	var count int
 	err := db.QueryRow(query, tradeID).Scan(&count)
